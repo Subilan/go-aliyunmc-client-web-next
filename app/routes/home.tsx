@@ -199,9 +199,12 @@ export default function Home() {
 	const idleRemainingSecs = useStateNamed(-1);
 	const accountBalance = useStateNamed(0);
 	const chartData = useStateNamed<ChartPoint[]>([]);
+	const [refreshing, setRefreshing] = useState(false);
 
 	async function fetchAll() {
-		const [instRes, candRes, tasksRes, srvRes, instStatusRes, balRes, chartRes, idleRes] =
+		setRefreshing(true);
+		try {
+			const [instRes, candRes, tasksRes, srvRes, instStatusRes, balRes, chartRes, idleRes] =
 			await Promise.all([
 				getActiveInstance(),
 				getCandidates(),
@@ -238,6 +241,9 @@ export default function Home() {
 			);
 		}
 		if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
+		} finally {
+			setRefreshing(false);
+		}
 	}
 
 	useEffect(() => {
@@ -306,11 +312,15 @@ export default function Home() {
 					<Tooltip title="刷新状态">
 						<IconButton
 							size="small"
+							disabled={refreshing}
 							onClick={() => {
 								fetchAll();
 							}}
 						>
-							<RefreshCwIcon size={16} />
+							<RefreshCwIcon
+								size={16}
+								className={refreshing ? 'animate-spin' : ''}
+							/>
 						</IconButton>
 					</Tooltip>
 				</div>

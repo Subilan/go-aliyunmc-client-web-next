@@ -8,8 +8,8 @@
 		'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-:root, input, button, .MuiTypography-root, .MuiFormHelperText-root {
-	font-family: var(--font-sans) !important;
+:root  {
+	font-family: var(--font-sans);
 }
 
 @keyframes FadeIn {

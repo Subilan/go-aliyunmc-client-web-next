@@ -10,20 +10,8 @@ import {
 import type { Route } from './+types/root';
 import './app.css';
 import toast, { Toaster } from 'react-hot-toast';
-import { SnackbarContent } from '@mui/material';
+import { createTheme, SnackbarContent, ThemeProvider } from '@mui/material';
 import { AlertCircleIcon, CheckIcon, InfoIcon } from 'lucide-react';
-export const links: Route.LinksFunction = () => [
-	{ rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-	{
-		rel: 'preconnect',
-		href: 'https://fonts.gstatic.com',
-		crossOrigin: 'anonymous'
-	},
-	{
-		rel: 'stylesheet',
-		href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap'
-	}
-];
 
 export const Toast = {
 	run(title: string, desc?: string, kind: 'success' | 'error' | 'info' = 'info', timeout = 3000) {
@@ -72,7 +60,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<Links />
 			</head>
 			<body>
-				{children}
+				<ThemeProvider theme={createTheme({
+					shape: {
+						borderRadius: 10
+					},
+					typography: {
+						fontFamily: 'var(--font-sans)',
+					},
+					palette: {
+						primary: {
+							main: '#1e88e5',
+							light: '#2979ff',
+							dark: '#1565c0',
+							contrastText: '#fff'
+						}
+					}
+				})}>{children}</ThemeProvider>
 				<ScrollRestoration />
 				<Scripts />
 				<Toaster position="top-center" />

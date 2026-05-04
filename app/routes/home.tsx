@@ -7,6 +7,11 @@ import {
 	Card,
 	CardContent,
 	Chip,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	DialogTitle,
 	IconButton,
 	Paper,
 	Table,
@@ -19,7 +24,6 @@ import {
 } from '@mui/material';
 import {
 	ArchiveIcon,
-	ArrowLeftRightIcon,
 	CheckCircleIcon,
 	ClockIcon,
 	CpuIcon,
@@ -29,14 +33,11 @@ import {
 	InfoIcon,
 	Loader2Icon,
 	PlayIcon,
-	PlusIcon,
 	RefreshCwIcon,
 	RocketIcon,
 	ServerIcon,
 	SquareIcon,
 	Trash2Icon,
-	UsersIcon,
-	WifiIcon,
 	XCircleIcon,
 	type LucideIcon
 } from 'lucide-react';
@@ -47,7 +48,8 @@ import type { EcsCandidate } from '~/types/EcsCandidate';
 import type { Task } from '~/types/Task';
 import PlayerCountChart from '~/components/player-count-chart';
 import type { ChartPoint } from '~/components/player-count-chart';
-import { getActiveInstance, getCandidates } from '~/utils/requests/instance';
+import CreateInstanceDialog from '~/components/create-instance-dialog';
+import { getActiveInstance, getCandidates, deleteActiveInstance } from '~/utils/requests/instance';
 import { getServerStatus, getInstanceStatus } from '~/utils/requests/state';
 import {
 	getTasks,
@@ -55,6 +57,7 @@ import {
 	getPlayerCountHistory,
 	getIdleRemainingSecs
 } from '~/utils/requests/home';
+import { useTaskSSE } from '~/hooks/useTaskSSE';
 
 // ---------- helpers ----------
 
@@ -201,46 +204,76 @@ export default function Home() {
 	const chartData = useStateNamed<ChartPoint[]>([]);
 	const [refreshing, setRefreshing] = useState(false);
 
+	// Create instance dialog
+	const [dialogOpen, setDialogOpen] = useState(false);
+	const [createTaskId, setCreateTaskId] = useState<number | null>(null);
+	const [deployTaskId, setDeployTaskId] = useState<number | null>(null);
+	const [taskRunning, setTaskRunning] = useState(false);
+
+	// SSE for live task output in the instance status card
+	const createSSE = useTaskSSE(createTaskId);
+	const deploySSE = useTaskSSE(deployTaskId);
+	const activeOutputs = deployTaskId ? deploySSE.outputs : createSSE.outputs;
+	const latestOutput =
+		activeOutputs.length > 0 ? activeOutputs[activeOutputs.length - 1].output : null;
+
+	// Delete instance dialog
+	const [deleteOpen, setDeleteOpen] = useState(false);
+	const [deleting, setDeleting] = useState(false);
+
 	async function fetchAll() {
 		setRefreshing(true);
 		try {
 			const [instRes, candRes, tasksRes, srvRes, instStatusRes, balRes, chartRes, idleRes] =
-			await Promise.all([
-				getActiveInstance(),
-				getCandidates(),
-				getTasks({ limit: 5 }),
-				getServerStatus(),
-				getInstanceStatus(),
-				getBalance(),
-				getPlayerCountHistory(),
-				getIdleRemainingSecs()
-			]);
+				await Promise.all([
+					getActiveInstance(),
+					getCandidates(),
+					getTasks({ limit: 5 }),
+					getServerStatus(),
+					getInstanceStatus(),
+					getBalance(),
+					getPlayerCountHistory(),
+					getIdleRemainingSecs()
+				]);
 
-		if (instRes.error === null) {
-			setInstance(instRes.data);
-		} else {
-			instanceNotFound.set(true);
-		}
-		if (candRes.error === null) setCandidates(candRes.data!);
-		if (tasksRes.error === null) setTasks(tasksRes.data!.tasks);
-		if (srvRes.error === null) {
-			serverOnline.set(srvRes.data!.Value.online);
-			playerCount.set(srvRes.data!.Value.playerCount);
-		}
-		if (instStatusRes.error === null) instanceStatus.set(instStatusRes.data!.Value);
-		if (balRes.error === null) accountBalance.set(balRes.data!);
-		if (chartRes.error === null) {
-			chartData.set(
-				chartRes.data!.map(p => ({
-					time: new Date(p.time).toLocaleTimeString('zh-CN', {
-						hour: '2-digit',
-						minute: '2-digit'
-					}),
-					count: p.playerCount
-				}))
-			);
-		}
-		if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
+			if (instRes.error === null) {
+				setInstance(instRes.data);
+			} else {
+				instanceNotFound.set(true);
+			}
+			if (candRes.error === null) setCandidates(candRes.data!);
+			if (tasksRes.error === null) {
+				setTasks(tasksRes.data!.tasks);
+				const runningCreate = tasksRes.data!.tasks.find(
+					t => t.type === 'create_instance' && t.status === 'running'
+				);
+				const runningDeploy = tasksRes.data!.tasks.find(
+					t => t.type === 'deploy' && t.status === 'running'
+				);
+				if (runningCreate || runningDeploy) {
+					setCreateTaskId(runningCreate?.ID ?? null);
+					setDeployTaskId(runningDeploy?.ID ?? null);
+					setTaskRunning(true);
+				}
+			}
+			if (srvRes.error === null) {
+				serverOnline.set(srvRes.data!.Value.online);
+				playerCount.set(srvRes.data!.Value.playerCount);
+			}
+			if (instStatusRes.error === null) instanceStatus.set(instStatusRes.data!.Value);
+			if (balRes.error === null) accountBalance.set(balRes.data!);
+			if (chartRes.error === null) {
+				chartData.set(
+					chartRes.data!.map(p => ({
+						time: new Date(p.time).toLocaleTimeString('zh-CN', {
+							hour: '2-digit',
+							minute: '2-digit'
+						}),
+						count: p.playerCount
+					}))
+				);
+			}
+			if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
 		} finally {
 			setRefreshing(false);
 		}
@@ -258,8 +291,33 @@ export default function Home() {
 	const canBackup = isDeployed && serverOnline.current;
 
 	const handleAction = (name: string) => {
+		if (name === '创建实例') {
+			if (!taskRunning) {
+				setCreateTaskId(null);
+				setDeployTaskId(null);
+			}
+			setDialogOpen(true);
+			return;
+		}
+		if (name === '删除实例') {
+			setDeleteOpen(true);
+			return;
+		}
 		Toast.info(`${name} — 功能开发中`);
 	};
+
+	async function handleDelete() {
+		setDeleting(true);
+		const ok = await deleteActiveInstance();
+		if (ok) {
+			Toast.success('实例已删除');
+		} else {
+			Toast.error('删除实例失败');
+		}
+		setDeleting(false);
+		setDeleteOpen(false);
+		fetchAll();
+	}
 
 	const serverActions: FuncListItem[] = [
 		{
@@ -317,10 +375,7 @@ export default function Home() {
 								fetchAll();
 							}}
 						>
-							<RefreshCwIcon
-								size={16}
-								className={refreshing ? 'animate-spin' : ''}
-							/>
+							<RefreshCwIcon size={16} className={refreshing ? 'animate-spin' : ''} />
 						</IconButton>
 					</Tooltip>
 				</div>
@@ -385,7 +440,26 @@ export default function Home() {
 								</>
 							)}
 						</div>
-						{instanceNotFound.current ? (
+						{taskRunning ? (
+							<div className="flex flex-col items-center gap-3 py-8">
+								<Loader2Icon size={40} className="text-gray-300 animate-spin" />
+								<span className="text-gray-500">
+									{deployTaskId ? '实例部署中' : '实例创建中'}
+								</span>
+								{latestOutput && (
+									<span className="text-xs text-gray-400 font-mono max-w-md text-center truncate px-4">
+										{latestOutput}
+									</span>
+								)}
+								<Button
+									size="small"
+									variant="contained"
+									onClick={() => setDialogOpen(true)}
+								>
+									查看进度
+								</Button>
+							</div>
+						) : instanceNotFound.current ? (
 							<div className="flex flex-col items-center gap-3 py-8">
 								<HardDriveIcon size={40} className="text-gray-300" />
 								<span className="text-gray-500">尚未创建实例</span>
@@ -413,7 +487,7 @@ export default function Home() {
 									</div>
 								</div>
 								<div className="flex-1" />
-								<div className="md:w-1/2 flex justify-around gap-8">
+								<div className="md:w-1/2 grow justify-around flex gap-8">
 									<div className="flex flex-col">
 										<span className="text-xs text-gray-400 mb-1">规格</span>
 										<span className="text-xl font-bold">
@@ -521,11 +595,7 @@ export default function Home() {
 													label={taskStatusLabel(task.status)}
 													color={taskStatusColor(task.status)}
 													size="small"
-													variant={
-														task.status === 'running'
-															? 'filled'
-															: 'outlined'
-													}
+													variant="outlined"
 												/>
 											</TableCell>
 											<TableCell
@@ -566,6 +636,41 @@ export default function Home() {
 					</CardContent>
 				</Card>
 			</div>
+
+			<Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} maxWidth="xs" fullWidth>
+				<DialogTitle>删除实例</DialogTitle>
+				<DialogContent>
+					<DialogContentText>
+						此操作将直接删除当前实例，不进行任何检查和备份。
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setDeleteOpen(false)} disabled={deleting}>
+						取消
+					</Button>
+					<Button
+						variant="contained"
+						color="error"
+						onClick={handleDelete}
+						disabled={deleting}
+					>
+						{deleting ? '删除中...' : '删除'}
+					</Button>
+				</DialogActions>
+			</Dialog>
+
+			<CreateInstanceDialog
+				open={dialogOpen}
+				onClose={() => setDialogOpen(false)}
+				bestCandidate={candidates[0] ?? null}
+				onCreated={() => fetchAll()}
+				onTaskChange={() => fetchAll()}
+				createTaskId={createTaskId}
+				onCreateTaskIdChange={setCreateTaskId}
+				deployTaskId={deployTaskId}
+				onDeployTaskIdChange={setDeployTaskId}
+				onRunningChange={setTaskRunning}
+			/>
 		</>
 	);
 }

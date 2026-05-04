@@ -49,7 +49,12 @@ import PlayerCountChart from '~/components/player-count-chart';
 import type { ChartPoint } from '~/components/player-count-chart';
 import { getActiveInstance, getCandidates } from '~/utils/requests/instance';
 import { getServerStatus, getInstanceStatus } from '~/utils/requests/state';
-import { getTasks, getBalance, getPlayerCountHistory, getIdleRemainingSecs } from '~/utils/requests/home';
+import {
+	getTasks,
+	getBalance,
+	getPlayerCountHistory,
+	getIdleRemainingSecs
+} from '~/utils/requests/home';
 
 // ---------- helpers ----------
 
@@ -195,18 +200,9 @@ export default function Home() {
 	const accountBalance = useStateNamed(0);
 	const chartData = useStateNamed<ChartPoint[]>([]);
 
-	useEffect(() => {
-		async function fetchAll() {
-			const [
-				instRes,
-				candRes,
-				tasksRes,
-				srvRes,
-				instStatusRes,
-				balRes,
-				chartRes,
-				idleRes
-			] = await Promise.all([
+	async function fetchAll() {
+		const [instRes, candRes, tasksRes, srvRes, instStatusRes, balRes, chartRes, idleRes] =
+			await Promise.all([
 				getActiveInstance(),
 				getCandidates(),
 				getTasks({ limit: 5 }),
@@ -217,32 +213,34 @@ export default function Home() {
 				getIdleRemainingSecs()
 			]);
 
-			if (instRes.error === null) {
-				setInstance(instRes.data);
-			} else {
-				instanceNotFound.set(true);
-			}
-			if (candRes.error === null) setCandidates(candRes.data!);
-			if (tasksRes.error === null) setTasks(tasksRes.data!.tasks);
-			if (srvRes.error === null) {
-				serverOnline.set(srvRes.data!.Value.online);
-				playerCount.set(srvRes.data!.Value.playerCount);
-			}
-			if (instStatusRes.error === null) instanceStatus.set(instStatusRes.data!.Value);
-			if (balRes.error === null) accountBalance.set(balRes.data!);
-			if (chartRes.error === null) {
-				chartData.set(
-					chartRes.data!.map(p => ({
-						time: new Date(p.time).toLocaleTimeString('zh-CN', {
-							hour: '2-digit',
-							minute: '2-digit'
-						}),
-						count: p.playerCount
-					}))
-				);
-			}
-			if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
+		if (instRes.error === null) {
+			setInstance(instRes.data);
+		} else {
+			instanceNotFound.set(true);
 		}
+		if (candRes.error === null) setCandidates(candRes.data!);
+		if (tasksRes.error === null) setTasks(tasksRes.data!.tasks);
+		if (srvRes.error === null) {
+			serverOnline.set(srvRes.data!.Value.online);
+			playerCount.set(srvRes.data!.Value.playerCount);
+		}
+		if (instStatusRes.error === null) instanceStatus.set(instStatusRes.data!.Value);
+		if (balRes.error === null) accountBalance.set(balRes.data!);
+		if (chartRes.error === null) {
+			chartData.set(
+				chartRes.data!.map(p => ({
+					time: new Date(p.time).toLocaleTimeString('zh-CN', {
+						hour: '2-digit',
+						minute: '2-digit'
+					}),
+					count: p.playerCount
+				}))
+			);
+		}
+		if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
+	}
+
+	useEffect(() => {
 		fetchAll();
 	}, []);
 
@@ -309,7 +307,7 @@ export default function Home() {
 						<IconButton
 							size="small"
 							onClick={() => {
-								window.location.reload();
+								fetchAll();
 							}}
 						>
 							<RefreshCwIcon size={16} />
@@ -343,7 +341,9 @@ export default function Home() {
 											{serverOnline.current ? '在线' : '离线'}
 										</span>
 										{serverOnline.current && (
-											<span className="text-xl">{playerCount.current}/20</span>
+											<span className="text-xl">
+												{playerCount.current}/20
+											</span>
 										)}
 									</div>
 									<div className="flex-1" />
@@ -439,18 +439,18 @@ export default function Home() {
 							<Table size="small">
 								<TableHead>
 									<TableRow>
-										<TableCell>实例规格</TableCell>
-										<TableCell align="right">vCPU</TableCell>
-										<TableCell align="right">内存 (GiB)</TableCell>
-										<TableCell>可用区</TableCell>
-										<TableCell align="right">价格 (元/小时)</TableCell>
+										<TableCell align="center">实例规格</TableCell>
+										<TableCell align="center">vCPU</TableCell>
+										<TableCell align="center">内存 (GiB)</TableCell>
+										<TableCell align="center">可用区</TableCell>
+										<TableCell align="center">价格 (元/小时)</TableCell>
 									</TableRow>
 								</TableHead>
 								<TableBody>
 									{candidates.slice(0, 5).map((c, i) => (
 										<TableRow key={i} hover>
-											<TableCell>
-												<div className="flex items-center gap-2">
+											<TableCell align="center">
+												<div className="flex justify-center items-center gap-2">
 													<code className="text-xs bg-gray-100 px-1 py-0.5 rounded">
 														{c.instanceType}
 													</code>
@@ -463,10 +463,10 @@ export default function Home() {
 													)}
 												</div>
 											</TableCell>
-											<TableCell align="right">{c.cpuCoreCount}</TableCell>
-											<TableCell align="right">{c.memory}</TableCell>
-											<TableCell>{c.zoneId}</TableCell>
-											<TableCell align="right">
+											<TableCell align="center">{c.cpuCoreCount}</TableCell>
+											<TableCell align="center">{c.memory}</TableCell>
+											<TableCell align="center">{c.zoneId}</TableCell>
+											<TableCell align="center">
 												¥{c.tradePrice.toFixed(2)}
 											</TableCell>
 										</TableRow>
@@ -475,11 +475,7 @@ export default function Home() {
 							</Table>
 						</TableContainer>
 						<div className="mt-2 text-right">
-							<Button
-								size="small"
-								component={Link}
-								to="/info/ecs-candidates"
-							>
+							<Button size="small" component={Link} to="/info/ecs-candidates">
 								查看全部
 							</Button>
 						</div>
@@ -497,17 +493,19 @@ export default function Home() {
 							<Table size="small">
 								<TableHead>
 									<TableRow>
-										<TableCell>类型</TableCell>
-										<TableCell>状态</TableCell>
-										<TableCell>时间</TableCell>
-										<TableCell>备注</TableCell>
+										<TableCell align="center">类型</TableCell>
+										<TableCell align="center">状态</TableCell>
+										<TableCell align="center">时间</TableCell>
+										<TableCell align="center">备注</TableCell>
 									</TableRow>
 								</TableHead>
 								<TableBody>
 									{tasks.slice(0, 5).map(task => (
 										<TableRow key={task.ID} hover>
-											<TableCell>{taskTypeLabel(task.type)}</TableCell>
-											<TableCell>
+											<TableCell align="center">
+												{taskTypeLabel(task.type)}
+											</TableCell>
+											<TableCell align="center">
 												<Chip
 													icon={taskStatusIcon(task.status)}
 													label={taskStatusLabel(task.status)}
@@ -520,7 +518,10 @@ export default function Home() {
 													}
 												/>
 											</TableCell>
-											<TableCell className="text-gray-500 text-sm">
+											<TableCell
+												align="center"
+												className="text-gray-500 text-sm"
+											>
 												{new Date(task.CreatedAt).toLocaleString('zh-CN', {
 													month: '2-digit',
 													day: '2-digit',
@@ -528,7 +529,10 @@ export default function Home() {
 													minute: '2-digit'
 												})}
 											</TableCell>
-											<TableCell className="text-gray-500 text-sm">
+											<TableCell
+												align="center"
+												className="text-gray-500 text-sm"
+											>
 												{task.error ? (
 													<Tooltip title={task.error}>
 														<span className="text-red-500 cursor-help">
@@ -545,11 +549,7 @@ export default function Home() {
 							</Table>
 						</TableContainer>
 						<div className="mt-2 text-right">
-							<Button
-								size="small"
-								component={Link}
-								to="/info/tasks"
-							>
+							<Button size="small" component={Link} to="/info/tasks">
 								查看全部
 							</Button>
 						</div>

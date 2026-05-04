@@ -9,10 +9,9 @@ import {
 
 import type { Route } from './+types/root';
 import './app.css';
-import './app.scss';
 import toast, { Toaster } from 'react-hot-toast';
-import { ToastNotification } from '@carbon/react';
-
+import { SnackbarContent } from '@mui/material';
+import { AlertCircleIcon, CheckIcon, InfoIcon } from 'lucide-react';
 export const links: Route.LinksFunction = () => [
 	{ rel: 'preconnect', href: 'https://fonts.googleapis.com' },
 	{
@@ -31,24 +30,24 @@ export const Toast = {
 		toast.custom(
 			t => {
 				return (
-					<ToastNotification
-						caption={desc}
-						kind={kind}
-						onClose={() => toast.dismiss(t.id)}
-						role="status"
-						statusIconDescription="notification"
-						timeout={0}
-						title={title}
-            lowContrast
-            style={{
-              animation: t.visible ? 'FadeIn .2s ease' : 'FadeOut .2s ease forwards'
-            }}
+					<SnackbarContent
+						style={{
+							animation: t.visible ? 'FadeIn .2s' : 'FadeOut .2s ease forwards'
+						}}
+						message={
+							<div className="flex items-center gap-2">
+								{kind === 'error' && <AlertCircleIcon size={16} />}
+								{kind === 'success' && <CheckIcon size={16} />}
+								{kind === 'info' && <InfoIcon size={16} />}
+								{title}
+							</div>
+						}
 					/>
 				);
 			},
 			{
 				duration: timeout,
-        removeDelay: 200
+				removeDelay: 200
 			}
 		);
 	},

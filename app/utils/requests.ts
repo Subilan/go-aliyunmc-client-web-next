@@ -6,10 +6,15 @@ async function req<T = any>(
 ): Promise<{ data: null; error: string } | { data: T; error: null }> {
 	const result = await fetch(BASE_URL + url, {
 		...options,
-		credentials: 'include',
+		credentials: 'include'
 	});
 
-	const json = await result.json();
+	let json;
+	try {
+		json = await result.json();
+	} catch (e) {
+		return { data: null, error: 'unknown' };
+	}
 
 	return result.status !== 200
 		? {
@@ -45,8 +50,8 @@ export function get<T = any>(url: string, params?: Record<string, string | numbe
 
 /**
  * 向url发送一个请求体为body的POST请求。请求体类型固定为JSON
- * @param url 
- * @param body 
+ * @param url
+ * @param body
  * @returns 响应
  */
 export function post<T = any>(url: string, body: Record<string, any>) {
@@ -61,7 +66,7 @@ export function post<T = any>(url: string, body: Record<string, any>) {
 
 /**
  * 向url发送一个DELETE请求
- * @param url 
+ * @param url
  * @returns 是否成功
  */
 export async function del(url: string) {

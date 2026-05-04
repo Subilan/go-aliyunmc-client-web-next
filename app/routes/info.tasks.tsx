@@ -219,7 +219,7 @@ const columns: Column<Task>[] = [
 		id: 'by',
 		label: '创建者',
 		align: 'center',
-		render: t => t.user?.username ?? (t.by ? String(t.by) : '—')
+		render: t => t.user?.username ?? (t.by ? String(t.by) : 'sys')
 	}
 ];
 

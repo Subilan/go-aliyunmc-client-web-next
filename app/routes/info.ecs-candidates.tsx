@@ -13,11 +13,23 @@ import type { EcsCandidate } from '~/types/EcsCandidate';
 import { getCandidates } from '~/utils/requests/instance';
 
 const columns = [
-	{ id: 'instanceType', label: '实例规格', render: (c: EcsCandidate) => c.instanceType },
-	{ id: 'cpuCoreCount', label: 'vCPU', render: (c: EcsCandidate) => c.cpuCoreCount, align: 'right' as const },
-	{ id: 'memory', label: '内存 (GiB)', render: (c: EcsCandidate) => c.memory, align: 'right' as const },
+	{
+		id: 'instanceType',
+		label: '实例规格',
+		render: (c: EcsCandidate) => c.instanceType
+	},
+	{
+		id: 'cpuCoreCount',
+		label: 'vCPU',
+		render: (c: EcsCandidate) => c.cpuCoreCount
+	},
+	{ id: 'memory', label: '内存 (GiB)', render: (c: EcsCandidate) => c.memory },
 	{ id: 'zoneId', label: '可用区', render: (c: EcsCandidate) => c.zoneId },
-	{ id: 'tradePrice', label: '价格 (元/小时)', render: (c: EcsCandidate) => `¥${c.tradePrice.toFixed(2)}`, align: 'right' as const }
+	{
+		id: 'tradePrice',
+		label: '价格 (元/小时)',
+		render: (c: EcsCandidate) => `¥${c.tradePrice.toFixed(2)}`
+	}
 ];
 
 export default function EcsCandidatesPage() {
@@ -36,7 +48,7 @@ export default function EcsCandidatesPage() {
 					<TableHead>
 						<TableRow>
 							{columns.map(col => (
-								<TableCell key={col.id} align={col.align ?? 'left'}>
+								<TableCell key={col.id} align="center">
 									{col.label}
 								</TableCell>
 							))}
@@ -45,8 +57,8 @@ export default function EcsCandidatesPage() {
 					<TableBody>
 						{candidates.map((c, i) => (
 							<TableRow key={i} hover>
-								<TableCell>
-									<div className="flex items-center gap-2">
+								<TableCell align="center">
+									<div className="flex justify-center items-center gap-2">
 										<code className="text-xs bg-gray-100 px-1 py-0.5 rounded">
 											{c.instanceType}
 										</code>
@@ -55,10 +67,10 @@ export default function EcsCandidatesPage() {
 										)}
 									</div>
 								</TableCell>
-								<TableCell align="right">{c.cpuCoreCount}</TableCell>
-								<TableCell align="right">{c.memory}</TableCell>
-								<TableCell>{c.zoneId}</TableCell>
-								<TableCell align="right">¥{c.tradePrice.toFixed(2)}</TableCell>
+								<TableCell align="center">{c.cpuCoreCount}</TableCell>
+								<TableCell align="center">{c.memory}</TableCell>
+								<TableCell align="center">{c.zoneId}</TableCell>
+								<TableCell align="center">¥{c.tradePrice.toFixed(2)}</TableCell>
 							</TableRow>
 						))}
 					</TableBody>

@@ -1,21 +1,23 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 @import './styles/fonts/google-sans.css';
+@import './styles/fonts/google-sans-code.css';
 
 @theme {
 	--font-sans:
-		'Google Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-		'Segoe UI Symbol', 'Noto Color Emoji';
+		'Google Sans', ui-sans-serif, system-ui, 'PingFang SC', '微软雅黑', 'Microsoft Yahei',
+		sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+	--font-mono: 'Google Sans Code', Menlo, Consolas, monospace;
 }
 
-:root  {
+:root {
 	font-family: var(--font-sans);
 }
 
 @keyframes FadeIn {
 	0% {
 		opacity: 0;
-		transform: translateY(-10px)
+		transform: translateY(-10px);
 	}
 
 	100% {
@@ -30,6 +32,6 @@
 
 	100% {
 		opacity: 0;
-		transform: translateY(-10px)
+		transform: translateY(-10px);
 	}
 }

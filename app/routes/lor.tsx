@@ -7,33 +7,24 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
-	FormControl,
 	FormControlLabel,
-	FormHelperText,
-	Grow,
 	IconButton,
-	Input,
-	InputLabel,
-	Modal,
-	Slide,
-	Tooltip,
-	Typography
+	Tooltip
 } from '@mui/material';
 import {
-	BarChart2Icon,
-	BarChartIcon,
 	ChartBarBigIcon,
 	CogIcon,
 	HelpCircleIcon,
-	MessagesSquare,
 	MessagesSquareIcon,
 	type LucideIcon
 } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { redirect, useNavigate } from 'react-router';
 import { Form } from '~/components/form/Form';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
+import { Auth } from '~/utils/auth';
 import { Req } from '~/utils/requests/Req';
 
 export interface LoginPayload {
@@ -52,15 +43,18 @@ function LoginForm({ setRegister }: { setRegister: () => void }) {
 	const { control, handleSubmit } = useForm<LoginPayload>();
 
 	const loading = useStateNamed(false);
+	const navigate = useNavigate();
 
 	const onSubmit = async (data: LoginPayload) => {
 		loading.set(true);
-		const ok = await Req.login(data.username, data.password);
+		const { error } = await Req.login(data.username, data.password, data.remember);
 		loading.set(false);
-		if (ok) {
+		if (error === null) {
+			Auth.clearCache();
 			Toast.success('登录成功');
+			navigate('/');
 		} else {
-			Toast.error('用户名或密码错误');
+			Toast.error(error);
 		}
 	};
 
@@ -173,6 +167,13 @@ function RegisterForm({ setLogin }: { setLogin: () => void }) {
 	);
 }
 
+export async function clientLoader() {
+	if (await Auth.isLoggedIn()) {
+		Toast.info('你已经登录');
+		throw redirect('/');
+	}
+}
+
 export default function Lor() {
 	const [type, setType] = useState<'login' | 'register'>('login');
 	const registerHelpModal = useStateNamed(false);
@@ -252,11 +253,22 @@ export default function Lor() {
 							仅用于登录这一必要用途。为了你的数据安全，请确保在 HTTPS
 							安全连接下使用控制台。
 						</p>
-						<h4>白名单</h4>
-						<p>你需要获取白名单并在注册之后绑定你的游戏名才能体验控制台的全部功能。在未获取白名单之前，只有下列功能可供使用：</p>
+						<h4>白名单与控制台功能</h4>
+						<p>
+							你需要获取白名单并在注册之后绑定你的游戏名才能体验控制台的全部功能。在未获取白名单之前，只有下列功能可供使用：
+						</p>
 						<ul>
 							<li>查看服务器的 IP 地址、状态等</li>
 							<li>发送使用反馈</li>
+						</ul>
+						<h4>注册用户名与密码要求</h4>
+						<p>你所填写的用户名和密码必须符合下面的条件。</p>
+						<ul>
+							<li>
+								用户名：不与其他用户名重复，不需要与游戏名相同，长度为 4~12
+								个字符，仅可包含英文字母、数字、下划线。
+							</li>
+							<li>密码：长度为 8~20 个字符，必须包含英文字母、数字。</li>
 						</ul>
 					</div>
 				</DialogContent>

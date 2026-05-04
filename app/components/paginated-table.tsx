@@ -76,7 +76,7 @@ function PaginationActions({
 	};
 
 	return (
-		<div className="flex items-center">
+		<div className="flex items-center ml-3">
 			<IconButton
 				size="small"
 				disabled={page === 0}

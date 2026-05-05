@@ -56,7 +56,7 @@ import { getServerStatus, getInstanceStatus } from '~/utils/requests/state';
 import {
 	getTasks,
 	getBalance,
-	getPlayerCountHistory,
+	getPlayerListHistory,
 	getIdleRemainingSecs
 } from '~/utils/requests/home';
 import { triggerTask } from '~/utils/requests/task';
@@ -266,7 +266,7 @@ export default function Home() {
 				getServerStatus(),
 				getInstanceStatus(),
 				getBalance(),
-				getPlayerCountHistory(),
+				getPlayerListHistory(),
 				getIdleRemainingSecs()
 			]);
 

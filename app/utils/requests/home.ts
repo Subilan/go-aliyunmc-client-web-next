@@ -23,13 +23,16 @@ export function getBalance() {
 	return get<number>('/bss/balance');
 }
 
-export async function getPlayerCountHistory(): Promise<
+export async function getPlayerListHistory(): Promise<
 	{ data: PlayerListChartPoint[]; error: null } | { data: null; error: string }
 > {
 	const raw = await get<PlayerListChartPointRaw[]>('/samples/player-list-history');
 	if (raw.error !== null) return raw;
 	return {
-		data: raw.data.map(d => ({ time: d.time, playerNames: d.playerNames.split(',') })),
+		data: raw.data.map(d => ({
+			time: d.time,
+			playerNames: d.playerNames === '' ? [] : d.playerNames.split(',')
+		})),
 		error: null
 	};
 }

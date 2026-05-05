@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import type { Route } from './+types/home';
 import { UserContext } from '~/contexts/user';
@@ -60,6 +60,8 @@ import {
 } from '~/utils/requests/home';
 import { triggerTask } from '~/utils/requests/task';
 import { useTaskSSE } from '~/hooks/useTaskSSE';
+import { useStateSSE } from '~/hooks/useStateSSE';
+import type { ServerStatus } from '~/types/ServerStatus';
 
 // ---------- helpers ----------
 
@@ -230,6 +232,25 @@ export default function Home() {
 	const [backupTriggering, setBackupTriggering] = useState(false);
 	const [archiveTriggering, setArchiveTriggering] = useState(false);
 
+	// Start / Stop server confirmation dialogs
+	const [startOpen, setStartOpen] = useState(false);
+	const [stopOpen, setStopOpen] = useState(false);
+	const [starting, setStarting] = useState(false);
+	const [stopping, setStopping] = useState(false);
+
+	// State SSE for live server/instance status updates
+	const srvSSE = useStateSSE<ServerStatus>(
+		'/state/watch/server-status',
+		'server_status_snapshot',
+		'server_status_update'
+	);
+	const instSSE = useStateSSE<string>(
+		'/state/watch/instance-status',
+		'instance_status_snapshot',
+		'instance_status_update'
+	);
+	const startServerTriggeredRef = useRef(false);
+
 	async function fetchAll() {
 		const [instRes, candRes, tasksRes, srvRes, instStatusRes, balRes, chartRes, idleRes] =
 			await Promise.all([
@@ -303,6 +324,33 @@ export default function Home() {
 		}
 	}
 
+	// Sync SSE values into named state
+	useEffect(() => {
+		if (srvSSE.value) {
+			serverOnline.set(srvSSE.value.Value.online);
+			playerCount.set(srvSSE.value.Value.playerCount);
+		}
+	}, [srvSSE.value]);
+
+	useEffect(() => {
+		if (instSSE.value) {
+			instanceStatus.set(instSSE.value.Value);
+		}
+	}, [instSSE.value]);
+
+	// Auto-refresh tasks when server becomes online after start_server trigger
+	const fetchTasksRef = useRef(fetchTasks);
+	fetchTasksRef.current = fetchTasks;
+	useEffect(() => {
+		if (
+			srvSSE.value?.Value.online &&
+			startServerTriggeredRef.current
+		) {
+			startServerTriggeredRef.current = false;
+			fetchTasksRef.current();
+		}
+	}, [srvSSE.value]);
+
 	useEffect(() => {
 		fetchAll();
 	}, []);
@@ -333,6 +381,14 @@ export default function Home() {
 		}
 		if (name === '归档') {
 			setArchiveOpen(true);
+			return;
+		}
+		if (name === '启动服务器') {
+			setStartOpen(true);
+			return;
+		}
+		if (name === '停止服务器') {
+			setStopOpen(true);
 			return;
 		}
 		Toast.info(`${name} — 功能开发中`);
@@ -377,6 +433,33 @@ export default function Home() {
 		setArchiveOpen(false);
 	}
 
+	async function handleStartServer() {
+		setStarting(true);
+		const { error } = await triggerTask('start_server', {});
+		if (error) {
+			Toast.error(typeof error === 'string' ? error : '任务触发失败');
+		} else {
+			Toast.success('启动服务器任务已触发');
+			startServerTriggeredRef.current = true;
+			fetchAll();
+		}
+		setStarting(false);
+		setStartOpen(false);
+	}
+
+	async function handleStopServer() {
+		setStopping(true);
+		const { error } = await triggerTask('stop_server', {});
+		if (error) {
+			Toast.error(typeof error === 'string' ? error : '任务触发失败');
+		} else {
+			Toast.success('停止服务器任务已触发');
+			fetchAll();
+		}
+		setStopping(false);
+		setStopOpen(false);
+	}
+
 	const serverActions: FuncListItem[] = [
 		{
 			name: '启动服务器',
@@ -394,8 +477,6 @@ export default function Home() {
 	];
 
 	const instanceActions: FuncListItem[] = [
-		{ name: '启动实例', icon: PlayIcon, action: () => handleAction('创建实例') },
-		{ name: '关闭实例', icon: SquareIcon, action: () => handleAction('创建实例') },
 		{
 			name: '部署',
 			icon: RocketIcon,
@@ -749,6 +830,25 @@ export default function Home() {
 				onConfirm={handleArchive}
 				loading={archiveTriggering}
 			/>
+
+			<ConfirmTriggerDialog
+				open={startOpen}
+				onClose={() => setStartOpen(false)}
+				title="启动服务器"
+				description="此操作将启动当前实例上的 Minecraft 服务器。"
+				onConfirm={handleStartServer}
+				loading={starting}
+			/>
+
+			<ConfirmTriggerDialog
+				open={stopOpen}
+				onClose={() => setStopOpen(false)}
+				title="停止服务器"
+				description="此操作将停止当前实例上的 Minecraft 服务器，玩家将被断开连接。"
+				onConfirm={handleStopServer}
+				loading={stopping}
+			/>
+
 
 			<CreateInstanceDialog
 				open={dialogOpen}

@@ -166,7 +166,7 @@ interface FuncListItem {
 
 function FuncList(props: { items: FuncListItem[] }) {
 	return (
-		<>
+		<div className="flex flex-wrap gap-1 border rounded-full border-neutral-100">
 			{props.items.map((x, i) => {
 				const Icon = x.icon;
 				return (
@@ -183,7 +183,7 @@ function FuncList(props: { items: FuncListItem[] }) {
 					</Tooltip>
 				);
 			})}
-		</>
+		</div>
 	);
 }
 
@@ -343,10 +343,7 @@ export default function Home() {
 	const fetchTasksRef = useRef(fetchTasks);
 	fetchTasksRef.current = fetchTasks;
 	useEffect(() => {
-		if (
-			srvSSE.value?.Value.online &&
-			startServerTriggeredRef.current
-		) {
+		if (srvSSE.value?.Value.online && startServerTriggeredRef.current) {
 			startServerTriggeredRef.current = false;
 			fetchTasksRef.current();
 		}
@@ -452,9 +449,9 @@ export default function Home() {
 		setStopping(true);
 		const { error } = await get('/server/stop');
 		if (error) {
-			Toast.error(typeof error === 'string' ? error : '停止服务器失败');
+			Toast.error(typeof error === 'string' ? error : '请求停止服务器失败');
 		} else {
-			Toast.success('服务器已停止');
+			Toast.success('已请求停止服务器');
 			fetchAll();
 		}
 		setStopping(false);
@@ -491,7 +488,12 @@ export default function Home() {
 			action: () => handleAction('备份'),
 			disabled: !canBackup
 		},
-		{ name: '归档', icon: ArchiveIcon, action: () => handleAction('归档'), disabled: !canBackup }
+		{
+			name: '归档',
+			icon: ArchiveIcon,
+			action: () => handleAction('归档'),
+			disabled: !canBackup
+		}
 	];
 
 	return (
@@ -526,7 +528,7 @@ export default function Home() {
 						) : (
 							<div className="flex flex-col md:flex-row gap-4">
 								{/* left: status info */}
-								<div className="md:w-1/3 flex flex-col gap-2">
+								<div className="flex flex-col gap-2">
 									<div className="flex items-center gap-2">
 										<div
 											className={`w-2.5 h-2.5 rounded-full ${serverOnline.current ? 'bg-green-500' : 'bg-red-500'}`}
@@ -540,13 +542,11 @@ export default function Home() {
 											</span>
 										)}
 									</div>
-									<div className="flex-1" />
-									<div className="flex flex-wrap gap-1">
-										<FuncList items={serverActions} />
-									</div>
+									<FuncList items={serverActions} />
 								</div>
+								<div className='flex-1'/>
 								{/* right: chart */}
-								<div className="md:w-2/3 min-w-0">
+								<div className="min-w-0 grow basis-[66%]">
 									<PlayerCountChart data={chartData.current} />
 								</div>
 							</div>
@@ -611,9 +611,7 @@ export default function Home() {
 											{instanceStatusText(instanceStatus.current)}
 										</span>
 									</div>
-									<div className="flex flex-wrap gap-1 border rounded-full border-neutral-100">
-										<FuncList items={instanceActions} />
-									</div>
+									<FuncList items={instanceActions} />
 								</div>
 								<div className="flex-1" />
 								<div className="md:w-1/2 grow justify-around flex gap-8">
@@ -849,7 +847,6 @@ export default function Home() {
 				onConfirm={handleStopServer}
 				loading={stopping}
 			/>
-
 
 			<CreateInstanceDialog
 				open={dialogOpen}

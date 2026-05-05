@@ -47,7 +47,7 @@ import type { Instance } from '~/types/Instance';
 import type { EcsCandidate } from '~/types/EcsCandidate';
 import type { Task } from '~/types/Task';
 import PlayerCountChart from '~/components/player-count-chart';
-import type { ChartPoint } from '~/components/player-count-chart';
+import type { PlayerListChartPoint } from '~/components/player-count-chart';
 import CreateInstanceDialog from '~/components/create-instance-dialog';
 import ConfirmTriggerDialog from '~/components/confirm-trigger-dialog';
 import { getActiveInstance, getCandidates, deleteActiveInstance } from '~/utils/requests/instance';
@@ -206,7 +206,7 @@ export default function Home() {
 	const playerCount = useStateNamed(0);
 	const idleRemainingSecs = useStateNamed(-1);
 	const accountBalance = useStateNamed(0);
-	const chartData = useStateNamed<ChartPoint[]>([]);
+	const chartData = useStateNamed<PlayerListChartPoint[]>([]);
 	const [refreshingCandidates, setRefreshingCandidates] = useState(false);
 	const [refreshingTasks, setRefreshingTasks] = useState(false);
 

@@ -65,6 +65,8 @@ import { get } from '~/utils/requests';
 import { useTaskSSE } from '~/hooks/useTaskSSE';
 import { useStateSSE } from '~/hooks/useStateSSE';
 import type { ServerStatus } from '~/types/ServerStatus';
+import { queryServer } from '~/utils/requests/server';
+import type { ServerQuery } from '~/types/ServerQuery';
 
 // ---------- helpers ----------
 
@@ -258,19 +260,30 @@ export default function Home() {
 		'instance_status_update'
 	);
 	const startServerTriggeredRef = useRef(false);
+	const serverQuery = useRef<ServerQuery>(undefined);
 
 	async function fetchAll() {
-		const [instRes, candRes, tasksRes, srvRes, instStatusRes, balRes, chartRes, idleRes] =
-			await Promise.all([
-				getActiveInstance(),
-				getCandidates(),
-				getTasks({ limit: 5 }),
-				getServerStatus(),
-				getInstanceStatus(),
-				getBalance(),
-				getPlayerListHistory(),
-				getIdleRemainingSecs()
-			]);
+		const [
+			instRes,
+			candRes,
+			tasksRes,
+			srvRes,
+			instStatusRes,
+			balRes,
+			chartRes,
+			idleRes,
+			querySrvRes
+		] = await Promise.all([
+			getActiveInstance(),
+			getCandidates(),
+			getTasks({ limit: 5 }),
+			getServerStatus(),
+			getInstanceStatus(),
+			getBalance(),
+			getPlayerListHistory(),
+			getIdleRemainingSecs(),
+			queryServer()
+		]);
 
 		if (instRes.error === null) {
 			setInstance(instRes.data);
@@ -278,6 +291,7 @@ export default function Home() {
 		} else {
 			instanceNotFound.set(true);
 		}
+		if (querySrvRes.error === null) serverQuery.current = querySrvRes.data;
 		if (candRes.error === null) setCandidates(candRes.data!);
 		if (tasksRes.error === null) {
 			setTasks(tasksRes.data!.tasks);
@@ -387,6 +401,10 @@ export default function Home() {
 			fetchTasksRef.current();
 		}
 	}, [srvSSE.value]);
+
+	useEffect(() => {
+		console.log(serverQuery.current);
+	}, [serverQuery.current]);
 
 	useEffect(() => {
 		fetchAll();
@@ -525,8 +543,7 @@ export default function Home() {
 			icon: SquareIcon,
 			action: () => handleAction('停止服务器'),
 			disabled: !canStopServer
-		},
-		{ name: '详细信息', icon: InfoIcon, action: () => handleAction('详细信息') }
+		}
 	];
 
 	const instanceActions: FuncListItem[] = [
@@ -621,7 +638,7 @@ export default function Home() {
 						) : (
 							<div className="flex flex-col md:flex-row gap-4">
 								{/* left: status info */}
-								<div className="flex flex-col gap-2">
+								<div className="flex flex-col items-start gap-2">
 									<div className="flex items-center gap-2">
 										<div
 											className={`w-2.5 h-2.5 rounded-full ${serverOnline.current ? 'bg-green-500' : 'bg-red-500'}`}
@@ -635,6 +652,8 @@ export default function Home() {
 											</span>
 										)}
 									</div>
+									<span>{serverQuery.current?.platform}</span>
+									<div className='flex-1'/>
 									<FuncList items={serverActions} />
 								</div>
 								<div className="flex-1" />

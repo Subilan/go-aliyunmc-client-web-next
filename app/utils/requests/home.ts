@@ -1,6 +1,7 @@
 import { get } from '~/utils/requests';
 import type { Task } from '~/types/Task';
 import type {
+	PlayerListChartPoint,
 	PlayerListChartPointRaw
 } from '~/components/player-count-chart';
 
@@ -22,10 +23,15 @@ export function getBalance() {
 	return get<number>('/bss/balance');
 }
 
-export async function getPlayerCountHistory() {
+export async function getPlayerCountHistory(): Promise<
+	{ data: PlayerListChartPoint[]; error: null } | { data: null; error: string }
+> {
 	const raw = await get<PlayerListChartPointRaw[]>('/samples/player-list-history');
 	if (raw.error !== null) return raw;
-	return { data: raw.data.map(d => d.playerNames.split(',')), error: null };
+	return {
+		data: raw.data.map(d => ({ time: d.time, playerNames: d.playerNames.split(',') })),
+		error: null
+	};
 }
 
 export function getIdleRemainingSecs() {

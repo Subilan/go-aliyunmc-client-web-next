@@ -267,6 +267,7 @@ export default function Home() {
 
 		if (instRes.error === null) {
 			setInstance(instRes.data);
+			instanceNotFound.set(false);
 		} else {
 			instanceNotFound.set(true);
 		}

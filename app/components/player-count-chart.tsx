@@ -29,8 +29,8 @@ export default function PlayerCountChart({ data }: { data: PlayerListChartPoint[
 			borderWidth: 1,
 			textStyle: { color: '#374151', fontSize: 12 },
 			formatter: (params: unknown) => {
-				const p = (params as { data: number[]; axisValue: string }[])[0];
-				return `${p.axisValue}<br/>玩家: <b>${p.data[1]}</b>`;
+				const p = (params as { data: number; axisValue: string }[])[0];
+				return `${p.axisValue}<br/>玩家: <b>${p.data}</b>`;
 			}
 		},
 		grid: { top: 10, right: 12, bottom: data.length > 50 ? 40 : 24, left: 36 },
@@ -48,6 +48,7 @@ export default function PlayerCountChart({ data }: { data: PlayerListChartPoint[
 		yAxis: {
 			type: 'value',
 			min: 0,
+			minInterval: 1,
 			splitNumber: 3,
 			axisLabel: { fontSize: 10, color: '#9ca3af' },
 			splitLine: { lineStyle: { color: '#f3f4f6', type: 'dashed' } }

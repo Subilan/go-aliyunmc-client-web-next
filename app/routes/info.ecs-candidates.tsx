@@ -59,7 +59,7 @@ export default function EcsCandidatesPage() {
 							<TableRow key={i} hover>
 								<TableCell align="center">
 									<div className="flex justify-center items-center gap-2">
-										<code className="text-xs bg-gray-100 px-1 py-0.5 rounded">
+										<code className="text-xs bg-neutral-100 px-1 py-0.5 rounded">
 											{c.instanceType}
 										</code>
 										{i === 0 && (

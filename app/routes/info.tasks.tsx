@@ -80,7 +80,7 @@ function taskStatusColor(status: string): 'success' | 'warning' | 'error' | 'inf
 }
 
 function TimeCell({ ts }: { ts?: string }) {
-	if (!ts) return <span className="text-gray-400">—</span>;
+	if (!ts) return <span className="text-neutral-400">—</span>;
 	const d = dayjs(ts);
 	return (
 		<Tooltip title={d.format('YYYY-MM-DD HH:mm:ss')}>
@@ -94,7 +94,7 @@ function ClickableCell({ text, className }: { text: string; className?: string }
 	return (
 		<>
 			<span
-				className={`text-xs max-w-20 block truncate cursor-pointer ${className ?? 'text-gray-500'}`}
+				className={`text-xs max-w-20 block truncate cursor-pointer ${className ?? 'text-neutral-500'}`}
 				onClick={() => setOpen(true)}
 			>
 				{text}
@@ -202,7 +202,7 @@ const columns: Column<Task>[] = [
 		label: '输出',
 		align: 'center',
 		render: t =>
-			t.output ? <ViewOutputBtn text={t.output} /> : <span className="text-gray-400">—</span>
+			t.output ? <ViewOutputBtn text={t.output} /> : <span className="text-neutral-400">—</span>
 	},
 	{
 		id: 'error',
@@ -212,7 +212,7 @@ const columns: Column<Task>[] = [
 			t.error ? (
 				<ClickableCell text={t.error} className="text-red-500" />
 			) : (
-				<span className="text-gray-400">—</span>
+				<span className="text-neutral-400">—</span>
 			)
 	},
 	{

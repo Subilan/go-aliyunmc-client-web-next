@@ -9,7 +9,7 @@ export interface ChartPoint {
 export default function PlayerCountChart({ data }: { data: ChartPoint[] }) {
 	if (data.length === 0) {
 		return (
-			<div className="text-gray-400 text-sm text-center py-8 select-none">
+			<div className="text-neutral-400 text-sm text-center py-8 select-none">
 				暂无玩家数据
 			</div>
 		);

@@ -523,8 +523,8 @@ export default function Home() {
 						</div>
 						{instanceNotFound.current || !isDeployed ? (
 							<div className="flex flex-col items-center gap-3 py-8">
-								<ServerIcon size={40} className="text-gray-300" />
-								<span className="text-gray-500">请先创建并部署实例</span>
+								<ServerIcon size={40} className="text-neutral-300" />
+								<span className="text-neutral-500">请先创建并部署实例</span>
 							</div>
 						) : (
 							<div className="flex flex-col md:flex-row gap-4">
@@ -572,12 +572,12 @@ export default function Home() {
 						</div>
 						{taskRunning ? (
 							<div className="flex flex-col items-center gap-3 py-8">
-								<Loader2Icon size={40} className="text-gray-300 animate-spin" />
-								<span className="text-gray-500">
+								<Loader2Icon size={40} className="text-neutral-300 animate-spin" />
+								<span className="text-neutral-500">
 									{deployTaskId ? '实例部署中' : '实例创建中'}
 								</span>
 								{latestOutput && (
-									<span className="text-xs text-gray-400 font-mono max-w-md text-center truncate px-4">
+									<span className="text-xs text-neutral-400 font-mono max-w-md text-center truncate px-4">
 										{latestOutput}
 									</span>
 								)}
@@ -591,8 +591,8 @@ export default function Home() {
 							</div>
 						) : instanceNotFound.current ? (
 							<div className="flex flex-col items-center gap-3 py-8">
-								<HardDriveIcon size={40} className="text-gray-300" />
-								<span className="text-gray-500">尚未创建实例</span>
+								<HardDriveIcon size={40} className="text-neutral-300" />
+								<span className="text-neutral-500">尚未创建实例</span>
 								<Button
 									variant="outlined"
 									size="small"
@@ -617,19 +617,19 @@ export default function Home() {
 								<div className="flex-1" />
 								<div className="md:w-1/2 grow justify-around flex gap-8">
 									<div className="flex flex-col">
-										<span className="text-xs text-gray-400 mb-1">规格</span>
+										<span className="text-xs text-neutral-400 mb-1">规格</span>
 										<span className="text-xl font-bold">
 											{instance?.instanceType ?? '—'}
 										</span>
 									</div>
 									<div className="flex flex-col">
-										<span className="text-xs text-gray-400 mb-1">地域</span>
+										<span className="text-xs text-neutral-400 mb-1">地域</span>
 										<span className="text-xl font-bold">
 											{instance?.zoneId ?? '—'}
 										</span>
 									</div>
 									<div className="flex flex-col">
-										<span className="text-xs text-gray-400 mb-1">IP</span>
+										<span className="text-xs text-neutral-400 mb-1">IP</span>
 										<span className="text-xl font-bold">
 											{instance?.ip ?? '—'}
 										</span>
@@ -676,7 +676,7 @@ export default function Home() {
 										<TableRow key={i} hover>
 											<TableCell align="center">
 												<div className="flex justify-center items-center gap-2">
-													<code className="text-xs bg-gray-100 px-1 py-0.5 rounded">
+													<code className="text-xs bg-neutral-100 px-1 py-0.5 rounded">
 														{c.instanceType}
 													</code>
 													{i === 0 && (
@@ -754,7 +754,7 @@ export default function Home() {
 											</TableCell>
 											<TableCell
 												align="center"
-												className="text-gray-500 text-sm"
+												className="text-neutral-500 text-sm"
 											>
 												{new Date(task.CreatedAt).toLocaleString('zh-CN', {
 													month: '2-digit',
@@ -765,7 +765,7 @@ export default function Home() {
 											</TableCell>
 											<TableCell
 												align="center"
-												className="text-gray-500 text-sm"
+												className="text-neutral-500 text-sm"
 											>
 												{task.error ? (
 													<Tooltip title={task.error}>

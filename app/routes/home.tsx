@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import type { Route } from './+types/home';
 import { UserContext } from '~/contexts/user';
 import {
+	Alert,
 	Button,
 	Card,
 	CardContent,
@@ -208,6 +209,7 @@ export default function Home() {
 	const idleRemainingSecs = useStateNamed(-1);
 	const accountBalance = useStateNamed(0);
 	const chartData = useStateNamed<PlayerListChartPoint[]>([]);
+	const [refreshingServerStatus, setRefreshingServerStatus] = useState(false);
 	const [refreshingCandidates, setRefreshingCandidates] = useState(false);
 	const [refreshingTasks, setRefreshingTasks] = useState(false);
 
@@ -302,13 +304,44 @@ export default function Home() {
 				chartRes.data!.map(p => ({
 					time: new Date(p.time).toLocaleTimeString('zh-CN', {
 						hour: '2-digit',
-						minute: '2-digit'
+						minute: '2-digit',
+						second: '2-digit'
 					}),
 					playerNames: p.playerNames
 				}))
 			);
 		}
 		if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
+	}
+
+	async function fetchServerStatus() {
+		setRefreshingServerStatus(true);
+		try {
+			const [srvRes, chartRes, idleRes] = await Promise.all([
+				getServerStatus(),
+				getPlayerListHistory(),
+				getIdleRemainingSecs()
+			]);
+			if (srvRes.error === null) {
+				serverOnline.set(srvRes.data!.Value.online);
+				playerCount.set(srvRes.data!.Value.playerCount);
+			}
+			if (chartRes.error === null) {
+				chartData.set(
+					chartRes.data!.map(p => ({
+						time: new Date(p.time).toLocaleTimeString('zh-CN', {
+							hour: '2-digit',
+							minute: '2-digit',
+							second: '2-digit'
+						}),
+						playerNames: p.playerNames
+					}))
+				);
+			}
+			if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
+		} finally {
+			setRefreshingServerStatus(false);
+		}
 	}
 
 	async function fetchCandidates() {
@@ -534,6 +567,31 @@ export default function Home() {
 				</div>
 			</div>
 
+			{user && !user.whitelist_uuid && (
+				<Alert
+					severity="info"
+					className="mb-4"
+					action={
+						<div className="flex gap-2">
+							<Button
+								size="small"
+								color="inherit"
+								component="a"
+								href="#"
+								target="_blank"
+							>
+								申请白名单
+							</Button>
+							<Button size="small" color="inherit" component={Link} to="/profile">
+								立即绑定
+							</Button>
+						</div>
+					}
+				>
+					你还没有绑定白名单。绑定后即可体验完整功能。
+				</Alert>
+			)}
+
 			<div className="flex flex-col gap-4">
 				{/* server status — full width, left 1/3 info + right 2/3 chart */}
 				<Card variant="outlined">
@@ -541,6 +599,19 @@ export default function Home() {
 						<div className="tracking-wider text-sm mb-4 flex items-center gap-2">
 							<ServerIcon size={14} />
 							服务器状态 / SERVER STATUS
+							<div className="flex-1" />
+							<Tooltip title="刷新">
+								<IconButton
+									size="small"
+									disabled={refreshingServerStatus}
+									onClick={fetchServerStatus}
+								>
+									<RefreshCwIcon
+										size={16}
+										className={refreshingServerStatus ? 'animate-spin' : ''}
+									/>
+								</IconButton>
+							</Tooltip>
 						</div>
 						{instanceNotFound.current || !isDeployed ? (
 							<div className="flex flex-col items-center gap-3 py-8">
@@ -566,7 +637,7 @@ export default function Home() {
 									</div>
 									<FuncList items={serverActions} />
 								</div>
-								<div className='flex-1'/>
+								<div className="flex-1" />
 								{/* right: chart */}
 								<div className="min-w-0 grow basis-[66%]">
 									<PlayerCountChart data={chartData.current} />

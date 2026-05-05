@@ -15,17 +15,23 @@ npm run typecheck    # Run react-router typegen then tsc
 
 This is a React Router 7 SPA (SSR disabled via `react-router.config.ts`) — a front-end control panel for the Seatide Minecraft server management platform. The backend API is at `http://localhost:45678`.
 
-**Routing** (`app/routes.ts`): Two routes — `layout/app.tsx` wraps the index (`routes/home.tsx`), while `/lor` (`routes/lor.tsx`) is the standalone login/register page without the app layout.
+**Routing** (`app/routes.ts`): `layout/app.tsx` wraps the main routes (index → `home.tsx`, `/profile`, `/all`, and a nested `layout/inner-app.tsx` for `/info/tasks` and `/info/ecs-candidates` with breadcrumb nav). `/lor` (`routes/lor.tsx`) is the standalone login/register page outside the app layout.
 
 **Auth flow** (`app/utils/auth.ts`): The `Auth` object caches the user in memory and deduplicates concurrent `getUser()` calls. The layout route's `clientLoader` runs `Auth.isLoggedIn()` and redirects to `/lor` (mapped as `/login` by the server) if not authenticated. The login page's `clientLoader` does the inverse — redirects to `/` if already logged in.
 
-**Request layer**: `app/utils/requests.ts` provides `get`, `post`, `del` helpers wrapping `fetch` with `credentials: 'include'` (cookie-based auth). All return `{data, error}` tuples where exactly one is non-null. Individual API calls live in `app/utils/requests/` and are aggregated in `Req.ts` as a namespace object.
+**Request layer**: `app/utils/requests.ts` provides `get`, `post`, `del` helpers wrapping `fetch` with `credentials: 'include'` (cookie-based auth). All return `{data, error}` tuples where exactly one is non-null. Individual API calls live in `app/utils/requests/` and are aggregated in `Req.ts` as a namespace object. Form components follow the same pattern — `app/components/form/Form.ts` exports a `Form` namespace (currently `StringInput` wrapping MUI `Controller` + `react-hook-form`).
+
+**SSE (real-time updates)**: `app/utils/sse.ts` provides `connectTaskSSE` and `connectStateSSE` using `@microsoft/fetch-event-source`. Two corresponding hooks consume them:
+- `useTaskSSE(taskId)` — fetches initial task state via REST, then streams `task_output`, `task_status_update`, and `task_done` events.
+- `useStateSSE(path, snapshotEvent, updateEvent)` — streams state snapshots and incremental updates for arbitrary server-state paths.
+
+Both hooks auto-reconnect on `visibilitychange` (tab refocus) and clean up on unmount. The home page uses these for live server-status, instance-status, and task-output streaming.
 
 **State & context**: `UserContext` (`app/contexts/user.ts`) holds the current `User | null`. The layout route's `loaderData` populates it. The custom `useStateNamed` hook returns `{current, set}` instead of array destructuring — used pervasively for local component state.
 
-**UI stack**: MUI v9 components + Tailwind CSS v4 for layout/spacing + ECharts (via `echarts-for-react`) for charts. Always use `neutral` (not `gray`) for Tailwind gray colors — e.g. `text-neutral-500`, `bg-neutral-100`. Notifications use `react-hot-toast` wrapped by the `Toast` static helper in `root.tsx`, which renders MUI `SnackbarContent`. Forms use `react-hook-form` with a custom `StringInput` component wrapping MUI `Controller`.
+**UI stack**: MUI v9 components + Tailwind CSS v4 for layout/spacing + ECharts (via `echarts-for-react`) for charts. Custom Google Sans and Google Sans Code fonts are loaded as woff2 files and configured as the default sans/mono font families via Tailwind's `--font-sans` / `--font-mono` theme tokens. MUI theme uses `var(--font-sans)` for its `fontFamily`. Always use `neutral` (not `gray`) for Tailwind gray colors — e.g. `text-neutral-500`, `bg-neutral-100`. Notifications use `react-hot-toast` wrapped by the `Toast` static helper in `root.tsx`, which renders MUI `SnackbarContent`. Forms use `react-hook-form` with a custom `StringInput` component wrapping MUI `Controller`.
 
-**Types**: Domain types (`User`, `Instance`, `Task`, etc.) extend the `Model` base interface with GORM soft-delete fields (`ID`, `CreatedAt`, `UpdatedAt`, `DeletedAt`). The home page currently uses hardcoded mock data while the API integration is being built out.
+**Types**: Domain types (`User`, `Instance`, `Task`, etc.) extend the `Model` base interface with GORM soft-delete fields (`ID`, `CreatedAt`, `UpdatedAt`, `DeletedAt`).
 
 **Docker**: Multi-stage build — installs prod deps, builds the app, copies build output to a slim `node:20-alpine` image running `npm start`.
 

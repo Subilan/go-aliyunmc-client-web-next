@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import PaginatedTable, { type Column } from '~/components/paginated-table';
 import type { Task } from '~/types/Task';
-import { getTasks as fetchTasks } from '~/utils/requests/home';
+import { getTasks as fetchTasks, getTaskStats, type TaskStats } from '~/utils/requests/home';
 import {
 	Button,
 	Chip,
@@ -12,14 +12,19 @@ import {
 	Tooltip,
 	Typography,
 	Card,
-	CardContent
+	CardContent,
+	Paper,
+	Box,
+	CircularProgress
 } from '@mui/material';
+import MetricCard from '~/components/metric-card';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/zh-cn';
 dayjs.extend(relativeTime);
 dayjs.locale('zh-cn');
 import { CheckCircleIcon, ClockIcon, Loader2Icon, XCircleIcon, XIcon } from 'lucide-react';
+import PageHeader from '~/components/page-header';
 
 function taskTypeLabel(type: string) {
 	switch (type) {
@@ -202,7 +207,11 @@ const columns: Column<Task>[] = [
 		label: '输出',
 		align: 'center',
 		render: t =>
-			t.output ? <ViewOutputBtn text={t.output} /> : <span className="text-neutral-400">—</span>
+			t.output ? (
+				<ViewOutputBtn text={t.output} />
+			) : (
+				<span className="text-neutral-400">—</span>
+			)
 	},
 	{
 		id: 'error',
@@ -230,6 +239,7 @@ export default function TasksPage() {
 	const [pageSize, setPageSize] = useState(10);
 	const [sort, setSort] = useState('created_at');
 	const [order, setOrder] = useState<'asc' | 'desc'>('desc');
+	const [stats, setStats] = useState<TaskStats | null>(null);
 
 	const fetch = useCallback(async () => {
 		const res = await fetchTasks({
@@ -248,28 +258,69 @@ export default function TasksPage() {
 		fetch();
 	}, [fetch]);
 
+	useEffect(() => {
+		getTaskStats().then(res => {
+			if (res.error === null) setStats(res.data!);
+		});
+	}, []);
+
 	const handleSortChange = useCallback((newSort: string, newOrder: 'asc' | 'desc') => {
 		setSort(newSort);
 		setOrder(newOrder);
 		setPage(0);
 	}, []);
 
+	const successRate =
+		stats && stats.total > 0 ? `${Math.round((stats.successCount / stats.total) * 100)}%` : '—';
+
+	const lastCompletedAgo = stats?.lastCompletedAt ? dayjs(stats.lastCompletedAt).fromNow() : '—';
+
+	const lastCreator =
+		stats?.lastCreatedUser?.username ??
+		(stats?.lastCreatedBy ? String(stats.lastCreatedBy) : 'sys');
+
 	return (
-		<PaginatedTable
-			columns={columns}
-			rows={rows}
-			getRowKey={t => t.ID}
-			total={total}
-			page={page}
-			pageSize={pageSize}
-			sort={sort}
-			order={order}
-			onPageChange={setPage}
-			onPageSizeChange={size => {
-				setPageSize(size);
-				setPage(0);
-			}}
-			onSortChange={handleSortChange}
-		/>
+		<>
+			<PageHeader>任务列表</PageHeader>
+			<div className="flex flex-col gap-3">
+				<MetricCard
+					cols={4}
+					metrics={[
+						{
+							label: '任务总数',
+							value: stats ? String(stats.total) : null,
+							loading: !stats
+						},
+						{ label: '成功率', value: stats ? successRate : null, loading: !stats },
+						{
+							label: '最近完成',
+							value: stats ? lastCompletedAgo : null,
+							loading: !stats
+						},
+						{
+							label: '最近创建者',
+							value: lastCreator,
+							loading: !stats
+						}
+					]}
+				/>
+				<PaginatedTable
+					columns={columns}
+					rows={rows}
+					getRowKey={t => t.ID}
+					total={total}
+					page={page}
+					pageSize={pageSize}
+					sort={sort}
+					order={order}
+					onPageChange={setPage}
+					onPageSizeChange={size => {
+						setPageSize(size);
+						setPage(0);
+					}}
+					onSortChange={handleSortChange}
+				/>
+			</div>
+		</>
 	);
 }

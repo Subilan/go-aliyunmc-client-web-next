@@ -4,6 +4,19 @@ import type {
 	PlayerListChartPoint,
 	PlayerListChartPointRaw
 } from '~/components/player-count-chart';
+import type { BalanceChartPointRaw } from '~/components/balance-chart';
+
+export interface TaskStats {
+	total: number;
+	successCount: number;
+	lastCompletedAt?: string;
+	lastCreatedBy?: number;
+	lastCreatedUser?: { ID: number; username: string };
+}
+
+export function getTaskStats() {
+	return get<TaskStats>('/task/stats');
+}
 
 export function getTasks(params?: {
 	limit?: number;
@@ -39,4 +52,8 @@ export async function getPlayerListHistory(): Promise<
 
 export function getIdleRemainingSecs() {
 	return get<number>('/monitor/auto-archive-idle/remaining-secs');
+}
+
+export function getAccountBalanceHistory() {
+	return get<BalanceChartPointRaw[]>('/samples/account-balance-history');
 }

@@ -1,16 +1,18 @@
 import { Outlet, useLocation, useNavigate } from 'react-router';
-import { Breadcrumbs, IconButton, Link, Typography } from '@mui/material';
+import { Breadcrumbs, IconButton, Typography } from '@mui/material';
 import { ArrowLeftIcon } from 'lucide-react';
+import { INFO_GROUP } from '~/utils/groups';
 
-const labelByPath: Record<string, string> = {
-	'/info/tasks': '任务列表',
-	'/info/ecs-candidates': 'ECS 候选实例'
+const pageMeta: Record<string, { group: string; label: string }> = {
+	'/info/tasks': { group: INFO_GROUP, label: '任务列表' },
+	'/info/ecs-candidates': { group: INFO_GROUP, label: '候选实例' },
+	'/info/economy': { group: INFO_GROUP, label: '服务器经济' }
 };
 
 export default function InnerAppLayout() {
 	const navigate = useNavigate();
 	const { pathname } = useLocation();
-	const pageLabel = labelByPath[pathname] || pathname;
+	const meta = pageMeta[pathname];
 
 	return (
 		<>
@@ -19,15 +21,12 @@ export default function InnerAppLayout() {
 					<ArrowLeftIcon size={18} />
 				</IconButton>
 				<Breadcrumbs>
-					<Link
-						component="button"
-						underline="hover"
-						color="inherit"
-						onClick={() => navigate('/')}
-					>
-						控制台
-					</Link>
-					<Typography color="text.primary">{pageLabel}</Typography>
+					{meta && (
+						<Typography color="text.primary">{meta.group}</Typography>
+					)}
+					<Typography color="text.primary">
+						{meta?.label ?? pathname}
+					</Typography>
 				</Breadcrumbs>
 			</div>
 			<Outlet />

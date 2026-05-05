@@ -49,6 +49,7 @@ import type { Task } from '~/types/Task';
 import PlayerCountChart from '~/components/player-count-chart';
 import type { ChartPoint } from '~/components/player-count-chart';
 import CreateInstanceDialog from '~/components/create-instance-dialog';
+import ConfirmTriggerDialog from '~/components/confirm-trigger-dialog';
 import { getActiveInstance, getCandidates, deleteActiveInstance } from '~/utils/requests/instance';
 import { getServerStatus, getInstanceStatus } from '~/utils/requests/state';
 import {
@@ -57,6 +58,7 @@ import {
 	getPlayerCountHistory,
 	getIdleRemainingSecs
 } from '~/utils/requests/home';
+import { triggerTask } from '~/utils/requests/task';
 import { useTaskSSE } from '~/hooks/useTaskSSE';
 
 // ---------- helpers ----------
@@ -202,7 +204,8 @@ export default function Home() {
 	const idleRemainingSecs = useStateNamed(-1);
 	const accountBalance = useStateNamed(0);
 	const chartData = useStateNamed<ChartPoint[]>([]);
-	const [refreshing, setRefreshing] = useState(false);
+	const [refreshingCandidates, setRefreshingCandidates] = useState(false);
+	const [refreshingTasks, setRefreshingTasks] = useState(false);
 
 	// Create instance dialog
 	const [dialogOpen, setDialogOpen] = useState(false);
@@ -221,61 +224,82 @@ export default function Home() {
 	const [deleteOpen, setDeleteOpen] = useState(false);
 	const [deleting, setDeleting] = useState(false);
 
-	async function fetchAll() {
-		setRefreshing(true);
-		try {
-			const [instRes, candRes, tasksRes, srvRes, instStatusRes, balRes, chartRes, idleRes] =
-				await Promise.all([
-					getActiveInstance(),
-					getCandidates(),
-					getTasks({ limit: 5 }),
-					getServerStatus(),
-					getInstanceStatus(),
-					getBalance(),
-					getPlayerCountHistory(),
-					getIdleRemainingSecs()
-				]);
+	// Backup / Archive confirmation dialogs
+	const [backupOpen, setBackupOpen] = useState(false);
+	const [archiveOpen, setArchiveOpen] = useState(false);
+	const [backupTriggering, setBackupTriggering] = useState(false);
+	const [archiveTriggering, setArchiveTriggering] = useState(false);
 
-			if (instRes.error === null) {
-				setInstance(instRes.data);
-			} else {
-				instanceNotFound.set(true);
+	async function fetchAll() {
+		const [instRes, candRes, tasksRes, srvRes, instStatusRes, balRes, chartRes, idleRes] =
+			await Promise.all([
+				getActiveInstance(),
+				getCandidates(),
+				getTasks({ limit: 5 }),
+				getServerStatus(),
+				getInstanceStatus(),
+				getBalance(),
+				getPlayerCountHistory(),
+				getIdleRemainingSecs()
+			]);
+
+		if (instRes.error === null) {
+			setInstance(instRes.data);
+		} else {
+			instanceNotFound.set(true);
+		}
+		if (candRes.error === null) setCandidates(candRes.data!);
+		if (tasksRes.error === null) {
+			setTasks(tasksRes.data!.tasks);
+			const runningCreate = tasksRes.data!.tasks.find(
+				t => t.type === 'create_instance' && t.status === 'running'
+			);
+			const runningDeploy = tasksRes.data!.tasks.find(
+				t => t.type === 'deploy' && t.status === 'running'
+			);
+			if (runningCreate || runningDeploy) {
+				setCreateTaskId(runningCreate?.ID ?? null);
+				setDeployTaskId(runningDeploy?.ID ?? null);
+				setTaskRunning(true);
 			}
-			if (candRes.error === null) setCandidates(candRes.data!);
-			if (tasksRes.error === null) {
-				setTasks(tasksRes.data!.tasks);
-				const runningCreate = tasksRes.data!.tasks.find(
-					t => t.type === 'create_instance' && t.status === 'running'
-				);
-				const runningDeploy = tasksRes.data!.tasks.find(
-					t => t.type === 'deploy' && t.status === 'running'
-				);
-				if (runningCreate || runningDeploy) {
-					setCreateTaskId(runningCreate?.ID ?? null);
-					setDeployTaskId(runningDeploy?.ID ?? null);
-					setTaskRunning(true);
-				}
-			}
-			if (srvRes.error === null) {
-				serverOnline.set(srvRes.data!.Value.online);
-				playerCount.set(srvRes.data!.Value.playerCount);
-			}
-			if (instStatusRes.error === null) instanceStatus.set(instStatusRes.data!.Value);
-			if (balRes.error === null) accountBalance.set(balRes.data!);
-			if (chartRes.error === null) {
-				chartData.set(
-					chartRes.data!.map(p => ({
-						time: new Date(p.time).toLocaleTimeString('zh-CN', {
-							hour: '2-digit',
-							minute: '2-digit'
-						}),
-						count: p.playerCount
-					}))
-				);
-			}
-			if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
+		}
+		if (srvRes.error === null) {
+			serverOnline.set(srvRes.data!.Value.online);
+			playerCount.set(srvRes.data!.Value.playerCount);
+		}
+		if (instStatusRes.error === null) instanceStatus.set(instStatusRes.data!.Value);
+		if (balRes.error === null) accountBalance.set(balRes.data!);
+		if (chartRes.error === null) {
+			chartData.set(
+				chartRes.data!.map(p => ({
+					time: new Date(p.time).toLocaleTimeString('zh-CN', {
+						hour: '2-digit',
+						minute: '2-digit'
+					}),
+					count: p.playerCount
+				}))
+			);
+		}
+		if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
+	}
+
+	async function fetchCandidates() {
+		setRefreshingCandidates(true);
+		try {
+			const { data } = await getCandidates();
+			if (data) setCandidates(data);
 		} finally {
-			setRefreshing(false);
+			setRefreshingCandidates(false);
+		}
+	}
+
+	async function fetchTasks() {
+		setRefreshingTasks(true);
+		try {
+			const { data } = await getTasks({ limit: 5 });
+			if (data) setTasks(data.tasks);
+		} finally {
+			setRefreshingTasks(false);
 		}
 	}
 
@@ -288,7 +312,7 @@ export default function Home() {
 	const canStartServer = isDeployed && !serverOnline.current;
 	const canStopServer = isDeployed && serverOnline.current;
 	const canDeploy = !isDeployed;
-	const canBackup = isDeployed && serverOnline.current;
+	const canBackup = isDeployed;
 
 	const handleAction = (name: string) => {
 		if (name === '创建实例') {
@@ -301,6 +325,14 @@ export default function Home() {
 		}
 		if (name === '删除实例') {
 			setDeleteOpen(true);
+			return;
+		}
+		if (name === '备份') {
+			setBackupOpen(true);
+			return;
+		}
+		if (name === '归档') {
+			setArchiveOpen(true);
 			return;
 		}
 		Toast.info(`${name} — 功能开发中`);
@@ -317,6 +349,32 @@ export default function Home() {
 		setDeleting(false);
 		setDeleteOpen(false);
 		fetchAll();
+	}
+
+	async function handleBackup() {
+		setBackupTriggering(true);
+		const { error } = await triggerTask('backup', {});
+		if (error) {
+			Toast.error(typeof error === 'string' ? error : '任务触发失败');
+		} else {
+			Toast.success('备份任务已触发');
+			fetchAll();
+		}
+		setBackupTriggering(false);
+		setBackupOpen(false);
+	}
+
+	async function handleArchive() {
+		setArchiveTriggering(true);
+		const { error } = await triggerTask('archive', {});
+		if (error) {
+			Toast.error(typeof error === 'string' ? error : '任务触发失败');
+		} else {
+			Toast.success('归档任务已触发');
+			fetchAll();
+		}
+		setArchiveTriggering(false);
+		setArchiveOpen(false);
 	}
 
 	const serverActions: FuncListItem[] = [
@@ -351,7 +409,7 @@ export default function Home() {
 			action: () => handleAction('备份'),
 			disabled: !canBackup
 		},
-		{ name: '归档', icon: ArchiveIcon, action: () => handleAction('归档') }
+		{ name: '归档', icon: ArchiveIcon, action: () => handleAction('归档'), disabled: !canBackup }
 	];
 
 	return (
@@ -367,17 +425,6 @@ export default function Home() {
 						variant="outlined"
 						size="small"
 					/>
-					<Tooltip title="刷新状态">
-						<IconButton
-							size="small"
-							disabled={refreshing}
-							onClick={() => {
-								fetchAll();
-							}}
-						>
-							<RefreshCwIcon size={16} className={refreshing ? 'animate-spin' : ''} />
-						</IconButton>
-					</Tooltip>
 				</div>
 			</div>
 
@@ -518,6 +565,19 @@ export default function Home() {
 						<div className="tracking-wider text-sm mb-4 flex items-center gap-2">
 							<CpuIcon size={14} />
 							ECS 候选实例 / ECS CANDIDATES
+							<div className="flex-1" />
+							<Tooltip title="刷新">
+								<IconButton
+									size="small"
+									disabled={refreshingCandidates}
+									onClick={fetchCandidates}
+								>
+									<RefreshCwIcon
+										size={16}
+										className={refreshingCandidates ? 'animate-spin' : ''}
+									/>
+								</IconButton>
+							</Tooltip>
 						</div>
 						<TableContainer component={Paper} variant="outlined">
 							<Table size="small">
@@ -572,6 +632,19 @@ export default function Home() {
 						<div className="tracking-wider text-sm mb-4 flex items-center gap-2">
 							<ClockIcon size={14} />
 							最近任务 / RECENT TASKS
+							<div className="flex-1" />
+							<Tooltip title="刷新">
+								<IconButton
+									size="small"
+									disabled={refreshingTasks}
+									onClick={fetchTasks}
+								>
+									<RefreshCwIcon
+										size={16}
+										className={refreshingTasks ? 'animate-spin' : ''}
+									/>
+								</IconButton>
+							</Tooltip>
 						</div>
 						<TableContainer component={Paper} variant="outlined">
 							<Table size="small">
@@ -658,6 +731,24 @@ export default function Home() {
 					</Button>
 				</DialogActions>
 			</Dialog>
+
+			<ConfirmTriggerDialog
+				open={backupOpen}
+				onClose={() => setBackupOpen(false)}
+				title="备份"
+				description="此操作将对当前实例执行备份。"
+				onConfirm={handleBackup}
+				loading={backupTriggering}
+			/>
+
+			<ConfirmTriggerDialog
+				open={archiveOpen}
+				onClose={() => setArchiveOpen(false)}
+				title="归档"
+				description="此操作将对当前实例执行归档。"
+				onConfirm={handleArchive}
+				loading={archiveTriggering}
+			/>
 
 			<CreateInstanceDialog
 				open={dialogOpen}

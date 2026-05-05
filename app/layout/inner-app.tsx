@@ -15,7 +15,7 @@ export default function InnerAppLayout() {
 	return (
 		<>
 			<div className="flex items-center gap-2 mb-4">
-				<IconButton size="small" onClick={() => navigate('/')}>
+				<IconButton size="small" onClick={() => navigate(-1)}>
 					<ArrowLeftIcon size={18} />
 				</IconButton>
 				<Breadcrumbs>

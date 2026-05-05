@@ -1,12 +1,17 @@
 import ReactECharts from 'echarts-for-react';
 import type { EChartsOption } from 'echarts';
 
-export interface ChartPoint {
+export interface PlayerListChartPointRaw {
 	time: string;
-	count: number;
+	playerNames: string;
 }
 
-export default function PlayerCountChart({ data }: { data: ChartPoint[] }) {
+export interface PlayerListChartPoint {
+	time: string;
+	playerNames: string[];
+}
+
+export default function PlayerCountChart({ data }: { data: PlayerListChartPoint[] }) {
 	if (data.length === 0) {
 		return (
 			<div className="text-neutral-400 text-sm text-center py-8 select-none">
@@ -67,7 +72,7 @@ export default function PlayerCountChart({ data }: { data: ChartPoint[] }) {
 		series: [
 			{
 				type: 'line',
-				data: data.map(d => d.count),
+				data: data.map(d => d.playerNames.length),
 				smooth: true,
 				symbol: data.length <= 30 ? 'circle' : 'none',
 				symbolSize: 5,

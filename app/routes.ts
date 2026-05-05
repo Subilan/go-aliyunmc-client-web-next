@@ -5,8 +5,9 @@ export default [
 		index('routes/home.tsx'),
 		route('/profile', 'routes/profile.tsx'),
 		layout('layout/inner-app.tsx', [
-			route('/info/tasks', 'routes/info.tasks.tsx'),
-			route('/info/ecs-candidates', 'routes/info.ecs-candidates.tsx')
+			route('/info/tasks', 'routes/tasks.tsx'),
+			route('/info/ecs-candidates', 'routes/ecs-candidates.tsx'),
+			route('/info/economy', 'routes/economy.tsx')
 		]),
 		route('/all', 'routes/all.tsx')
 	]),

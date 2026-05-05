@@ -835,7 +835,8 @@ export default function Home() {
 									<TableRow>
 										<TableCell align="center">类型</TableCell>
 										<TableCell align="center">状态</TableCell>
-										<TableCell align="center">时间</TableCell>
+										<TableCell align="center">耗时</TableCell>
+										<TableCell align="center">创建时间</TableCell>
 										<TableCell align="center">备注</TableCell>
 									</TableRow>
 								</TableHead>
@@ -853,6 +854,14 @@ export default function Home() {
 													size="small"
 													variant="outlined"
 												/>
+											</TableCell>
+											<TableCell
+												align="center"
+												className="text-neutral-500 text-sm"
+											>
+												{task.endAt && task.startAt
+													? ((new Date(task.endAt).getTime() - new Date(task.startAt).getTime()) / 1000).toFixed(1) + 's'
+													: '—'}
 											</TableCell>
 											<TableCell
 												align="center"

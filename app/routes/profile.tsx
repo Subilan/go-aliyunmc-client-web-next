@@ -126,7 +126,7 @@ export default function Profile() {
 			<div className="flex flex-col gap-3">
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4">账户信息</div>
+						<div className="tracking-wider text-sm mb-4">账户信息 / PROFILE</div>
 						<div className="flex flex-col gap-3">
 							<InfoRow label="用户 ID" value={String(user.ID)} />
 							<InfoRow label="用户名" value={user.username} />
@@ -145,7 +145,7 @@ export default function Profile() {
 
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4">修改密码</div>
+						<div className="tracking-wider text-sm mb-4">修改密码 / RESET PASSWORD</div>
 						<form
 							className="flex flex-col gap-3"
 							onSubmit={handleSubmit(onSubmit)}
@@ -194,7 +194,7 @@ export default function Profile() {
 
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4">白名单绑定</div>
+						<div className="tracking-wider text-sm mb-4">白名单绑定 / GAME ACCOUNT BINDING</div>
 						{user.whitelist_uuid ? (
 							<div className="flex flex-col gap-3">
 								<InfoRow label="绑定状态" value="已绑定" />

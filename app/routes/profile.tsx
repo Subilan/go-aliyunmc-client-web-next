@@ -47,7 +47,6 @@ export default function Profile() {
 	const user = useContext(UserContext);
 	const navigate = useNavigate();
 	const revalidator = useRevalidator();
-	const changePwdOpen = useStateNamed(false);
 	const deleteOpen = useStateNamed(false);
 	const loading = useStateNamed(false);
 	const deleteLoading = useStateNamed(false);
@@ -64,7 +63,6 @@ export default function Profile() {
 		loading.set(false);
 		if (error === null) {
 			Toast.success('密码修改成功');
-			changePwdOpen.set(false);
 			reset();
 		} else {
 			Toast.error(typeof error === 'string' ? error : '修改失败');
@@ -125,141 +123,134 @@ export default function Profile() {
 	return (
 		<>
 			<h1 className="text-3xl mb-6">个人资料</h1>
-
-			<Card variant="outlined">
-				<CardContent>
-					<div className="tracking-wider text-sm mb-4">账户信息</div>
-					<div className="flex flex-col gap-3">
-						<InfoRow label="用户 ID" value={String(user.ID)} />
-						<InfoRow label="用户名" value={user.username} />
-						<InfoRow label="权限等级" value={userRoleText(user.role)} />
-						<InfoRow
-							label="注册时间"
-							value={new Date(user.CreatedAt).toLocaleString('zh-CN')}
-						/>
-						<InfoRow
-							label="最后更新"
-							value={new Date(user.UpdatedAt).toLocaleString('zh-CN')}
-						/>
-					</div>
-					<div className="mt-3">
-						<span className="text-neutral-500">操作</span>
-						<div className="mt-3 flex gap-3 items-center">
-							<Button variant="outlined" onClick={() => changePwdOpen.set(true)}>
-								修改密码
-							</Button>
-							<Button
-								variant="outlined"
-								color="error"
-								onClick={() => deleteOpen.set(true)}
-							>
-								删除账户
-							</Button>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
-			<div className="mt-4"></div>
-
-			<Card variant="outlined">
-				<CardContent>
-					<div className="tracking-wider text-sm mb-4">白名单绑定</div>
-					{user.whitelist_uuid ? (
+			<div className="flex flex-col gap-3">
+				<Card variant="outlined">
+					<CardContent>
+						<div className="tracking-wider text-sm mb-4">账户信息</div>
 						<div className="flex flex-col gap-3">
-							<InfoRow label="绑定状态" value="已绑定" />
-							<InfoRow label="UUID" value={user.whitelist_uuid} />
-							<div className="mt-3">
-								<Button
-									variant="outlined"
-									color="error"
-									onClick={() => unbindOpen.set(true)}
-								>
-									解绑
-								</Button>
-							</div>
+							<InfoRow label="用户 ID" value={String(user.ID)} />
+							<InfoRow label="用户名" value={user.username} />
+							<InfoRow label="权限等级" value={userRoleText(user.role)} />
+							<InfoRow
+								label="注册时间"
+								value={new Date(user.CreatedAt).toLocaleString('zh-CN')}
+							/>
+							<InfoRow
+								label="最后更新"
+								value={new Date(user.UpdatedAt).toLocaleString('zh-CN')}
+							/>
 						</div>
-					) : (
-						<div className="flex flex-col gap-3">
-							<Alert severity='warning'>请务必填写你自己的游戏账号，否则会导致账号被封禁。</Alert>
-							<div className="flex gap-3 items-center">
-								<TextField
-									label="游戏名"
-									size="small"
-									value={whitelistName.current}
-									onChange={e => whitelistName.set(e.target.value)}
-									onKeyDown={e => {
-										if (e.key === 'Enter') onBindWhitelist();
-									}}
-								/>
+					</CardContent>
+				</Card>
+
+				<Card variant="outlined">
+					<CardContent>
+						<div className="tracking-wider text-sm mb-4">修改密码</div>
+						<form
+							className="flex flex-col gap-3"
+							onSubmit={handleSubmit(onSubmit)}
+						>
+							<Form.StringInput
+								name="oldPassword"
+								label="原密码"
+								type="password"
+								required
+								control={control}
+							/>
+							<Form.StringInput
+								name="newPassword"
+								label="新密码"
+								type="password"
+								required
+								minlength={8}
+								maxlength={20}
+								control={control}
+							/>
+							<Form.StringInput
+								name="newPasswordConfirm"
+								label="确认新密码"
+								type="password"
+								required
+								control={control}
+								rules={{
+									validate(value, formValues) {
+										if (value !== formValues.newPassword) return '两次密码不匹配';
+										return undefined;
+									}
+								}}
+							/>
+							<div className="flex justify-end">
 								<Button
 									variant="contained"
-									onClick={onBindWhitelist}
-									loading={bindLoading.current}
-									disabled={!whitelistName.current.trim()}
+									type="submit"
+									loading={loading.current}
 								>
-									绑定
+									确认修改
 								</Button>
 							</div>
-						</div>
-					)}
-				</CardContent>
-			</Card>
+						</form>
+					</CardContent>
+				</Card>
 
-			<Dialog
-				open={changePwdOpen.current}
-				onClose={() => changePwdOpen.set(false)}
-				maxWidth="xs"
-				fullWidth
-			>
-				<DialogTitle>修改密码</DialogTitle>
-				<DialogContent>
-					<form id="changePwdForm" className="flex flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>
-						<Form.StringInput
-							name="oldPassword"
-							label="原密码"
-							type="password"
-							required
-							control={control}
-						/>
-						<Form.StringInput
-							name="newPassword"
-							label="新密码"
-							type="password"
-							required
-							minlength={8}
-							maxlength={20}
-							control={control}
-						/>
-						<Form.StringInput
-							name="newPasswordConfirm"
-							label="确认新密码"
-							type="password"
-							required
-							control={control}
-							rules={{
-								validate(value, formValues) {
-									if (value !== formValues.newPassword) return '两次密码不匹配';
-									return undefined;
-								}
-							}}
-						/>
-					</form>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => changePwdOpen.set(false)} disabled={loading.current}>
-						取消
-					</Button>
-					<Button
-						variant="contained"
-						type="submit"
-						form="changePwdForm"
-						loading={loading.current}
-					>
-						确认修改
-					</Button>
-				</DialogActions>
-			</Dialog>
+				<Card variant="outlined">
+					<CardContent>
+						<div className="tracking-wider text-sm mb-4">白名单绑定</div>
+						{user.whitelist_uuid ? (
+							<div className="flex flex-col gap-3">
+								<InfoRow label="绑定状态" value="已绑定" />
+								<InfoRow label="UUID" value={user.whitelist_uuid} />
+								<div className="mt-3">
+									<Button
+										variant="outlined"
+										color="error"
+										onClick={() => unbindOpen.set(true)}
+									>
+										解绑
+									</Button>
+								</div>
+							</div>
+						) : (
+							<div className="flex flex-col gap-3">
+								<Alert severity="warning">
+									请务必填写你自己的游戏账号，否则会导致账号被封禁。
+								</Alert>
+								<div className="flex gap-3 items-center">
+									<TextField
+										label="游戏名（区分大小写）"
+										size="small"
+										value={whitelistName.current}
+										onChange={e => whitelistName.set(e.target.value)}
+										onKeyDown={e => {
+											if (e.key === 'Enter') onBindWhitelist();
+										}}
+									/>
+									<Button
+										variant="contained"
+										onClick={onBindWhitelist}
+										loading={bindLoading.current}
+										disabled={!whitelistName.current.trim()}
+									>
+										绑定
+									</Button>
+								</div>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+
+				<Card variant="outlined">
+					<CardContent>
+						<div className="tracking-wider text-sm mb-4">危险操作 / DANGER ZONE</div>
+						<Button
+							variant="outlined"
+							color="error"
+							onClick={() => deleteOpen.set(true)}
+						>
+							删除账户
+						</Button>
+					</CardContent>
+				</Card>
+			</div>
 
 			<Dialog
 				open={deleteOpen.current}

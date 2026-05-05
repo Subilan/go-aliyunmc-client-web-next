@@ -1,6 +1,5 @@
 import { get } from '~/utils/requests';
 import type { Task } from '~/types/Task';
-import type { ChartPoint } from '~/components/player-count-chart';
 
 export function getTasks(params?: {
 	limit?: number;

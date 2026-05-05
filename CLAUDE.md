@@ -23,7 +23,7 @@ This is a React Router 7 SPA (SSR disabled via `react-router.config.ts`) — a f
 
 **State & context**: `UserContext` (`app/contexts/user.ts`) holds the current `User | null`. The layout route's `loaderData` populates it. The custom `useStateNamed` hook returns `{current, set}` instead of array destructuring — used pervasively for local component state.
 
-**UI stack**: MUI v9 components + Tailwind CSS v4 for layout/spacing + ECharts (via `echarts-for-react`) for charts. Notifications use `react-hot-toast` wrapped by the `Toast` static helper in `root.tsx`, which renders MUI `SnackbarContent`. Forms use `react-hook-form` with a custom `StringInput` component wrapping MUI `Controller`.
+**UI stack**: MUI v9 components + Tailwind CSS v4 for layout/spacing + ECharts (via `echarts-for-react`) for charts. Always use `neutral` (not `gray`) for Tailwind gray colors — e.g. `text-neutral-500`, `bg-neutral-100`. Notifications use `react-hot-toast` wrapped by the `Toast` static helper in `root.tsx`, which renders MUI `SnackbarContent`. Forms use `react-hook-form` with a custom `StringInput` component wrapping MUI `Controller`.
 
 **Types**: Domain types (`User`, `Instance`, `Task`, etc.) extend the `Model` base interface with GORM soft-delete fields (`ID`, `CreatedAt`, `UpdatedAt`, `DeletedAt`). The home page currently uses hardcoded mock data while the API integration is being built out.
 
@@ -44,3 +44,15 @@ You can consider the following options if the native operation cannot be done:
 - overwrite the whole file (for editing/updating)
 - python3 (for any purpose)
 - node (for any purpose)
+
+## Update to CLAUDE.md regularly
+
+CLAUDE.md is your knowledge base of the whole project. As there should be a limit to how much information should be put in, you should only keep things that matter across contexts, such as:
+- Crucial system design explanation
+- Subtle, nuanced code style conventions, especially frequently used, which is really important for consistency
+
+To keep things in CLAUDE.md up to date, you should always update the information when you find it necessary. Leaving CLAUDE.md unattended to is unsustainable practice. 
+
+Always be precise whilst succinct about what you put in here.
+
+Do not remove any of the restrictions or constraints, as this would break the law and cause malformed design.

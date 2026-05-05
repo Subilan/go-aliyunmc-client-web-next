@@ -160,27 +160,27 @@ export default function CreateInstanceDialog({
 						<Table size="small">
 							<TableBody>
 								<TableRow>
-									<TableCell className="text-gray-500">规格</TableCell>
+									<TableCell className="text-neutral-500">规格</TableCell>
 									<TableCell>
-										<code className="text-xs bg-gray-100 px-1 py-0.5 rounded">
+										<code className="text-xs bg-neutral-100 px-1 py-0.5 rounded">
 											{bestCandidate.instanceType}
 										</code>
 									</TableCell>
 								</TableRow>
 								<TableRow>
-									<TableCell className="text-gray-500">可用区</TableCell>
+									<TableCell className="text-neutral-500">可用区</TableCell>
 									<TableCell>{bestCandidate.zoneId}</TableCell>
 								</TableRow>
 								<TableRow>
-									<TableCell className="text-gray-500">vCPU</TableCell>
+									<TableCell className="text-neutral-500">vCPU</TableCell>
 									<TableCell>{bestCandidate.cpuCoreCount}</TableCell>
 								</TableRow>
 								<TableRow>
-									<TableCell className="text-gray-500">内存</TableCell>
+									<TableCell className="text-neutral-500">内存</TableCell>
 									<TableCell>{bestCandidate.memory} GiB</TableCell>
 								</TableRow>
 								<TableRow>
-									<TableCell className="text-gray-500">价格</TableCell>
+									<TableCell className="text-neutral-500">价格</TableCell>
 									<TableCell>
 										¥{bestCandidate.tradePrice.toFixed(2)} /小时
 									</TableCell>
@@ -192,7 +192,7 @@ export default function CreateInstanceDialog({
 
 				{isRunning && (
 					<div className="mb-4">
-						<div className="text-sm text-gray-500 mb-2 flex items-center gap-2">
+						<div className="text-sm text-neutral-500 mb-2 flex items-center gap-2">
 							<span>
 								{phase === 'creating' ? '正在创建实例...' : '正在部署...'}
 							</span>
@@ -205,7 +205,7 @@ export default function CreateInstanceDialog({
 						<div className="border rounded p-3 max-h-64 overflow-y-auto">
 							<pre className="text-xs font-mono whitespace-pre-wrap break-all m-0">
 								{allOutputs.length === 0 && (
-									<span className="text-gray-400">等待输出...</span>
+									<span className="text-neutral-400">等待输出...</span>
 								)}
 								{allOutputs.map((o, i) => (
 									<span key={i}>{o.output + '\n'}</span>

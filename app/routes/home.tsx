@@ -59,6 +59,7 @@ import {
 	getIdleRemainingSecs
 } from '~/utils/requests/home';
 import { triggerTask } from '~/utils/requests/task';
+import { get } from '~/utils/requests';
 import { useTaskSSE } from '~/hooks/useTaskSSE';
 import { useStateSSE } from '~/hooks/useStateSSE';
 import type { ServerStatus } from '~/types/ServerStatus';
@@ -449,11 +450,11 @@ export default function Home() {
 
 	async function handleStopServer() {
 		setStopping(true);
-		const { error } = await triggerTask('stop_server', {});
+		const { error } = await get('/server/stop');
 		if (error) {
-			Toast.error(typeof error === 'string' ? error : '任务触发失败');
+			Toast.error(typeof error === 'string' ? error : '停止服务器失败');
 		} else {
-			Toast.success('停止服务器任务已触发');
+			Toast.success('服务器已停止');
 			fetchAll();
 		}
 		setStopping(false);

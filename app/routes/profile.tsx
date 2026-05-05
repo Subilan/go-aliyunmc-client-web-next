@@ -1,15 +1,17 @@
 import { useContext } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useRevalidator } from 'react-router';
 import type { Route } from './+types/profile';
 import { UserContext } from '~/contexts/user';
 import {
+	Alert,
 	Button,
 	Card,
 	CardContent,
 	Dialog,
 	DialogActions,
 	DialogContent,
-	DialogTitle
+	DialogTitle,
+	TextField
 } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import useStateNamed from '~/hooks/useStateNamed';
@@ -44,10 +46,15 @@ function userRoleText(role: string) {
 export default function Profile() {
 	const user = useContext(UserContext);
 	const navigate = useNavigate();
+	const revalidator = useRevalidator();
 	const changePwdOpen = useStateNamed(false);
 	const deleteOpen = useStateNamed(false);
 	const loading = useStateNamed(false);
 	const deleteLoading = useStateNamed(false);
+	const whitelistName = useStateNamed('');
+	const bindLoading = useStateNamed(false);
+	const unbindLoading = useStateNamed(false);
+	const unbindOpen = useStateNamed(false);
 
 	const { control, handleSubmit, reset } = useForm<ChangePasswordPayload>();
 
@@ -74,6 +81,36 @@ export default function Profile() {
 			navigate('/login');
 		} else {
 			Toast.error('注销失败');
+		}
+	};
+
+	const onBindWhitelist = async () => {
+		const name = whitelistName.current.trim();
+		if (!name) return;
+		bindLoading.set(true);
+		const { error } = await Req.bindWhitelist(name);
+		bindLoading.set(false);
+		if (error === null) {
+			Toast.success('白名单绑定成功');
+			whitelistName.set('');
+			Auth.clearCache();
+			revalidator.revalidate();
+		} else {
+			Toast.error(typeof error === 'string' ? error : '绑定失败');
+		}
+	};
+
+	const onUnbindWhitelist = async () => {
+		unbindLoading.set(true);
+		const { error } = await Req.unbindWhitelist();
+		unbindLoading.set(false);
+		if (error === null) {
+			Toast.success('白名单解绑成功');
+			unbindOpen.set(false);
+			Auth.clearCache();
+			revalidator.revalidate();
+		} else {
+			Toast.error(typeof error === 'string' ? error : '解绑失败');
 		}
 	};
 
@@ -124,6 +161,50 @@ export default function Profile() {
 			</Card>
 
 			<div className="mt-4"></div>
+
+			<Card variant="outlined">
+				<CardContent>
+					<div className="tracking-wider text-sm mb-4">白名单绑定</div>
+					{user.whitelist_uuid ? (
+						<div className="flex flex-col gap-3">
+							<InfoRow label="绑定状态" value="已绑定" />
+							<InfoRow label="UUID" value={user.whitelist_uuid} />
+							<div className="mt-3">
+								<Button
+									variant="outlined"
+									color="error"
+									onClick={() => unbindOpen.set(true)}
+								>
+									解绑
+								</Button>
+							</div>
+						</div>
+					) : (
+						<div className="flex flex-col gap-3">
+							<Alert severity='warning'>请务必填写你自己的游戏账号，否则会导致账号被封禁。</Alert>
+							<div className="flex gap-3 items-center">
+								<TextField
+									label="游戏名"
+									size="small"
+									value={whitelistName.current}
+									onChange={e => whitelistName.set(e.target.value)}
+									onKeyDown={e => {
+										if (e.key === 'Enter') onBindWhitelist();
+									}}
+								/>
+								<Button
+									variant="contained"
+									onClick={onBindWhitelist}
+									loading={bindLoading.current}
+									disabled={!whitelistName.current.trim()}
+								>
+									绑定
+								</Button>
+							</div>
+						</div>
+					)}
+				</CardContent>
+			</Card>
 
 			<Dialog
 				open={changePwdOpen.current}
@@ -203,6 +284,31 @@ export default function Profile() {
 						loading={deleteLoading.current}
 					>
 						确认删除
+					</Button>
+				</DialogActions>
+			</Dialog>
+
+			<Dialog
+				open={unbindOpen.current}
+				onClose={() => unbindOpen.set(false)}
+				maxWidth="xs"
+				fullWidth
+			>
+				<DialogTitle>解绑白名单</DialogTitle>
+				<DialogContent>
+					<p>确定要解绑白名单吗？解绑后你可以重新绑定。</p>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => unbindOpen.set(false)} disabled={unbindLoading.current}>
+						取消
+					</Button>
+					<Button
+						variant="contained"
+						color="error"
+						onClick={onUnbindWhitelist}
+						loading={unbindLoading.current}
+					>
+						确认解绑
 					</Button>
 				</DialogActions>
 			</Dialog>

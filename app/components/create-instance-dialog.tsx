@@ -48,6 +48,7 @@ export default function CreateInstanceDialog({
 		return 'idle';
 	});
 	const [autoDeploy, setAutoDeploy] = useState(true);
+	const createInitiatedRef = useRef(false);
 
 	const createSSE = useTaskSSE(createTaskId);
 	const deploySSE = useTaskSSE(deployTaskId);
@@ -89,6 +90,7 @@ export default function CreateInstanceDialog({
 	// When deploy task is done
 	useEffect(() => {
 		if (!deploySSE.done || phase !== 'deploying') return;
+		if (!createInitiatedRef.current) return;
 
 		if (deploySSE.error) {
 			Toast.error('部署失败: ' + deploySSE.error);
@@ -110,6 +112,7 @@ export default function CreateInstanceDialog({
 	function handleCreate() {
 		setPhase('creating');
 		onRunningChange(true);
+		createInitiatedRef.current = true;
 		triggerTask('create_instance', {
 			useDefaultVSwitch: true,
 			startWhenCreated: true

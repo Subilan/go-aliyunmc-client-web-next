@@ -49,6 +49,7 @@ import type { Task } from '~/types/Task';
 import PlayerCountChart from '~/components/player-count-chart';
 import type { PlayerListChartPoint } from '~/components/player-count-chart';
 import CreateInstanceDialog from '~/components/create-instance-dialog';
+import DeployDialog from '~/components/deploy-dialog';
 import ConfirmTriggerDialog from '~/components/confirm-trigger-dialog';
 import { getActiveInstance, getCandidates, deleteActiveInstance } from '~/utils/requests/instance';
 import { getServerStatus, getInstanceStatus } from '~/utils/requests/state';
@@ -223,7 +224,11 @@ export default function Home() {
 	const latestOutput =
 		activeOutputs.length > 0 ? activeOutputs[activeOutputs.length - 1].output : null;
 
-	// Delete instance dialog
+	// Deploy
+	const [deployConfirmOpen, setDeployConfirmOpen] = useState(false);
+	const [deployDialogOpen, setDeployDialogOpen] = useState(false);
+	const [deployTriggering, setDeployTriggering] = useState(false);
+
 	const [deleteOpen, setDeleteOpen] = useState(false);
 	const [deleting, setDeleting] = useState(false);
 
@@ -299,7 +304,7 @@ export default function Home() {
 						hour: '2-digit',
 						minute: '2-digit'
 					}),
-					count: p.playerCount
+					playerNames: p.playerNames
 				}))
 			);
 		}
@@ -459,6 +464,22 @@ export default function Home() {
 		setStopOpen(false);
 	}
 
+	async function handleDeploy() {
+		setDeployTriggering(true);
+		const { data, error } = await triggerTask('deploy', {});
+		if (error) {
+			Toast.error(typeof error === 'string' ? error : '部署任务触发失败');
+			setDeployTriggering(false);
+			return;
+		}
+		setDeployConfirmOpen(false);
+		setDeployTaskId(data!.ID);
+		setTaskRunning(true);
+		setDeployTriggering(false);
+		setDeployDialogOpen(true);
+		fetchAll();
+	}
+
 	const serverActions: FuncListItem[] = [
 		{
 			name: '启动服务器',
@@ -479,7 +500,7 @@ export default function Home() {
 		{
 			name: '部署',
 			icon: RocketIcon,
-			action: () => handleAction('部署'),
+			action: () => setDeployConfirmOpen(true),
 			disabled: !canDeploy
 		},
 		{ name: '删除实例', icon: Trash2Icon, action: () => handleAction('删除实例') },
@@ -584,7 +605,13 @@ export default function Home() {
 								<Button
 									size="small"
 									variant="contained"
-									onClick={() => setDialogOpen(true)}
+									onClick={() => {
+										if (createTaskId) {
+											setDialogOpen(true);
+										} else {
+											setDeployDialogOpen(true);
+										}
+									}}
 								>
 									查看进度
 								</Button>
@@ -814,6 +841,15 @@ export default function Home() {
 			</Dialog>
 
 			<ConfirmTriggerDialog
+				open={deployConfirmOpen}
+				onClose={() => setDeployConfirmOpen(false)}
+				title="部署"
+				description="此操作将对当前实例执行部署。"
+				onConfirm={handleDeploy}
+				loading={deployTriggering}
+			/>
+
+			<ConfirmTriggerDialog
 				open={backupOpen}
 				onClose={() => setBackupOpen(false)}
 				title="备份"
@@ -847,6 +883,15 @@ export default function Home() {
 				description="此操作将停止当前实例上的 Minecraft 服务器，玩家将被断开连接。"
 				onConfirm={handleStopServer}
 				loading={stopping}
+			/>
+
+			<DeployDialog
+				open={deployDialogOpen}
+				onClose={() => setDeployDialogOpen(false)}
+				onDeployed={() => fetchAll()}
+				deployTaskId={deployTaskId}
+				onDeployTaskIdChange={setDeployTaskId}
+				onRunningChange={setTaskRunning}
 			/>
 
 			<CreateInstanceDialog

@@ -29,7 +29,6 @@ import {
 	ClockIcon,
 	CpuIcon,
 	DatabaseIcon,
-	DollarSignIcon,
 	HardDriveIcon,
 	InfoIcon,
 	Loader2Icon,
@@ -54,12 +53,7 @@ import DeployDialog from '~/components/deploy-dialog';
 import ConfirmTriggerDialog from '~/components/confirm-trigger-dialog';
 import { getActiveInstance, getCandidates, deleteActiveInstance } from '~/utils/requests/instance';
 import { getServerStatus, getInstanceStatus } from '~/utils/requests/state';
-import {
-	getTasks,
-	getBalance,
-	getPlayerListHistory,
-	getIdleRemainingSecs
-} from '~/utils/requests/home';
+import { getTasks, getPlayerListHistory, getIdleRemainingSecs } from '~/utils/requests/home';
 import { triggerTask } from '~/utils/requests/task';
 import { get } from '~/utils/requests';
 import { useTaskSSE } from '~/hooks/useTaskSSE';
@@ -209,7 +203,6 @@ export default function Home() {
 	const serverOnline = useStateNamed(false);
 	const playerCount = useStateNamed(0);
 	const idleRemainingSecs = useStateNamed(-1);
-	const accountBalance = useStateNamed(0);
 	const chartData = useStateNamed<PlayerListChartPoint[]>([]);
 	const [refreshingServerStatus, setRefreshingServerStatus] = useState(false);
 	const [refreshingCandidates, setRefreshingCandidates] = useState(false);
@@ -263,27 +256,17 @@ export default function Home() {
 	const serverQuery = useRef<ServerQuery>(undefined);
 
 	async function fetchAll() {
-		const [
-			instRes,
-			candRes,
-			tasksRes,
-			srvRes,
-			instStatusRes,
-			balRes,
-			chartRes,
-			idleRes,
-			querySrvRes
-		] = await Promise.all([
-			getActiveInstance(),
-			getCandidates(),
-			getTasks({ limit: 5 }),
-			getServerStatus(),
-			getInstanceStatus(),
-			getBalance(),
-			getPlayerListHistory(),
-			getIdleRemainingSecs(),
-			queryServer()
-		]);
+		const [instRes, candRes, tasksRes, srvRes, instStatusRes, chartRes, idleRes, querySrvRes] =
+			await Promise.all([
+				getActiveInstance(),
+				getCandidates(),
+				getTasks({ limit: 5 }),
+				getServerStatus(),
+				getInstanceStatus(),
+				getPlayerListHistory(),
+				getIdleRemainingSecs(),
+				queryServer()
+			]);
 
 		if (instRes.error === null) {
 			setInstance(instRes.data);
@@ -312,7 +295,6 @@ export default function Home() {
 			playerCount.set(srvRes.data!.Value.playerCount);
 		}
 		if (instStatusRes.error === null) instanceStatus.set(instStatusRes.data!.Value);
-		if (balRes.error === null) accountBalance.set(balRes.data!);
 		if (chartRes.error === null) {
 			chartData.set(
 				chartRes.data!.map(p => ({
@@ -401,10 +383,6 @@ export default function Home() {
 			fetchTasksRef.current();
 		}
 	}, [srvSSE.value]);
-
-	useEffect(() => {
-		console.log(serverQuery.current);
-	}, [serverQuery.current]);
 
 	useEffect(() => {
 		fetchAll();
@@ -573,15 +551,6 @@ export default function Home() {
 			{/* header */}
 			<div className="flex items-center mb-6">
 				<h1 className="text-3xl">Hi, {user?.username}</h1>
-				<div className="flex-1" />
-				<div className="flex items-center gap-3">
-					<Chip
-						icon={<DollarSignIcon size={14} />}
-						label={`余额 ¥${accountBalance.current.toFixed(2)}`}
-						variant="outlined"
-						size="small"
-					/>
-				</div>
 			</div>
 
 			{user && !user.whitelist_uuid && (
@@ -652,8 +621,24 @@ export default function Home() {
 											</span>
 										)}
 									</div>
-									<span>{serverQuery.current?.platform}</span>
-									<div className='flex-1'/>
+									{serverQuery.current && (
+										<Chip
+											icon={
+												serverQuery.current.platform.includes('Paper') ? (
+													<img
+														draggable="false"
+														alt="papermc"
+														src="/paper.svg"
+														height="16px"
+														width="16px"
+													/>
+												) : undefined
+											}
+											variant="outlined"
+											label={serverQuery.current.platform}
+										/>
+									)}
+									<div className="flex-1" />
 									<FuncList items={serverActions} />
 								</div>
 								<div className="flex-1" />

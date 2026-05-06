@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import type { Route } from './+types/home';
 import { UserContext } from '~/contexts/user';
+import { PermissionsContext } from '~/contexts/permissions';
 import {
 	Alert,
 	Button,
@@ -193,6 +194,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
 	const user = useContext(UserContext);
+	const permissions = useContext(PermissionsContext);
 
 	const [instance, setInstance] = useState<Instance | null>(null);
 	const [candidates, setCandidates] = useState<EcsCandidate[]>([]);
@@ -537,13 +539,13 @@ export default function Home() {
 			name: '启动服务器',
 			icon: PlayIcon,
 			action: () => handleAction('启动服务器'),
-			disabled: !canStartServer
+			disabled: !canStartServer || (permissions !== null && !permissions.can_trigger_task)
 		},
 		{
 			name: '停止服务器',
 			icon: SquareIcon,
 			action: () => handleAction('停止服务器'),
-			disabled: !canStopServer
+			disabled: !canStopServer || (permissions !== null && !permissions.can_stop_server)
 		}
 	];
 
@@ -552,20 +554,20 @@ export default function Home() {
 			name: '部署',
 			icon: RocketIcon,
 			action: () => setDeployConfirmOpen(true),
-			disabled: !canDeploy
+			disabled: !canDeploy || (permissions !== null && !permissions.can_trigger_task)
 		},
-		{ name: '删除实例', icon: Trash2Icon, action: () => handleAction('删除实例') },
+		{ name: '删除实例', icon: Trash2Icon, action: () => handleAction('删除实例'), disabled: permissions !== null && !permissions.can_delete_instance },
 		{
 			name: '备份',
 			icon: DatabaseIcon,
 			action: () => handleAction('备份'),
-			disabled: !canBackup
+			disabled: !canBackup || (permissions !== null && !permissions.can_run_backup)
 		},
 		{
 			name: '归档',
 			icon: ArchiveIcon,
 			action: () => handleAction('归档'),
-			disabled: !canBackup
+			disabled: !canBackup || (permissions !== null && !permissions.can_run_archive)
 		}
 	];
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import {
 	Button,
 	Checkbox,
@@ -17,6 +17,8 @@ import type { EcsCandidate } from '~/types/EcsCandidate';
 import { triggerTask } from '~/utils/requests/task';
 import { useTaskSSE } from '~/hooks/useTaskSSE';
 import { Toast } from '~/root';
+import { UserContext } from '~/contexts/user';
+import { isBasicUser } from '~/types/User';
 
 type Phase = 'idle' | 'creating' | 'deploying' | 'starting' | 'done';
 
@@ -193,6 +195,12 @@ export default function CreateInstanceDialog({
 		}
 	}, [open, createTaskId, deployTaskId, startTaskId]);
 
+	const user = useContext(UserContext);
+	let canSkipOneClick = false;
+	if (user !== null) {
+		canSkipOneClick = !isBasicUser(user);
+	}
+
 	return (
 		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth keepMounted>
 			<DialogTitle>创建实例</DialogTitle>
@@ -263,6 +271,7 @@ export default function CreateInstanceDialog({
 						control={
 							<Checkbox
 								checked={oneClick}
+								disabled={!canSkipOneClick}
 								onChange={(_, v) => setOneClick(v)}
 								size="small"
 							/>

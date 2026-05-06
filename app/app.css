@@ -35,3 +35,8 @@
 		transform: translateY(-10px);
 	}
 }
+
+footer a {
+	text-decoration: underline;
+	@apply text-neutral-300 hover:text-neutral-50;
+}

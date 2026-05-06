@@ -15,11 +15,12 @@ import MetricCard from '~/components/metric-card';
 import { getBalance, getAccountBalanceHistory } from '~/utils/requests/home';
 import { getCandidates } from '~/utils/requests/instance';
 import PageHeader from '~/components/page-header';
+import { PAGE_NAME_ECONOMY } from '~/consts/page-names';
 
 export function meta({}: Route.MetaArgs) {
 	return [
-		{ title: '服务器经济 - Seatide' },
-		{ name: 'description', content: 'Seatide 服务器经济' }
+		{ title: PAGE_NAME_ECONOMY + ' - Seatide' },
+		{ name: 'description', content: '此页展示了服务器的经济收支情况。' }
 	];
 }
 
@@ -98,7 +99,7 @@ export default function Economy() {
 
 	return (
 		<>
-			<PageHeader>服务器经济</PageHeader>
+			<PageHeader>{PAGE_NAME_ECONOMY}</PageHeader>
 			<div className="flex flex-col gap-3">
 				{/* overview */}
 				<MetricCard
@@ -120,7 +121,7 @@ export default function Economy() {
 						{
 							icon: <ClockIcon size={12} />,
 							label: '预计支撑时间',
-							value: estimatedHours === null ? '—' : `${estimatedHours.toFixed(1)} h`,
+							value: estimatedHours === null ? '—' : `${estimatedHours.toFixed(1)} h`
 						}
 					]}
 				/>

@@ -1,12 +1,13 @@
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import { Breadcrumbs, IconButton, Typography } from '@mui/material';
 import { ArrowLeftIcon } from 'lucide-react';
-import { INFO_GROUP } from '~/utils/groups';
+import { PAGE_CATEGORY_INFORMATION } from "~/consts/page-categories";
+import { PAGE_NAME_ECONOMY, PAGE_NAME_ECS_CANDIDATES, PAGE_NAME_TASK_LIST } from '~/consts/page-names';
 
 const pageMeta: Record<string, { group: string; label: string }> = {
-	'/info/tasks': { group: INFO_GROUP, label: '任务列表' },
-	'/info/ecs-candidates': { group: INFO_GROUP, label: '候选实例' },
-	'/info/economy': { group: INFO_GROUP, label: '服务器经济' }
+	'/info/tasks': { group: PAGE_CATEGORY_INFORMATION, label: PAGE_NAME_TASK_LIST },
+	'/info/ecs-candidates': { group: PAGE_CATEGORY_INFORMATION, label: PAGE_NAME_ECS_CANDIDATES },
+	'/info/economy': { group: PAGE_CATEGORY_INFORMATION, label: PAGE_NAME_ECONOMY }
 };
 
 export default function InnerAppLayout() {

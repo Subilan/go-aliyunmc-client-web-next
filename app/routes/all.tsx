@@ -9,7 +9,8 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { Link } from 'react-router';
 import type { Route } from './+types/all';
-import { INFO_GROUP } from '~/utils/groups';
+import { PAGE_CATEGORY_INFORMATION } from "~/consts/page-categories";
+import { PAGE_NAME_ECONOMY, PAGE_NAME_ECS_CANDIDATES, PAGE_NAME_TASK_LIST } from '~/consts/page-names';
 
 interface FeatureCard {
 	title: string;
@@ -37,24 +38,24 @@ const groups: FeatureGroup[] = [
 		]
 	},
 	{
-		title: INFO_GROUP,
+		title: PAGE_CATEGORY_INFORMATION,
 		cards: [
 			{
-				title: '任务列表',
+				title: PAGE_NAME_TASK_LIST,
 				description:
 					'查看所有已创建的任务，包括部署、备份、归档等操作的历史记录与运行状态。',
 				to: '/info/tasks',
 				icon: ListTodoIcon
 			},
 			{
-				title: '候选实例',
+				title: PAGE_NAME_ECS_CANDIDATES,
 				description:
 					'浏览可用的 ECS 实例规格，比较不同配置的 vCPU、内存、价格及可用区信息。',
 				to: '/info/ecs-candidates',
 				icon: CpuIcon
 			},
 			{
-				title: '服务器经济',
+				title: PAGE_NAME_ECONOMY,
 				description: '查看阿里云账户余额及历史走势，了解服务器运行账号的收支情况。',
 				to: '/info/economy',
 				icon: DollarSignIcon

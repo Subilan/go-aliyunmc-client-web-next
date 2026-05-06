@@ -25,6 +25,7 @@ dayjs.extend(relativeTime);
 dayjs.locale('zh-cn');
 import { CheckCircleIcon, ClockIcon, Loader2Icon, XCircleIcon, XIcon } from 'lucide-react';
 import PageHeader from '~/components/page-header';
+import { PAGE_NAME_TASK_LIST } from '~/consts/page-names';
 
 function taskTypeLabel(type: string) {
 	switch (type) {
@@ -281,7 +282,7 @@ export default function TasksPage() {
 
 	return (
 		<>
-			<PageHeader>任务列表</PageHeader>
+			<PageHeader>{PAGE_NAME_TASK_LIST}</PageHeader>
 			<div className="flex flex-col gap-3">
 				<MetricCard
 					cols={4}

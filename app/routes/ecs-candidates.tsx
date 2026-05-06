@@ -16,6 +16,7 @@ import MetricCard, { type MetricItem } from '~/components/metric-card';
 import PageHeader from '~/components/page-header';
 import { getBalance } from '~/utils/requests/home';
 import useStateNamed from '~/hooks/useStateNamed';
+import { PAGE_NAME_ECS_CANDIDATES } from '~/consts/page-names';
 
 const columns = [
 	{
@@ -58,7 +59,7 @@ export default function EcsCandidatesPage() {
 
 	return (
 		<>
-			<PageHeader>候选实例</PageHeader>
+			<PageHeader>{PAGE_NAME_ECS_CANDIDATES}</PageHeader>
 			<div className="flex flex-col gap-3">
 				<MetricCard
 					cols={3}

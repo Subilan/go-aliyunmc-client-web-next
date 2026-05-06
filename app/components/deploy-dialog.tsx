@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import {
 	Button,
+	Card,
+	CardContent,
 	Dialog,
 	DialogActions,
 	DialogContent,
@@ -25,9 +27,7 @@ export default function DeployDialog({
 	onDeployTaskIdChange: (id: number | null) => void;
 	onRunningChange: (running: boolean) => void;
 }) {
-	const [phase, setPhase] = useState<'deploying' | 'done'>(
-		deployTaskId ? 'deploying' : 'done'
-	);
+	const [phase, setPhase] = useState<'deploying' | 'done'>(deployTaskId ? 'deploying' : 'done');
 
 	const deploySSE = useTaskSSE(deployTaskId);
 	const outputsEndRef = useRef<HTMLDivElement>(null);
@@ -81,24 +81,24 @@ export default function DeployDialog({
 								</span>
 							)}
 						</div>
-						<div className="border rounded p-3 max-h-64 overflow-y-auto">
-							<pre className="text-xs font-mono whitespace-pre-wrap break-all m-0">
-								{outputs.length === 0 && (
-									<span className="text-neutral-400">等待输出...</span>
-								)}
-								{outputs.map((o, i) => (
-									<span key={i}>{o.output + '\n'}</span>
-								))}
-							</pre>
-							<div ref={outputsEndRef} />
-						</div>
+						<Card variant='outlined'>
+							<CardContent>
+								<pre className="text-xs font-mono whitespace-pre-wrap break-all m-0">
+									{outputs.length === 0 && (
+										<span className="text-neutral-400">等待输出...</span>
+									)}
+									{outputs.map((o, i) => (
+										<span key={i}>{o.output + '\n'}</span>
+									))}
+								</pre>
+								<div ref={outputsEndRef} />
+							</CardContent>
+						</Card>
 					</div>
 				)}
 			</DialogContent>
 			<DialogActions>
-				<Button onClick={onClose}>
-					{phase === 'deploying' ? '后台执行' : '关闭'}
-				</Button>
+				<Button onClick={onClose}>{phase === 'deploying' ? '后台执行' : '关闭'}</Button>
 				{phase === 'deploying' && (
 					<Button
 						variant="contained"

@@ -267,7 +267,7 @@ export default function CreateInstanceDialog({
 								size="small"
 							/>
 						}
-						label="一键创建（创建+部署+启动）"
+						label="一键创建"
 					/>
 				)}
 			</DialogContent>

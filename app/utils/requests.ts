@@ -76,3 +76,15 @@ export async function del(url: string) {
 
 	return result.error === null;
 }
+
+export async function put(url: string, body: Record<string, any>) {
+	const result = await req(url, {
+		method: 'put',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(body)
+	});
+	
+	return result.error === null;
+}

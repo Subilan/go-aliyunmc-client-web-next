@@ -18,7 +18,7 @@ import { triggerTask } from '~/utils/requests/task';
 import { useTaskSSE } from '~/hooks/useTaskSSE';
 import { Toast } from '~/root';
 
-type Phase = 'idle' | 'creating' | 'deploying' | 'done';
+type Phase = 'idle' | 'creating' | 'deploying' | 'starting' | 'done';
 
 export default function CreateInstanceDialog({
 	open,
@@ -30,6 +30,8 @@ export default function CreateInstanceDialog({
 	onCreateTaskIdChange,
 	deployTaskId,
 	onDeployTaskIdChange,
+	startTaskId,
+	onStartTaskIdChange,
 	onRunningChange
 }: {
 	open: boolean;
@@ -41,24 +43,28 @@ export default function CreateInstanceDialog({
 	onCreateTaskIdChange: (id: number | null) => void;
 	deployTaskId: number | null;
 	onDeployTaskIdChange: (id: number | null) => void;
+	startTaskId: number | null;
+	onStartTaskIdChange: (id: number | null) => void;
 	onRunningChange: (running: boolean) => void;
 }) {
 	const [phase, setPhase] = useState<Phase>(() => {
+		if (startTaskId) return 'starting';
 		if (createTaskId) return deployTaskId ? 'deploying' : 'creating';
 		return 'idle';
 	});
-	const [autoDeploy, setAutoDeploy] = useState(true);
+	const [oneClick, setOneClick] = useState(true);
 	const createInitiatedRef = useRef(false);
 
 	const createSSE = useTaskSSE(createTaskId);
 	const deploySSE = useTaskSSE(deployTaskId);
+	const startSSE = useTaskSSE(startTaskId);
 
 	const outputsEndRef = useRef<HTMLDivElement>(null);
 
 	// Auto-scroll on new output
 	useEffect(() => {
 		outputsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-	}, [createSSE.outputs.length, deploySSE.outputs.length]);
+	}, [createSSE.outputs.length, deploySSE.outputs.length, startSSE.outputs.length]);
 
 	// When create task is done
 	useEffect(() => {
@@ -71,7 +77,7 @@ export default function CreateInstanceDialog({
 			return;
 		}
 
-		if (autoDeploy) {
+		if (oneClick) {
 			setPhase('deploying');
 			triggerTask('deploy', {}).then(res => {
 				if (res.data) {
@@ -94,16 +100,45 @@ export default function CreateInstanceDialog({
 
 		if (deploySSE.error) {
 			Toast.error('部署失败: ' + deploySSE.error);
+			onRunningChange(false);
+			finish();
+			return;
+		}
+
+		if (oneClick) {
+			setPhase('starting');
+			triggerTask('start_server', {}).then(res => {
+				if (res.data) {
+					onStartTaskIdChange(res.data.ID);
+					onTaskChange();
+				} else {
+					Toast.error('触发启动服务器失败: ' + res.error);
+					finish();
+				}
+			});
+		} else {
+			finish();
+		}
+	}, [deploySSE.done]);
+
+	// When start task is done
+	useEffect(() => {
+		if (!startSSE.done || phase !== 'starting') return;
+		if (!createInitiatedRef.current) return;
+
+		if (startSSE.error) {
+			Toast.error('启动服务器失败: ' + startSSE.error);
 		}
 		onRunningChange(false);
 		finish();
-	}, [deploySSE.done]);
+	}, [startSSE.done]);
 
 	function finish() {
 		setPhase('done');
 		onRunningChange(false);
 		onCreateTaskIdChange(null);
 		onDeployTaskIdChange(null);
+		onStartTaskIdChange(null);
 		Toast.success('实例创建成功');
 		onCreated();
 		onClose();
@@ -128,10 +163,12 @@ export default function CreateInstanceDialog({
 		});
 	}
 
-	const isRunning = phase === 'creating' || phase === 'deploying';
+	const isRunning = phase === 'creating' || phase === 'deploying' || phase === 'starting';
 	const allOutputs =
 		phase === 'deploying'
 			? [...createSSE.outputs, ...deploySSE.outputs]
+			: phase === 'starting'
+			? [...createSSE.outputs, ...deploySSE.outputs, ...startSSE.outputs]
 			: createSSE.outputs;
 
 	const currentStep = allOutputs.length > 0
@@ -140,19 +177,21 @@ export default function CreateInstanceDialog({
 
 	// Sync phase when task IDs become non-null (e.g. after page refresh)
 	useEffect(() => {
-		if (deployTaskId) {
+		if (startTaskId) {
+			setPhase('starting');
+		} else if (deployTaskId) {
 			setPhase('deploying');
 		} else if (createTaskId) {
 			setPhase('creating');
 		}
-	}, [createTaskId, deployTaskId]);
+	}, [createTaskId, deployTaskId, startTaskId]);
 
 	// Reset to idle when dialog opens without an ongoing task
 	useEffect(() => {
-		if (open && !createTaskId && !deployTaskId) {
+		if (open && !createTaskId && !deployTaskId && !startTaskId) {
 			setPhase('idle');
 		}
-	}, [open, createTaskId, deployTaskId]);
+	}, [open, createTaskId, deployTaskId, startTaskId]);
 
 	return (
 		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth keepMounted>
@@ -197,7 +236,7 @@ export default function CreateInstanceDialog({
 					<div className="mb-4">
 						<div className="text-sm text-neutral-500 mb-2 flex items-center gap-2">
 							<span>
-								{phase === 'creating' ? '正在创建实例...' : '正在部署...'}
+								{phase === 'creating' ? '正在创建实例...' : phase === 'deploying' ? '正在部署...' : '正在启动服务器...'}
 							</span>
 							{currentStep > 0 && (
 								<span className="text-blue-500 font-mono text-xs">
@@ -223,12 +262,12 @@ export default function CreateInstanceDialog({
 					<FormControlLabel
 						control={
 							<Checkbox
-								checked={autoDeploy}
-								onChange={(_, v) => setAutoDeploy(v)}
+								checked={oneClick}
+								onChange={(_, v) => setOneClick(v)}
 								size="small"
 							/>
 						}
-						label="创建完成后自动部署"
+						label="一键创建（创建+部署+启动）"
 					/>
 				)}
 			</DialogContent>
@@ -247,7 +286,7 @@ export default function CreateInstanceDialog({
 						disabled
 						startIcon={<Loader2Icon size={16} className="animate-spin" />}
 					>
-						{phase === 'creating' ? '创建中...' : '部署中...'}
+						{phase === 'creating' ? '创建中...' : phase === 'deploying' ? '部署中...' : '启动中...'}
 					</Button>
 				)}
 			</DialogActions>

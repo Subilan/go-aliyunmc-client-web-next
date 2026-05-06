@@ -212,12 +212,19 @@ export default function Home() {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [createTaskId, setCreateTaskId] = useState<number | null>(null);
 	const [deployTaskId, setDeployTaskId] = useState<number | null>(null);
+	const [startTaskId, setStartTaskId] = useState<number | null>(null);
 	const [taskRunning, setTaskRunning] = useState(false);
+	const [serverStarting, setServerStarting] = useState(false);
 
 	// SSE for live task output in the instance status card
 	const createSSE = useTaskSSE(createTaskId);
 	const deploySSE = useTaskSSE(deployTaskId);
-	const activeOutputs = deployTaskId ? deploySSE.outputs : createSSE.outputs;
+	const startSSE = useTaskSSE(startTaskId);
+	const activeOutputs = startTaskId
+		? startSSE.outputs
+		: deployTaskId
+			? deploySSE.outputs
+			: createSSE.outputs;
 	const latestOutput =
 		activeOutputs.length > 0 ? activeOutputs[activeOutputs.length - 1].output : null;
 
@@ -288,6 +295,18 @@ export default function Home() {
 				setCreateTaskId(runningCreate?.ID ?? null);
 				setDeployTaskId(runningDeploy?.ID ?? null);
 				setTaskRunning(true);
+			}
+			const runningStart = tasksRes.data!.tasks.find(
+				t => t.type === 'start_server' && t.status === 'running'
+			);
+			const isServerOnline = srvRes.error === null && srvRes.data!.Value.online;
+			if (runningStart) {
+				setStartTaskId(runningStart.ID);
+				setTaskRunning(true);
+				if (!isServerOnline) {
+					setServerStarting(true);
+					startServerTriggeredRef.current = true;
+				}
 			}
 		}
 		if (srvRes.error === null) {
@@ -378,9 +397,12 @@ export default function Home() {
 	const fetchTasksRef = useRef(fetchTasks);
 	fetchTasksRef.current = fetchTasks;
 	useEffect(() => {
-		if (srvSSE.value?.Value.online && startServerTriggeredRef.current) {
-			startServerTriggeredRef.current = false;
-			fetchTasksRef.current();
+		if (srvSSE.value?.Value.online) {
+			if (startServerTriggeredRef.current) {
+				startServerTriggeredRef.current = false;
+				fetchTasksRef.current();
+			}
+			setServerStarting(false);
 		}
 	}, [srvSSE.value]);
 
@@ -474,6 +496,7 @@ export default function Home() {
 		} else {
 			Toast.success('启动服务器任务已触发');
 			startServerTriggeredRef.current = true;
+			setServerStarting(true);
 			fetchAll();
 		}
 		setStarting(false);
@@ -586,23 +609,30 @@ export default function Home() {
 							<ServerIcon size={14} />
 							服务器状态 / SERVER STATUS
 							<div className="flex-1" />
-							<Tooltip title="刷新">
-								<IconButton
-									size="small"
-									disabled={refreshingServerStatus}
-									onClick={fetchServerStatus}
-								>
-									<RefreshCwIcon
-										size={16}
-										className={refreshingServerStatus ? 'animate-spin' : ''}
-									/>
-								</IconButton>
-							</Tooltip>
+							{!instanceNotFound.current && isDeployed && (
+								<Tooltip title="刷新图表">
+									<IconButton
+										size="small"
+										disabled={refreshingServerStatus}
+										onClick={fetchServerStatus}
+									>
+										<RefreshCwIcon
+											size={16}
+											className={refreshingServerStatus ? 'animate-spin' : ''}
+										/>
+									</IconButton>
+								</Tooltip>
+							)}
 						</div>
 						{instanceNotFound.current || !isDeployed ? (
 							<div className="flex flex-col items-center gap-3 py-8">
 								<ServerIcon size={40} className="text-neutral-300" />
 								<span className="text-neutral-500">请先创建并部署实例</span>
+							</div>
+						) : serverStarting ? (
+							<div className="flex flex-col items-center gap-3 py-8">
+								<Loader2Icon size={40} className="text-neutral-300 animate-spin" />
+								<span className="text-neutral-500">正在启动服务器...</span>
 							</div>
 						) : (
 							<div className="flex flex-col md:flex-row gap-4">
@@ -666,7 +696,7 @@ export default function Home() {
 								</>
 							)}
 						</div>
-						{taskRunning ? (
+						{taskRunning && !startTaskId ? (
 							<div className="flex flex-col items-center gap-3 py-8">
 								<Loader2Icon size={40} className="text-neutral-300 animate-spin" />
 								<span className="text-neutral-500">
@@ -860,7 +890,11 @@ export default function Home() {
 												className="text-neutral-500 text-sm"
 											>
 												{task.endAt && task.startAt
-													? ((new Date(task.endAt).getTime() - new Date(task.startAt).getTime()) / 1000).toFixed(1) + 's'
+													? (
+															(new Date(task.endAt).getTime() -
+																new Date(task.startAt).getTime()) /
+															1000
+														).toFixed(1) + 's'
 													: '—'}
 											</TableCell>
 											<TableCell
@@ -988,6 +1022,8 @@ export default function Home() {
 				onCreateTaskIdChange={setCreateTaskId}
 				deployTaskId={deployTaskId}
 				onDeployTaskIdChange={setDeployTaskId}
+				startTaskId={startTaskId}
+				onStartTaskIdChange={setStartTaskId}
 				onRunningChange={setTaskRunning}
 			/>
 		</>

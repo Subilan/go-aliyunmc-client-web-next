@@ -13,17 +13,22 @@ import MenuBtn from '~/components/menu-btn';
 import { Auth } from '~/utils/auth';
 import type { Route } from './+types/app';
 import { UserContext } from '~/contexts/user';
+import { PermissionsContext } from '~/contexts/permissions';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
+import { getPermissions } from '~/utils/requests/permissions';
 
 export async function clientLoader() {
 	if (!(await Auth.isLoggedIn())) {
 		throw redirect('/lor');
 	}
 
-	return {
-		user: await Auth.getUser()
-	};
+	const [user, permissions] = await Promise.all([
+		Auth.getUser(),
+		getPermissions()
+	]);
+
+	return { user, permissions };
 }
 
 const activeSx = {
@@ -36,7 +41,7 @@ const inactiveSx = {
 };
 
 export default function AppLayout({ loaderData }: Route.ComponentProps) {
-	const user = loaderData.user;
+	const { user, permissions } = loaderData;
 	const navigate = useNavigate();
 	const location = useLocation();
 	const logoutOpen = useStateNamed(false);
@@ -62,7 +67,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 		<>
 			<AppBar position="sticky">
 				<Toolbar>
-					<h1 className="text-xl leading-none mr-6">Tidelab</h1>
+					<h1 className="text-xl leading-none mr-6">TiLab</h1>
 					<MuiButton
 						color="inherit"
 						component={Link}
@@ -109,7 +114,9 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 			</AppBar>
 			<main className="max-w-250 mx-auto py-10">
 				<UserContext.Provider value={user}>
-					<Outlet />
+					<PermissionsContext.Provider value={permissions}>
+						<Outlet />
+					</PermissionsContext.Provider>
 				</UserContext.Provider>
 			</main>
 

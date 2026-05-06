@@ -12,6 +12,7 @@ import './app.css';
 import toast, { Toaster } from 'react-hot-toast';
 import { createTheme, SnackbarContent, ThemeProvider } from '@mui/material';
 import { AlertCircleIcon, CheckIcon, InfoIcon } from 'lucide-react';
+import Footer from '~/footer';
 
 export const Toast = {
 	run(title: string, desc?: string, kind: 'success' | 'error' | 'info' = 'info', timeout = 3000) {
@@ -79,6 +80,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<ScrollRestoration />
 				<Scripts />
 				<Toaster position="top-center" />
+				<Footer/>
 			</body>
 		</html>
 	);

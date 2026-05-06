@@ -9,6 +9,8 @@ import { triggerTask, getTask, getTaskDefinition } from "~/utils/requests/task";
 import changePassword from "~/utils/requests/change-password";
 import deleteAccount from "~/utils/requests/delete-account";
 import { bindWhitelist, unbindWhitelist } from "~/utils/requests/whitelist";
+import getPreferences from "~/utils/requests/get-preferences";
+import updatePreferences from "~/utils/requests/update-preferences";
 
 export const Req = {
     login,
@@ -19,6 +21,8 @@ export const Req = {
     deleteAccount,
     bindWhitelist,
     unbindWhitelist,
+    getPreferences,
+    updatePreferences,
     getActiveInstance,
     getCandidates,
     deleteActiveInstance,

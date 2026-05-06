@@ -18,7 +18,6 @@ export function useTaskSSE(taskId: number | null) {
 		if (taskId === null) return;
 
 		let abortSSE: (() => void) | null = null;
-		let wasHidden = false;
 		let mounted = true;
 
 		async function loadAndConnect() {
@@ -66,13 +65,10 @@ export function useTaskSSE(taskId: number | null) {
 		loadAndConnect();
 
 		function handleVisibilityChange() {
-			if (document.hidden) {
-				wasHidden = true;
-			} else if (wasHidden && !doneRef.current) {
-				wasHidden = false;
-				if (abortSSE) abortSSE();
-				loadAndConnect();
-			}
+			if (document.hidden) return;
+			if (doneRef.current) return;
+			if (abortSSE) abortSSE();
+			loadAndConnect();
 		}
 
 		document.addEventListener('visibilitychange', handleVisibilityChange);

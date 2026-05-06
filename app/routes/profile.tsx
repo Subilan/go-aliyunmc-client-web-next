@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { useNavigate, useRevalidator } from 'react-router';
 import type { Route } from './+types/profile';
 import { UserContext } from '~/contexts/user';
@@ -11,8 +11,10 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	Switch,
 	TextField
 } from '@mui/material';
+import type { Preferences } from '~/types/Preferences';
 import { useForm } from 'react-hook-form';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
@@ -54,8 +56,30 @@ export default function Profile() {
 	const bindLoading = useStateNamed(false);
 	const unbindLoading = useStateNamed(false);
 	const unbindOpen = useStateNamed(false);
+	const prefs = useStateNamed<Preferences | null>(null);
+	const prefsSaving = useStateNamed(false);
 
 	const { control, handleSubmit, reset } = useForm<ChangePasswordPayload>();
+
+	useEffect(() => {
+		(async () => {
+			const { data } = await Req.getPreferences();
+			if (data) prefs.set(data);
+		})();
+	}, []);
+
+	const onToggleLeaderboard = async () => {
+		if (!prefs.current) return;
+		const next = !prefs.current.leaderboard_opt_in;
+		prefsSaving.set(true);
+		const ok = await Req.updatePreferences({ leaderboard_opt_in: next });
+		prefsSaving.set(false);
+		if (ok) {
+			prefs.set({ leaderboard_opt_in: next });
+		} else {
+			Toast.error('保存失败');
+		}
+	};
 
 	const onSubmit = async (data: ChangePasswordPayload) => {
 		loading.set(true);
@@ -138,6 +162,20 @@ export default function Profile() {
 							<InfoRow
 								label="最后更新"
 								value={new Date(user.UpdatedAt).toLocaleString('zh-CN')}
+							/>
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card variant="outlined">
+					<CardContent>
+						<div className="tracking-wider text-sm mb-4">偏好设置 / PREFERENCES</div>
+						<div className="flex items-center justify-between">
+							<span>参与排行榜</span>
+							<Switch
+								checked={prefs.current?.leaderboard_opt_in ?? false}
+								onChange={onToggleLeaderboard}
+								disabled={prefs.current === null || prefsSaving.current}
 							/>
 						</div>
 					</CardContent>

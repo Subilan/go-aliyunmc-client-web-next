@@ -47,7 +47,7 @@ export function connectTaskSSE(taskId: number, handlers: TaskSSEHandlers): () =>
 		},
 		onerror(err) {
 			handlers.onError(err);
-			controller.abort();
+			// Don't abort — let the library retry automatically.
 		}
 	});
 
@@ -85,7 +85,7 @@ export function connectStateSSE<T>(
 		},
 		onerror(err) {
 			handlers.onError(err);
-			controller.abort();
+			// Don't abort — let the library retry automatically.
 		}
 	});
 

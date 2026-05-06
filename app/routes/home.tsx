@@ -404,6 +404,9 @@ export default function Home() {
 				startServerTriggeredRef.current = false;
 				fetchTasksRef.current();
 			}
+			queryServer().then(r => {
+				if (r.error === null) serverQuery.current = r.data;
+			});
 			setServerStarting(false);
 		}
 	}, [srvSSE.value]);
@@ -556,7 +559,12 @@ export default function Home() {
 			action: () => setDeployConfirmOpen(true),
 			disabled: !canDeploy || (permissions !== null && !permissions.can_trigger_task)
 		},
-		{ name: '删除实例', icon: Trash2Icon, action: () => handleAction('删除实例'), disabled: permissions !== null && !permissions.can_delete_instance },
+		{
+			name: '删除实例',
+			icon: Trash2Icon,
+			action: () => handleAction('删除实例'),
+			disabled: permissions !== null && !permissions.can_delete_instance
+		},
 		{
 			name: '备份',
 			icon: DatabaseIcon,

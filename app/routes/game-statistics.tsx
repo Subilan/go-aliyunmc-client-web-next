@@ -33,7 +33,7 @@ function SkinModel(props: { uuid: string }) {
 		const viewer = new SkinViewer({
 			canvas: canvasRef.current,
 			width: 180,
-			height: 320,
+			height: 200,
 			skin: `https://minotar.net/skin/${props.uuid}`
 		});
 		viewer.autoRotate = true;

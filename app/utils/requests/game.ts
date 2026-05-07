@@ -6,6 +6,8 @@ export interface AdvancementEntry {
   resourceLocation: string;
   englishDescription: string;
   chineseDescription: string;
+  isGoal: boolean;
+  isChallenge: boolean;
   done: boolean;
   criteria: Record<string, string>;
 }

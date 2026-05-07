@@ -8,6 +8,8 @@ import { PAGE_NAME_GAME_STATISTICS } from '~/consts/page-names';
 import { getAdvancements, type AdvancementEntry } from '~/utils/requests/game';
 import useStateNamed from '~/hooks/useStateNamed';
 import { UserContext } from '~/contexts/user';
+import { useMcTranslate } from '~/hooks/useMcTranslate';
+import { Times } from '~/utils/times';
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -49,6 +51,8 @@ function advancementIconPath(resourceLocation: string): string {
 
 function AdvancementItem({ a, completed }: { a: AdvancementEntry; completed: boolean }) {
 	const grayscaleClass = completed ? '' : 'grayscale';
+	const hasProgress = Object.keys(a.criteria).length > 0;
+	const translate = useMcTranslate();
 
 	let background = '/advancement_icons/advbg-progress';
 	if (a.isChallenge) background = '/advancement_icons/advbg-challenge';
@@ -83,6 +87,19 @@ function AdvancementItem({ a, completed }: { a: AdvancementEntry; completed: boo
 					<div className="px-3 pt-3 pb-2 text-sm text-neutral-300 leading-relaxed">
 						{a.chineseDescription}
 					</div>
+					{/* Criteria progress */}
+					{hasProgress && (
+						<div className="px-3 pb-2 text-xs text-neutral-400 border-t border-neutral-700 pt-2 space-y-0.5">
+							<div className="text-neutral-300 mb-2">
+								{completed ? '已完成的条件' : '进度'}
+							</div>
+							{Object.entries(a.criteria).map(([key, time]) => (
+								<div key={key} className="truncate" title={time}>
+									{translate(key)} — {Times.formatFromNow(time)}
+								</div>
+							))}
+						</div>
+					)}
 				</div>
 			</div>
 
@@ -102,6 +119,10 @@ function AdvancementItem({ a, completed }: { a: AdvancementEntry; completed: boo
 					loading="lazy"
 					style={{ imageRendering: 'pixelated' }}
 				/>
+				{/* Blue dot: uncompleted but has progress */}
+				{!completed && hasProgress && (
+					<div className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full z-20" />
+				)}
 			</div>
 		</div>
 	);

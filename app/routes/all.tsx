@@ -1,16 +1,18 @@
 import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
 import {
-	ClockIcon,
 	CpuIcon,
 	DollarSignIcon,
+	Gamepad2Icon,
 	LayoutDashboardIcon,
-	ListTodoIcon
+	ListTodoIcon,
+	MessageSquareIcon,
+	TrendingUpIcon
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Link } from 'react-router';
 import type { Route } from './+types/all';
-import { PAGE_CATEGORY_INFORMATION } from "~/consts/page-categories";
-import { PAGE_NAME_ECONOMY, PAGE_NAME_ECS_CANDIDATES, PAGE_NAME_TASK_LIST } from '~/consts/page-names';
+import { PAGE_CATEGORY_GAME, PAGE_CATEGORY_INFORMATION } from "~/consts/page-categories";
+import { PAGE_NAME_ECONOMY, PAGE_NAME_ECS_CANDIDATES, PAGE_NAME_GAME_STATISTICS, PAGE_NAME_LEADERBOARD, PAGE_NAME_TASK_LIST, PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
 
 interface FeatureCard {
 	title: string;
@@ -59,6 +61,29 @@ const groups: FeatureGroup[] = [
 				description: '查看阿里云账户余额及历史走势，了解服务器运行账号的收支情况。',
 				to: '/info/economy',
 				icon: DollarSignIcon
+			}
+		]
+	},
+	{
+		title: PAGE_CATEGORY_GAME,
+		cards: [
+			{
+				title: PAGE_NAME_GAME_STATISTICS,
+				description: '查看玩家在游戏中的各种进度信息，包括成就、统计等数据。',
+				to: '/game/statistics',
+				icon: Gamepad2Icon
+			},
+			{
+				title: PAGE_NAME_LEADERBOARD,
+				description: '浏览服务器玩家各项指标的排行榜，了解顶尖玩家的游戏数据。',
+				to: '/game/leaderboard',
+				icon: TrendingUpIcon
+			},
+			{
+				title: PAGE_NAME_WEB_CHAT,
+				description: '通过网页与游戏服务器内的玩家进行实时聊天交互。',
+				to: '/game/web-chat',
+				icon: MessageSquareIcon
 			}
 		]
 	}

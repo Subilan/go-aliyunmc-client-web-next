@@ -11,7 +11,7 @@ import deleteAccount from "~/utils/requests/delete-account";
 import { bindWhitelist, unbindWhitelist } from "~/utils/requests/whitelist";
 import getPreferences from "~/utils/requests/get-preferences";
 import updatePreferences from "~/utils/requests/update-preferences";
-import { getAdvancements } from "~/utils/requests/game";
+import { getAdvancements, getGameStats } from "~/utils/requests/game";
 
 export const Req = {
     login,
@@ -37,5 +37,6 @@ export const Req = {
     triggerTask,
     getTask,
     getTaskDefinition,
-    getAdvancements: getAdvancements
+    getAdvancements,
+    getGameStats
 }

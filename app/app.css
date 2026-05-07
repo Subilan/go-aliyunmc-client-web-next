@@ -40,3 +40,7 @@ footer a {
 	text-decoration: underline;
 	@apply text-neutral-300 hover:text-neutral-50;
 }
+
+hr {
+	@apply text-neutral-200;
+}

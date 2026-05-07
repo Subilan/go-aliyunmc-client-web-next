@@ -41,7 +41,7 @@ You can read directly from `~/code/go-aliyunmc-v2` when you're unsure about anyt
 
 ## Tool Use Restrictions
 
-You may be encounting editing failure regularly. Please DO NOT use any of these approaches, as they're hard to harness and easy to cause troubles, wasting valuable time:
+You may be encounting editing failure regularly. Please DO NOT use any of these approaches to read or write, as they're hard to harness and easy to cause troubles, wasting valuable time:
 - `git` based commands, especially ones revert file changes
 - `sed`, not reliable for large pieces of code
 - `cat`, not reliable for large pieces of code

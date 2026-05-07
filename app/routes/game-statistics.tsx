@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef } from 'react';
 import type { Route } from './+types/game-statistics';
-import { Card, CardContent, Collapse, IconButton, Typography } from '@mui/material';
+import { Card, CardContent, Collapse, IconButton } from '@mui/material';
 import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
 import { SkinViewer } from 'skinview3d';
 import PageHeader from '~/components/page-header';
@@ -47,6 +47,52 @@ function advancementIconPath(resourceLocation: string): string {
 	return `/advancement_icons/${name}.${ext}`;
 }
 
+function AchievementItem({ a, completed }: { a: AdvancementEntry; completed: boolean }) {
+	const opacityClass = completed ? '' : 'opacity-50';
+	const grayscaleClass = completed ? '' : 'grayscale';
+
+	return (
+		<div className={`group/item relative cursor-default p-2 ${opacityClass} hover:z-20`}>
+			{/* Tooltip panel */}
+			<div className="absolute top-2 left-2 z-10
+				opacity-0 scale-95 group-hover/item:opacity-100 group-hover/item:scale-100
+				transition-all duration-200 ease-out
+				origin-top-left
+				pointer-events-none group-hover/item:pointer-events-auto">
+				<div className="bg-black text-white rounded-lg shadow-lg min-w-[180px] overflow-hidden">
+					{/* Title row — red bg, full width, icon height */}
+					<div className="flex items-center h-[48px] bg-[rgb(198,198,198)]">
+						<div className="w-[48px] shrink-0" />
+						<span className="font-bold whitespace-nowrap pr-3 pl-3 text-shadow-black text-shadow-2xs">
+							{a.chineseName}
+						</span>
+					</div>
+					{/* Description — flush to left edge */}
+					<div className="px-3 pb-3 pt-2 text-sm text-neutral-300 leading-relaxed">
+						{a.chineseDescription}
+					</div>
+				</div>
+			</div>
+
+			{/* Icon with background frame */}
+			<div className="relative z-10 w-[48px] h-[48px] flex items-center justify-center shrink-0">
+				<img
+					src="/advancement_icons/advbg-progress.png"
+					alt=""
+					className="absolute inset-0 w-full h-full"
+				/>
+				<img
+					src={advancementIconPath(a.resourceLocation)}
+					alt={a.chineseName}
+					className={`w-[30px] h-[30px] relative z-10 ${grayscaleClass}`}
+					loading="lazy"
+					style={{imageRendering: 'pixelated'}}
+				/>
+			</div>
+		</div>
+	);
+}
+
 export default function GameStatistics() {
 	const user = useContext(UserContext);
 	const advancements = useStateNamed<AdvancementEntry[]>([]);
@@ -80,32 +126,15 @@ export default function GameStatistics() {
 
 				{/* Advancements */}
 				<Card variant="outlined">
-					<CardContent>
+					<CardContent sx={{ overflow: 'visible' }}>
 						<div className="tracking-wider text-sm mb-4">成就 / ADVANCEMENTS</div>
 						{advancements.current.length === 0 ? (
 							<div className="text-neutral-400 text-sm">加载中...</div>
 						) : (
 							<>
-								<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+								<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 overflow-visible">
 									{completed.map(a => (
-										<div
-											key={a.resourceLocation}
-											className="flex flex-col items-center text-center p-2 rounded-lg bg-neutral-50 dark:bg-neutral-900"
-										>
-											<img
-												src={advancementIconPath(a.resourceLocation)}
-												alt={a.chineseName}
-												className="w-10 h-10 mb-1"
-												loading="lazy"
-												style={{imageRendering: 'pixelated'}}
-											/>
-											<Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-												{a.chineseName}
-											</Typography>
-											<Typography variant="caption" color="text.secondary">
-												{a.chineseDescription}
-											</Typography>
-										</div>
+										<AchievementItem key={a.resourceLocation} a={a} completed />
 									))}
 								</div>
 
@@ -125,26 +154,9 @@ export default function GameStatistics() {
 											未完成 ({uncompleted.length})
 										</div>
 										<Collapse in={showUncompleted.current}>
-											<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mt-3">
+											<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mt-3 overflow-visible">
 												{uncompleted.map(a => (
-													<div
-														key={a.resourceLocation}
-														className="flex flex-col items-center text-center p-2 rounded-lg opacity-50"
-													>
-														<img
-															src={advancementIconPath(a.resourceLocation)}
-															alt={a.chineseName}
-															className="w-10 h-10 mb-1 grayscale"
-															loading="lazy"
-															style={{imageRendering: 'pixelated'}}
-														/>
-														<Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-															{a.chineseName}
-														</Typography>
-														<Typography variant="caption" color="text.secondary">
-															{a.chineseDescription}
-														</Typography>
-													</div>
+													<AchievementItem key={a.resourceLocation} a={a} completed={false} />
 												))}
 											</div>
 										</Collapse>

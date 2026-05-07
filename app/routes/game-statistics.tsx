@@ -16,7 +16,7 @@ export function meta({}: Route.MetaArgs) {
 	];
 }
 
-function SkinModel(props: {uuid: string}) {
+function SkinModel(props: { uuid: string }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
 	useEffect(() => {
@@ -25,7 +25,7 @@ function SkinModel(props: {uuid: string}) {
 			canvas: canvasRef.current,
 			width: 180,
 			height: 320,
-			skin: `https://minotar.net/skin/${props.uuid}`,
+			skin: `https://minotar.net/skin/${props.uuid}`
 		});
 		viewer.autoRotate = true;
 		return () => viewer.dispose();
@@ -38,7 +38,7 @@ const gifAdvancements = new Set([
 	'minecraft:adventure/avoid_vibration',
 	'minecraft:end/respawn_dragon',
 	'minecraft:nether/summon_wither',
-	'minecraft:story/enchant_item',
+	'minecraft:story/enchant_item'
 ]);
 
 function advancementIconPath(resourceLocation: string): string {
@@ -47,28 +47,40 @@ function advancementIconPath(resourceLocation: string): string {
 	return `/advancement_icons/${name}.${ext}`;
 }
 
-function AchievementItem({ a, completed }: { a: AdvancementEntry; completed: boolean }) {
-	const opacityClass = completed ? '' : 'opacity-50';
+function AdvancementItem({ a, completed }: { a: AdvancementEntry; completed: boolean }) {
 	const grayscaleClass = completed ? '' : 'grayscale';
 
+	let background = '/advancement_icons/advbg-progress';
+	if (a.isChallenge) background = '/advancement_icons/advbg-challenge';
+	if (a.isGoal) background = '/advancement_icons/advbg-goal';
+	if (completed) background += '-completed';
+	background += '.png';
+
 	return (
-		<div className={`group/item relative cursor-default p-2 ${opacityClass} hover:z-20`}>
+		<div className={`group/item relative cursor-default p-2 hover:z-20 flex justify-center`}>
 			{/* Tooltip panel */}
-			<div className="absolute top-2 left-2 z-10
+			<div
+				className="absolute top-[15px] left-[23%] z-10
 				opacity-0 scale-95 group-hover/item:opacity-100 group-hover/item:scale-100
 				transition-all duration-200 ease-out
 				origin-top-left
-				pointer-events-none group-hover/item:pointer-events-auto">
-				<div className="bg-black text-white rounded-lg shadow-lg min-w-[180px] overflow-hidden">
+				pointer-events-none group-hover/item:pointer-events-auto"
+			>
+				<div className="bg-black text-white rounded-lg shadow-lg shadow-neutral-600 border-2 border-neutral-300 min-w-[180px] overflow-hidden">
 					{/* Title row — red bg, full width, icon height */}
-					<div className="flex items-center h-[48px] bg-[rgb(198,198,198)]">
+					<div
+						className="flex items-center h-[30px]"
+						style={{
+							backgroundColor: completed ? 'rgb(170, 126, 16)' : 'rgb(198,198,198)'
+						}}
+					>
 						<div className="w-[48px] shrink-0" />
-						<span className="font-bold whitespace-nowrap pr-3 pl-3 text-shadow-black text-shadow-2xs">
+						<span className="font-bold whitespace-nowrap pr-3 pl-2 text-shadow-black text-shadow-2xs">
 							{a.chineseName}
 						</span>
 					</div>
 					{/* Description — flush to left edge */}
-					<div className="px-3 pb-3 pt-2 text-sm text-neutral-300 leading-relaxed">
+					<div className="px-3 pt-3 pb-2 text-sm text-neutral-300 leading-relaxed">
 						{a.chineseDescription}
 					</div>
 				</div>
@@ -77,16 +89,18 @@ function AchievementItem({ a, completed }: { a: AdvancementEntry; completed: boo
 			{/* Icon with background frame */}
 			<div className="relative z-10 w-[48px] h-[48px] flex items-center justify-center shrink-0">
 				<img
-					src="/advancement_icons/advbg-progress.png"
+					src={background}
+					draggable={false}
 					alt=""
 					className="absolute inset-0 w-full h-full"
 				/>
 				<img
+					draggable={false}
 					src={advancementIconPath(a.resourceLocation)}
 					alt={a.chineseName}
 					className={`w-[30px] h-[30px] relative z-10 ${grayscaleClass}`}
 					loading="lazy"
-					style={{imageRendering: 'pixelated'}}
+					style={{ imageRendering: 'pixelated' }}
 				/>
 			</div>
 		</div>
@@ -114,7 +128,9 @@ export default function GameStatistics() {
 				{/* Player Overview */}
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4">玩家概览 / PLAYER OVERVIEW</div>
+						<div className="tracking-wider text-sm mb-4">
+							玩家概览 / PLAYER OVERVIEW
+						</div>
 						<div className="flex gap-6">
 							<SkinModel uuid={user?.whitelist_uuid!} />
 							<div className="flex-1 flex items-center justify-center text-neutral-400">
@@ -125,16 +141,16 @@ export default function GameStatistics() {
 				</Card>
 
 				{/* Advancements */}
-				<Card variant="outlined">
-					<CardContent sx={{ overflow: 'visible' }}>
+				<Card variant="outlined" sx={{ overflow: 'visible' }}>
+					<CardContent>
 						<div className="tracking-wider text-sm mb-4">成就 / ADVANCEMENTS</div>
 						{advancements.current.length === 0 ? (
 							<div className="text-neutral-400 text-sm">加载中...</div>
 						) : (
 							<>
-								<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 overflow-visible">
+								<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 overflow-visible">
 									{completed.map(a => (
-										<AchievementItem key={a.resourceLocation} a={a} completed />
+										<AdvancementItem key={a.resourceLocation} a={a} completed />
 									))}
 								</div>
 
@@ -142,7 +158,9 @@ export default function GameStatistics() {
 									<div className="mt-4">
 										<div
 											className="flex items-center gap-1 cursor-pointer select-none text-sm text-neutral-500"
-											onClick={() => showUncompleted.set(!showUncompleted.current)}
+											onClick={() =>
+												showUncompleted.set(!showUncompleted.current)
+											}
 										>
 											<IconButton size="small">
 												{showUncompleted.current ? (
@@ -154,9 +172,13 @@ export default function GameStatistics() {
 											未完成 ({uncompleted.length})
 										</div>
 										<Collapse in={showUncompleted.current}>
-											<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mt-3 overflow-visible">
+											<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 mt-3 overflow-visible">
 												{uncompleted.map(a => (
-													<AchievementItem key={a.resourceLocation} a={a} completed={false} />
+													<AdvancementItem
+														key={a.resourceLocation}
+														a={a}
+														completed={false}
+													/>
 												))}
 											</div>
 										</Collapse>

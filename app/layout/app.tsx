@@ -17,18 +17,21 @@ import { PermissionsContext } from '~/contexts/permissions';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
 import { getPermissions } from '~/utils/requests/permissions';
+import { McTranslationContext } from '~/contexts/mctranslations';
+import { getMcTranslations } from '~/utils/requests/mc-translation';
 
 export async function clientLoader() {
 	if (!(await Auth.isLoggedIn())) {
 		throw redirect('/lor');
 	}
 
-	const [user, permissions] = await Promise.all([
+	const [user, permissions, mctranslations] = await Promise.all([
 		Auth.getUser(),
-		getPermissions()
+		getPermissions(),
+		getMcTranslations()
 	]);
 
-	return { user, permissions };
+	return { user, permissions, mctranslations };
 }
 
 const activeSx = {
@@ -41,7 +44,7 @@ const inactiveSx = {
 };
 
 export default function AppLayout({ loaderData }: Route.ComponentProps) {
-	const { user, permissions } = loaderData;
+	const { user, permissions, mctranslations } = loaderData;
 	const navigate = useNavigate();
 	const location = useLocation();
 	const logoutOpen = useStateNamed(false);
@@ -115,7 +118,9 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 			<main className="max-w-250 mx-auto py-10">
 				<UserContext.Provider value={user}>
 					<PermissionsContext.Provider value={permissions}>
-						<Outlet />
+						<McTranslationContext.Provider value={mctranslations}>
+							<Outlet />
+						</McTranslationContext.Provider>
 					</PermissionsContext.Provider>
 				</UserContext.Provider>
 			</main>

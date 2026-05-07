@@ -61,26 +61,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<Links />
 			</head>
 			<body>
-				<ThemeProvider theme={createTheme({
-					shape: {
-						borderRadius: 10
-					},
-					typography: {
-						fontFamily: 'var(--font-sans)',
-					},
-					palette: {
-						primary: {
-							main: '#1e88e5',
-							light: '#2979ff',
-							dark: '#1565c0',
-							contrastText: '#fff'
+				<ThemeProvider
+					theme={createTheme({
+						shape: {
+							borderRadius: 10
+						},
+						typography: {
+							fontFamily: 'var(--font-sans)'
+						},
+						palette: {
+							primary: {
+								main: '#1e88e5',
+								light: '#2979ff',
+								dark: '#1565c0',
+								contrastText: '#fff'
+							}
 						}
-					}
-				})}>{children}</ThemeProvider>
+					})}
+				>
+					{children}
+				</ThemeProvider>
 				<ScrollRestoration />
 				<Scripts />
 				<Toaster position="top-center" />
-				<Footer/>
+				<Footer />
 			</body>
 		</html>
 	);

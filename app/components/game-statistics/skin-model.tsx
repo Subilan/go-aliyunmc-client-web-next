@@ -21,7 +21,7 @@ export function SkinModel(props: { uuid: string }) {
 			viewerRef.current = new SkinViewer({
 				canvas: canvasRef.current,
 				width: 180,
-				height: 200,
+				height: 320,
 				skin: skinUrl
 			});
 			viewerRef.current.autoRotate = true;

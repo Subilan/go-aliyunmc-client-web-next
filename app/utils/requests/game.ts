@@ -42,6 +42,7 @@ export interface GameStats {
   playtime: PlaytimeInfo | null;
   advancement_progress: AdvancementProgress;
   player_name: string;
+  online_dates: string[];
 }
 
 export function getGameStats() {

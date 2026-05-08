@@ -27,20 +27,50 @@ export function meta({}: Route.MetaArgs) {
 
 function SkinModel(props: { uuid: string }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const viewerRef = useRef<SkinViewer | null>(null);
+	const loading = useStateNamed(true);
 
 	useEffect(() => {
 		if (!canvasRef.current) return;
-		const viewer = new SkinViewer({
-			canvas: canvasRef.current,
-			width: 180,
-			height: 200,
-			skin: `https://minotar.net/skin/${props.uuid}`
-		});
-		viewer.autoRotate = true;
-		return () => viewer.dispose();
-	}, []);
 
-	return <canvas ref={canvasRef} className="rounded-lg" />;
+		let cancelled = false;
+		const skinUrl = `https://minotar.net/skin/${props.uuid}`;
+		const img = new Image();
+
+		img.onload = () => {
+			if (cancelled || !canvasRef.current) return;
+			loading.set(false);
+			viewerRef.current = new SkinViewer({
+				canvas: canvasRef.current,
+				width: 180,
+				height: 200,
+				skin: skinUrl
+			});
+			viewerRef.current.autoRotate = true;
+		};
+
+		img.onerror = () => {
+			if (!cancelled) loading.set(false);
+		};
+
+		img.src = skinUrl;
+
+		return () => {
+			cancelled = true;
+			viewerRef.current?.dispose();
+		};
+	}, [props.uuid]);
+
+	return (
+		<div className="relative w-[180px] h-[200px]">
+			{loading.current && (
+				<div className="absolute inset-0 flex items-center justify-center">
+					<LinearProgress className="w-full" />
+				</div>
+			)}
+			<canvas ref={canvasRef} className="rounded-lg" />
+		</div>
+	);
 }
 
 const gifAdvancements = new Set([
@@ -197,6 +227,29 @@ function formatDistanceCm(cm: number): string {
 	return `${(m / 1000).toFixed(1)}km`;
 }
 
+// Damage stats store values in tenths of a half-heart (10 = 0.5 full hearts = 1 HP).
+// Divide by 20 to get full hearts.
+const DAMAGE_STATS = new Set([
+	'minecraft:damage_dealt',
+	'minecraft:damage_taken',
+	'minecraft:damage_absorbed',
+	'minecraft:damage_resisted',
+	'minecraft:damage_dealt_absorbed',
+	'minecraft:damage_dealt_resisted',
+	'minecraft:damage_blocked_by_shield',
+]);
+
+const GAME_TIME_STATS = new Set([
+	'minecraft:time_since_rest',
+	'minecraft:time_since_death'
+])
+
+function formatHearts(value: number): string {
+	const hearts = value / 20;
+	if (hearts % 1 === 0) return hearts.toString();
+	return hearts.toFixed(1);
+}
+
 function transformStat(k: string, v: number): string | number {
 	if (TIME_STATS.has(k)) return Times.formatDuration(v);
 	if (DISTANCE_STATS.has(k)) return formatDistanceCm(v);
@@ -205,7 +258,35 @@ function transformStat(k: string, v: number): string | number {
 
 const STAT_EXCERPT = 6;
 
-function StatSection(props: { stats: GameStats | null; name: string; label: string }) {
+function StatValue({ k, v, translate }: { k: string; v: number; translate: (key: string) => string }) {
+	return (
+		<div className="flex">
+			<div className="text-neutral-500">{translate(k)}</div>
+			<div className="flex-1" />
+			{DAMAGE_STATS.has(k) ? (
+				<div className="flex items-center gap-0.5">
+					<span>{formatHearts(v)}</span>
+					<span>×</span>
+					<img
+						src="/heart.png"
+						alt=""
+						className="w-4 h-4"
+						style={{ imageRendering: 'pixelated' }}
+					/>
+				</div>
+			) : (
+				<div>{transformStat(k, v)} {GAME_TIME_STATS.has(k) && <span className='text-neutral-500'>（游戏时间）</span>}</div>
+			)}
+		</div>
+	);
+}
+
+function StatSection(props: {
+	stats: GameStats | null;
+	name: string;
+	label: string;
+	description?: string;
+}) {
 	const translate = useMcTranslate();
 	const expanded = useStateNamed(false);
 
@@ -221,17 +302,14 @@ function StatSection(props: { stats: GameStats | null; name: string; label: stri
 		<div>
 			<div className="flex flex-col gap-2 mb-3">
 				<div className="mb-1">
-					{props.label} ({items.length})
+					<h3 className="text-lg font-bold mb-1">
+						{props.label} ({items.length} 项)
+					</h3>
+					{props.description && <p className="text-neutral-500">{props.description}</p>}
 				</div>
 				<div className="grid grid-cols-3 gap-3">
 					{excerpt.length > 0 ? (
-						excerpt.map(([k, v]) => (
-							<div key={k} className="flex">
-								<div className="text-neutral-500">{translate(k)}</div>
-								<div className="flex-1" />
-								<div>{transformStat(k, v)}</div>
-							</div>
-						))
+						excerpt.map(([k, v]) => <StatValue key={k} k={k} v={v} translate={translate} />)
 					) : (
 						<span>暂无数据</span>
 					)}
@@ -239,13 +317,7 @@ function StatSection(props: { stats: GameStats | null; name: string; label: stri
 			</div>
 			<Collapse in={expanded.current}>
 				<div className="grid grid-cols-3 gap-3">
-					{remainder.map(([k, v]) => (
-						<div key={k} className="flex">
-							<div className="text-neutral-500">{translate(k)}</div>
-							<div className="flex-1" />
-							<div>{transformStat(k, v)}</div>
-						</div>
-					))}
+					{remainder.map(([k, v]) => <StatValue key={k} k={k} v={v} translate={translate} />)}
 				</div>
 			</Collapse>
 			{hasMore && (
@@ -396,21 +468,61 @@ export default function GameStatistics() {
 					<CardContent>
 						<CardLabel>统计数据 / STATISTICS</CardLabel>
 						<div className="flex flex-col gap-5">
-							<StatSection label="使用或放置" stats={stats} name="minecraft:used" />
+							<StatSection
+								label="使用或放置"
+								description="使用的物品或者放置方块的次数。"
+								stats={stats}
+								name="minecraft:used"
+							/>
 							<hr />
-							<StatSection label="拾取" stats={stats} name="minecraft:picked_up" />
+							<StatSection
+								label="拾取"
+								description="从地上捡起的物品个数。"
+								stats={stats}
+								name="minecraft:picked_up"
+							/>
 							<hr />
-							<StatSection label="挖掘" stats={stats} name="minecraft:mined" />
+							<StatSection
+								label="挖掘"
+								description="挖掘的方块个数。"
+								stats={stats}
+								name="minecraft:mined"
+							/>
 							<hr />
-							<StatSection label="击杀" stats={stats} name="minecraft:killed" />
+							<StatSection
+								label="击杀"
+								description="击杀的生物个数。"
+								stats={stats}
+								name="minecraft:killed"
+							/>
 							<hr />
-							<StatSection label="死于" stats={stats} name="minecraft:killed_by" />
+							<StatSection
+								label="死于"
+								description="被这些生物击杀的次数。"
+								stats={stats}
+								name="minecraft:killed_by"
+							/>
 							<hr />
-							<StatSection label="制造" stats={stats} name="minecraft:crafted" />
+							<StatSection
+								label="制造"
+								description="制造的物品个数。"
+								stats={stats}
+								name="minecraft:crafted"
+							/>
 							<hr />
-							<StatSection label="损坏" stats={stats} name="minecraft:broken" />
+							<StatSection
+								label="损坏"
+								description="损坏的工具个数。"
+								stats={stats}
+								name="minecraft:broken"
+							/>
 							<hr />
-							<StatSection label="杂项" stats={stats} name="minecraft:custom" />
+							<StatSection
+								label="杂项"
+								description="一些其它的统计信息。"
+								stats={stats}
+								name="minecraft:custom"
+							/>
 						</div>
 					</CardContent>
 				</Card>

@@ -47,7 +47,6 @@ export default function GameStatistics() {
 	const uncompleted = advancements.current.filter(a => !a.done);
 
 	const stats = gameStats.current;
-	const playtime = stats?.playtime;
 	const advProgress = stats?.advancement_progress;
 
 	function getStat(category: string, stat: string): number {
@@ -71,30 +70,28 @@ export default function GameStatistics() {
 									<>
 										<div className="text-2xl border-b border-b-neutral-200">{stats.player_name}</div>
 										{/* Playtime metrics */}
-										{playtime && (
-											<div className="grid grid-cols-3 gap-3">
-												<MetricItem title="游玩时长">
-													{Times.formatDuration(playtime.playtime)}
-												</MetricItem>
-												<MetricItem title="连续登录">
-													{playtime.join_streak} 天
-												</MetricItem>
-												<MetricItem title="最近在线">
-													{playtime.last_seen
-														? Times.formatFromNow(playtime.last_seen)
-														: '—'}
-												</MetricItem>
-												<MetricItem title="成就进度">
-													{advProgress?.completed}/{advProgress?.total}
-												</MetricItem>
-												<MetricItem title="跑图">
-													{(
-														getStat('custom', 'walk_one_cm') / 100
-													).toFixed(0)}{' '}
-													格
-												</MetricItem>
-											</div>
-										)}
+										<div className="grid grid-cols-3 gap-3">
+											<MetricItem title="游玩时长">
+												{Times.formatDuration(stats.playtime)}
+											</MetricItem>
+											<MetricItem title="连续登录">
+												{stats.join_streak} 天
+											</MetricItem>
+											<MetricItem title="最近在线">
+												{stats.last_seen
+													? Times.formatFromNow(stats.last_seen * 1000)
+													: '—'}
+											</MetricItem>
+											<MetricItem title="成就进度">
+												{advProgress?.completed}/{advProgress?.total}
+											</MetricItem>
+											<MetricItem title="跑图">
+												{(
+													getStat('custom', 'walk_one_cm') / 100
+												).toFixed(0)}{' '}
+												格
+											</MetricItem>
+										</div>
 										<OnlineStatusSection onlineDates={stats.online_dates} />
 									</>
 								)}

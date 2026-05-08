@@ -16,15 +16,6 @@ export function getAdvancements() {
   return get<AdvancementEntry[]>('/user/game/advancements');
 }
 
-export interface PlaytimeInfo {
-  playtime: number;
-  artificial_playtime: number;
-  afk_playtime: number;
-  last_seen: number | null;
-  first_join: number | null;
-  join_streak: number;
-}
-
 export interface CategoryProgress {
   category: string;
   completed: number;
@@ -39,10 +30,12 @@ export interface AdvancementProgress {
 
 export interface GameStats {
   stats: Record<string, Record<string, number>>;
-  playtime: PlaytimeInfo | null;
+  playtime: number;
   advancement_progress: AdvancementProgress;
   player_name: string;
   online_dates: string[];
+  join_streak: number;
+  last_seen: number | null;
 }
 
 export function getGameStats() {

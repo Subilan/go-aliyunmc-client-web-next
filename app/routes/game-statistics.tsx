@@ -19,6 +19,7 @@ import { SkinModel } from '~/components/game-statistics/skin-model';
 import { AdvancementItem } from '~/components/game-statistics/advancement-item';
 import { AdvancementMetrics } from '~/components/game-statistics/advancement-metrics';
 import { StatSection } from '~/components/game-statistics/stat-section';
+import { OnlineStatusSection } from '~/components/game-statistics/online-status-section';
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -68,8 +69,7 @@ export default function GameStatistics() {
 									<div className="text-neutral-400 text-sm">加载中...</div>
 								) : (
 									<>
-										<div className="text-2xl">{stats.player_name}</div>
-										<hr />
+										<div className="text-2xl border-b border-b-neutral-200">{stats.player_name}</div>
 										{/* Playtime metrics */}
 										{playtime && (
 											<div className="grid grid-cols-3 gap-3">
@@ -95,6 +95,7 @@ export default function GameStatistics() {
 												</MetricItem>
 											</div>
 										)}
+										<OnlineStatusSection onlineDates={stats.online_dates} />
 									</>
 								)}
 							</div>

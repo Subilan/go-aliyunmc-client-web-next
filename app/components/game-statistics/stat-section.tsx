@@ -81,7 +81,7 @@ function StatValue({ k, v, translate }: { k: string; v: number; translate: (key:
 					/>
 				</div>
 			) : (
-				<div>{transformStat(k, v)} {GAME_TIME_STATS.has(k) && <span className='text-neutral-500'>（游戏时间）</span>}</div>
+				<div>{transformStat(k, v)} {GAME_TIME_STATS.has(k) && <span className='text-neutral-500'>(Minecraft)</span>}</div>
 			)}
 		</div>
 	);

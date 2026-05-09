@@ -4,7 +4,7 @@ import {
 	DollarSignIcon,
 	LayoutDashboardIcon,
 	ListTodoIcon,
-	MessageSquareIcon,
+	MessagesSquareIcon,
 	TrendingUpIcon,
 	UsersIcon
 } from 'lucide-react';
@@ -83,7 +83,7 @@ const groups: FeatureGroup[] = [
 				title: PAGE_NAME_WEB_CHAT,
 				description: '通过网页与游戏服务器内的玩家进行实时聊天交互。',
 				to: '/game/web-chat',
-				icon: MessageSquareIcon
+				icon: MessagesSquareIcon
 			}
 		]
 	}

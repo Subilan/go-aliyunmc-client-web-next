@@ -103,14 +103,16 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 								>
 									个人资料
 								</MenuItem>
-								<MenuItem
-									onClick={() => {
-										close();
-										navigate('/game/statistics/' + user?.whitelist_uuid);
-									}}
-								>
-									游戏统计
-								</MenuItem>
+								{user?.whitelist_uuid && (
+									<MenuItem
+										onClick={() => {
+											close();
+											navigate('/game/statistics/' + user.whitelist_uuid);
+										}}
+									>
+										游戏统计
+									</MenuItem>
+								)}
 								<MenuItem
 									onClick={() => {
 										close();

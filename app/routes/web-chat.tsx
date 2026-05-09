@@ -1,15 +1,264 @@
+import { useCallback, useContext, useEffect, useRef } from 'react';
+import { Button, Card, CardContent, IconButton, TextField, Tooltip } from '@mui/material';
+import {
+	Loader2Icon,
+	MessagesSquareIcon,
+	SendIcon,
+	TriangleAlertIcon,
+	WifiOffIcon
+} from 'lucide-react';
 import type { Route } from './+types/web-chat';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
+import { UserContext } from '~/contexts/user';
+import useStateNamed from '~/hooks/useStateNamed';
+import { useNavigate } from 'react-router';
+
+const WS_HOST = '127.0.0.1';
+const WS_PORT = '33795';
+
+interface ChatMessage {
+	type: string;
+	source: string;
+	player: string;
+	content: string;
+	timestamp: number;
+}
+
+type ConnectionStatus = 'connecting' | 'connected' | 'disconnected';
 
 export function meta({}: Route.MetaArgs) {
 	return [{ title: PAGE_NAME_WEB_CHAT + ' - Seatide' }];
 }
 
 export default function WebChat() {
+	const user = useContext(UserContext);
+	const uuid = user?.whitelist_uuid;
+
+	const messageText = useStateNamed('');
+	const status = useStateNamed<ConnectionStatus>('connecting');
+	const messages = useStateNamed<ChatMessage[]>([]);
+	const wsRef = useRef<WebSocket | null>(null);
+	const chatLogRef = useRef<HTMLPreElement>(null);
+	const messageInputRef = useRef<HTMLInputElement>(null);
+
+	const scrollToBottom = () => {
+		setTimeout(() => {
+			if (chatLogRef.current) {
+				chatLogRef.current.scrollTop = chatLogRef.current.scrollHeight;
+			}
+		}, 50);
+	};
+
+	const doConnect = useCallback(() => {
+		if (!uuid) return;
+
+		status.set('connecting');
+
+		const ws = new WebSocket(`ws://${WS_HOST}:${WS_PORT}`);
+		wsRef.current = ws;
+
+		ws.onopen = () => {
+			if (wsRef.current === ws) {
+				status.set('connected');
+			}
+		};
+
+		ws.onmessage = event => {
+			try {
+				const msg: ChatMessage = JSON.parse(event.data);
+				messages.set(prev => [...prev, msg]);
+				scrollToBottom();
+			} catch {
+				// ignore unparseable messages
+			}
+		};
+
+		ws.onclose = () => {
+			if (wsRef.current === ws) {
+				status.set('disconnected');
+			}
+		};
+
+		// onclose fires automatically after error; no need to close manually
+	}, [uuid]);
+
+	const disconnect = useCallback(() => {
+		const ws = wsRef.current;
+		wsRef.current = null;
+		if (ws) {
+			ws.onopen = null;
+			ws.onclose = null;
+			ws.onerror = null;
+			ws.onmessage = null;
+			ws.close();
+		}
+		status.set('disconnected');
+	}, []);
+
+	// auto-connect on mount, handle visibility change
+	useEffect(() => {
+		if (!uuid) {
+			status.set('disconnected');
+			return;
+		}
+
+		doConnect();
+
+		const handleVisibility = () => {
+			if (document.hidden) {
+				disconnect();
+			} else {
+				doConnect();
+			}
+		};
+
+		document.addEventListener('visibilitychange', handleVisibility);
+
+		return () => {
+			document.removeEventListener('visibilitychange', handleVisibility);
+			disconnect();
+		};
+	}, [uuid, doConnect, disconnect]);
+
+	const sendMessage = () => {
+		const text = messageText.current.trim();
+		if (!text || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !uuid) return;
+
+		const msg: ChatMessage = {
+			type: 'chat',
+			source: 'web',
+			player: uuid,
+			content: text,
+			timestamp: Math.floor(Date.now() / 1000)
+		};
+
+		wsRef.current.send(
+			JSON.stringify({
+				player: uuid,
+				content: text
+			})
+		);
+		messages.set(prev => [...prev, msg]);
+		messageText.set('');
+		messageInputRef.current?.focus();
+		scrollToBottom();
+	};
+
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === 'Enter' && !e.shiftKey) {
+			e.preventDefault();
+			sendMessage();
+		}
+	};
+
+	const formatTime = (ts: number) => {
+		const d = new Date(ts * 1000);
+		return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+	};
+
+	const sourcePrefix = (source: string) => {
+		if (source === 'minecraft') return { text: '[MC]', color: 'text-amber-400' };
+		if (source === 'web') return { text: '[Web]', color: 'text-sky-400' };
+		if (source === 'system') return { text: '[System]', color: 'text-red-400' };
+		return { text: `[${source}]`, color: 'text-neutral-400' };
+	};
+
+	const connected = status.current === 'connected';
+	const connecting = status.current === 'connecting';
+
+	const navigate = useNavigate();
+
 	return (
 		<>
 			<PageHeader>{PAGE_NAME_WEB_CHAT}</PageHeader>
+
+			<div className="flex flex-col h-[70vh]">
+				<div className="grid grid-cols-[1fr_auto] gap-3 items-center mb-4">
+					<TextField
+						inputRef={messageInputRef}
+						fullWidth
+						size="small"
+						placeholder={
+							connected
+								? '输入消息，按 Enter 发送'
+								: connecting
+									? '正在连接...'
+									: '未连接服务器'
+						}
+						value={messageText.current}
+						onChange={e => messageText.set(e.target.value)}
+						onKeyDown={handleKeyDown}
+						disabled={!connected}
+					/>
+					<Button
+						startIcon={<SendIcon size={16} />}
+						color="primary"
+						variant="contained"
+						onClick={sendMessage}
+						disabled={!connected || !messageText.current.trim()}
+					>
+						发送
+					</Button>
+				</div>
+				{uuid ? (
+					<Card variant="outlined" className="flex-1 flex flex-col min-h-0">
+						<CardContent className="flex-1 flex flex-col min-h-0 p-4">
+							{connecting && messages.current.length === 0 && (
+								<div className="flex items-center h-full justify-center text-neutral-400 gap-2">
+									<Loader2Icon size={28} className="animate-spin" />
+									正在连接...
+								</div>
+							)}
+							{status.current === 'disconnected' && messages.current.length === 0 && (
+								<div className="flex flex-col h-full items-center justify-center text-neutral-400 gap-2">
+									<WifiOffIcon size={28} />
+									<span>连接已断开</span>
+									<Button size="small" variant="outlined" onClick={doConnect}>
+										重新连接
+									</Button>
+								</div>
+							)}
+							{connected && messages.current.length > 0 ? (
+								<pre
+									ref={chatLogRef}
+									className="flex-1 overflow-y-auto font-mono text-sm leading-relaxed m-0 whitespace-pre-wrap break-all"
+								>
+									<code>
+										{messages.current.map(msg => {
+											if (msg.type === 'error') {
+												return `错误: ${msg.content}\n`;
+											}
+											const prefix = sourcePrefix(msg.source);
+											const time = msg.timestamp
+												? formatTime(msg.timestamp)
+												: '';
+											return `${time ? `[${time}] ` : ''}${prefix.text} ${msg.player}: ${msg.content}\n`;
+										})}
+									</code>
+								</pre>
+							) : (
+								<div className="flex flex-col h-full items-center justify-center text-neutral-400 gap-2">
+									<MessagesSquareIcon size={28} />
+									<span>等待发送或接收到消息</span>
+								</div>
+							)}
+						</CardContent>
+					</Card>
+				) : (
+					<Card variant="outlined">
+						<CardContent className="flex items-center justify-center h-48">
+							<div className="flex flex-col items-center gap-3">
+								<div className="flex items-center text-neutral-500">
+									<TriangleAlertIcon size={28} className="mr-2 text-amber-500" />
+									需要绑定游戏账号后才能使用 Web 聊天功能
+								</div>
+								<Button variant='contained' size='small' onClick={() => navigate('/profile')}>立即绑定</Button>
+							</div>
+						</CardContent>
+					</Card>
+				)}
+			</div>
 		</>
 	);
 }

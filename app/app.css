@@ -44,3 +44,8 @@ footer a {
 hr {
 	@apply text-neutral-200;
 }
+
+.MuiPaper-root.MuiAppBar-root {
+	--AppBar-color: black;
+	--AppBar-background: white;
+}

@@ -15,6 +15,7 @@ const METRICS: Record<string, { label: string; unit: string; decimals: number; d
   distance: { label: '移动距离', unit: 'km', decimals: 2, divisor: 1 },
   mob_kills: { label: '生物击杀', unit: '个', decimals: 0, divisor: 1 },
   blocks_mined: { label: '挖掘方块', unit: '个', decimals: 0, divisor: 1 },
+  avg_move_distance: { label: '平均移速', unit: 'km/h', decimals: 2, divisor: 1 },
 };
 
 const PODIUM_COLORS = [
@@ -188,6 +189,7 @@ export default function Leaderboard() {
               <li>移动距离：在游戏中移动的累计距离，一米对应一格。</li>
               <li>生物击杀：在游戏中击杀的生物总数。</li>
               <li>挖掘方块：在游戏中挖掘（鼠标左键）的方块总数，含作物收割等。</li>
+              <li>平均移速：总移动距离除以总游戏时长得到的一个理论上的平均移动速度，该指标的大小近乎对应了玩家在游戏过程中静止或移动时间占游戏时长的比例，但其描述的准确性取决于游戏时长大小。若游戏时长过短，此项不准确。</li>
             </ul>
           </div>
         </DialogContent>

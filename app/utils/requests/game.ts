@@ -41,3 +41,13 @@ export interface GameStats {
 export function getGameStats() {
   return get<GameStats>('/user/game/stats');
 }
+
+export interface LeaderboardEntry {
+  uuid: string;
+  player_name: string;
+  value: number;
+}
+
+export function getLeaderboard(metric: string, order?: string) {
+  return get<LeaderboardEntry[]>('/server/leaderboard', { metric, order: order ?? 'desc' });
+}

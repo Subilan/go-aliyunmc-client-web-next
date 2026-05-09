@@ -8,7 +8,8 @@ export default [
 			route('/info/tasks', 'routes/tasks.tsx'),
 			route('/info/ecs-candidates', 'routes/ecs-candidates.tsx'),
 			route('/info/economy', 'routes/economy.tsx'),
-			route('/game/statistics', 'routes/game-statistics.tsx'),
+			route('/game/player-list', 'routes/player-list.tsx'),
+			route('/game/statistics/:uuid', 'routes/game-statistics.tsx'),
 			route('/game/leaderboard', 'routes/leaderboard.tsx'),
 			route('/game/web-chat', 'routes/web-chat.tsx')
 		]),

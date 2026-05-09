@@ -1,4 +1,3 @@
-import { useContext, useEffect } from 'react';
 import type { Route } from './+types/game-statistics';
 import { Card, CardContent, Collapse, IconButton } from '@mui/material';
 import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
@@ -11,7 +10,6 @@ import {
 	type GameStats
 } from '~/utils/requests/game';
 import useStateNamed from '~/hooks/useStateNamed';
-import { UserContext } from '~/contexts/user';
 import { Times } from '~/utils/times';
 import { CardLabel } from '~/components/card-label';
 import { MetricItem } from '~/components/metric-item';
@@ -28,25 +26,50 @@ export function meta({}: Route.MetaArgs) {
 	];
 }
 
-export default function GameStatistics() {
-	const user = useContext(UserContext);
-	const advancements = useStateNamed<AdvancementEntry[]>([]);
-	const gameStats = useStateNamed<GameStats | null>(null);
+type LoaderData =
+	| { error: string; advancements: null; gameStats: null }
+	| { error: null; advancements: AdvancementEntry[]; gameStats: GameStats };
+
+export async function clientLoader({ params }: Route.ClientLoaderArgs): Promise<LoaderData> {
+	const uuid = params.uuid;
+
+	const [advRes, statsRes] = await Promise.all([
+		getAdvancements(uuid),
+		getGameStats(uuid),
+	]);
+
+	if (advRes.status === 404 || statsRes.status === 404) {
+		return { error: '暂无此玩家数据', advancements: null, gameStats: null };
+	}
+
+	if (advRes.error !== null || statsRes.error !== null) {
+		return { error: '获取数据过程中出现问题', advancements: null, gameStats: null };
+	}
+
+	return { error: null, advancements: advRes.data!, gameStats: statsRes.data! };
+}
+
+export default function GameStatistics({ params, loaderData }: Route.ComponentProps) {
+	const effectiveUuid = params.uuid;
+
+	if (loaderData.advancements === null) {
+		return (
+			<>
+				<PageHeader>{PAGE_NAME_GAME_STATISTICS}</PageHeader>
+				<div className="flex items-center justify-center h-64">
+					<span className="text-neutral-400">{loaderData.error}</span>
+				</div>
+			</>
+		);
+	}
+
+	const { advancements, gameStats } = loaderData;
 	const showUncompleted = useStateNamed(false);
 
-	useEffect(() => {
-		getAdvancements().then(res => {
-			if (res.error === null) advancements.set(res.data!);
-		});
-		getGameStats().then(res => {
-			if (res.error === null) gameStats.set(res.data!);
-		});
-	}, []);
+	const completed = advancements.filter(a => a.done);
+	const uncompleted = advancements.filter(a => !a.done);
 
-	const completed = advancements.current.filter(a => a.done);
-	const uncompleted = advancements.current.filter(a => !a.done);
-
-	const stats = gameStats.current;
+	const stats = gameStats;
 	const advProgress = stats?.advancement_progress;
 
 	function getStat(category: string, stat: string): number {
@@ -62,11 +85,9 @@ export default function GameStatistics() {
 					<CardContent>
 						<CardLabel>玩家概览 / PLAYER OVERVIEW</CardLabel>
 						<div className="flex gap-6">
-							<SkinModel uuid={user?.whitelist_uuid!} />
+							<SkinModel uuid={effectiveUuid!} />
 							<div className="flex-1 flex flex-col gap-3">
-								{stats === null ? (
-									<div className="text-neutral-400 text-sm">加载中...</div>
-								) : (
+								{stats ? (
 									<>
 										<div className="text-2xl border-b border-b-neutral-200">{stats.player_name}</div>
 										{/* Playtime metrics */}
@@ -79,7 +100,7 @@ export default function GameStatistics() {
 											</MetricItem>
 											<MetricItem title="最近在线">
 												{stats.last_seen
-													? Times.formatFromNow(stats.last_seen * 1000)
+													? Times.formatFromNow(stats.last_seen)
 													: '—'}
 											</MetricItem>
 											<MetricItem title="成就进度">
@@ -94,6 +115,8 @@ export default function GameStatistics() {
 										</div>
 										<OnlineStatusSection onlineDates={stats.online_dates} />
 									</>
+								) : (
+									<div className="text-neutral-400 text-sm">暂无统计数据</div>
 								)}
 							</div>
 						</div>
@@ -104,8 +127,8 @@ export default function GameStatistics() {
 				<Card variant="outlined" sx={{ overflow: 'visible' }}>
 					<CardContent>
 						<CardLabel>成就 / ADVANCEMENTS</CardLabel>
-						{advancements.current.length === 0 ? (
-							<div className="text-neutral-400 text-sm">加载中...</div>
+						{advancements.length === 0 ? (
+							<div className="text-neutral-400 text-sm">暂无成就数据</div>
 						) : (
 							<>
 								<AdvancementMetrics advProgress={advProgress} />

@@ -3,7 +3,7 @@ export const BASE_URL = 'http://localhost:45678';
 async function req<T = any>(
 	url: string,
 	options: RequestInit
-): Promise<{ data: null; error: string } | { data: T; error: null }> {
+): Promise<{ data: null; error: string; status: number } | { data: T; error: null; status: number }> {
 	const result = await fetch(BASE_URL + url, {
 		...options,
 		credentials: 'include'
@@ -13,17 +13,19 @@ async function req<T = any>(
 	try {
 		json = await result.json();
 	} catch (e) {
-		return { data: null, error: 'unknown' };
+		return { data: null, error: 'unknown', status: result.status };
 	}
 
 	return result.status !== 200
 		? {
 				data: null,
-				error: json.details
+				error: json.details,
+				status: result.status
 			}
 		: {
 				data: json.data,
-				error: null
+				error: null,
+				status: 200
 			};
 }
 

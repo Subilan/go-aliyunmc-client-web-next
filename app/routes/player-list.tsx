@@ -1,18 +1,38 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import type { Route } from './+types/player-list';
-import { Card, CardActionArea, CardContent, CardMedia, Tooltip } from '@mui/material';
-import { LockIcon } from 'lucide-react';
+import { Card, CardActionArea, CardContent, CardMedia, FormControl, ListItemIcon, ListItemText, MenuItem, Select, Tooltip } from '@mui/material';
+import { ArrowDownAzIcon, ArrowDownIcon, ArrowDownZaIcon, ArrowUpIcon, LockIcon } from 'lucide-react';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_PLAYER_LIST } from '~/consts/page-names';
 import { getPlayerList, type PlayerListEntry } from '~/utils/requests/game';
-import useStateNamed from '~/hooks/useStateNamed';
 
 export function meta({}: Route.MetaArgs) {
 	return [
 		{ title: PAGE_NAME_PLAYER_LIST + ' - Seatide' },
 		{ name: 'description', content: '查看服务器所有玩家及其游戏统计信息。' }
 	];
+}
+
+type SortOrder = 'asc' | 'desc';
+
+interface LoaderData {
+	players: PlayerListEntry[];
+	sort: SortOrder;
+}
+
+export async function clientLoader({ request }: Route.ClientLoaderArgs): Promise<LoaderData> {
+	const url = new URL(request.url);
+	const sort = (url.searchParams.get('sort') as SortOrder) || 'asc';
+
+	const res = await getPlayerList();
+	const players = res.data ?? [];
+
+	players.sort((a, b) => {
+		const cmp = a.name.localeCompare(b.name, 'zh-Hans');
+		return sort === 'asc' ? cmp : -cmp;
+	});
+
+	return { players, sort };
 }
 
 function PlayerCard({ player }: { player: PlayerListEntry }) {
@@ -56,36 +76,45 @@ function PlayerCard({ player }: { player: PlayerListEntry }) {
 	return card;
 }
 
-export default function GameStatisticsPlayerList() {
-	const players = useStateNamed<PlayerListEntry[]>([]);
-	const loading = useStateNamed(true);
-	const error = useStateNamed<string | null>(null);
+export default function GameStatisticsPlayerList({ loaderData }: Route.ComponentProps) {
+	const { players, sort } = loaderData;
+	const [searchParams] = useSearchParams();
+	const navigate = useNavigate();
 
-	useEffect(() => {
-		getPlayerList().then(res => {
-			loading.set(false);
-			if (res.error === null) {
-				players.set(res.data!);
-			} else {
-				error.set(typeof res.error === 'string' ? res.error : '获取玩家列表失败');
-			}
-		});
-	}, []);
+	const handleSortChange = (newSort: SortOrder) => {
+		const params = new URLSearchParams(searchParams);
+		if (newSort === 'asc') {
+			params.delete('sort');
+		} else {
+			params.set('sort', newSort);
+		}
+		navigate(`?${params.toString()}`, { replace: true });
+	};
 
 	return (
 		<>
-			<PageHeader>{PAGE_NAME_PLAYER_LIST}</PageHeader>
-			{loading.current ? (
-				<div className="text-neutral-400 text-sm">加载中...</div>
-			) : error.current ? (
-				<div className="text-neutral-400 text-sm">{error.current}</div>
-			) : (
-				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-					{players.current.map(p => (
-						<PlayerCard key={p.uuid} player={p} />
-					))}
-				</div>
-			)}
+			<PageHeader actions={
+				<FormControl size="small">
+					<Select
+						value={sort}
+						onChange={e => handleSortChange(e.target.value as SortOrder)}
+					>
+						<MenuItem value="asc">
+							首字母 A-Z
+						</MenuItem>
+						<MenuItem value="desc">
+							首字母 Z-A
+						</MenuItem>
+					</Select>
+				</FormControl>
+			}>
+				{PAGE_NAME_PLAYER_LIST}
+			</PageHeader>
+			<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+				{players.map(p => (
+					<PlayerCard key={p.uuid} player={p} />
+				))}
+			</div>
 		</>
 	);
 }

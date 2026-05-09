@@ -70,12 +70,25 @@ export default function Profile() {
 
 	const onToggleLeaderboard = async () => {
 		if (!prefs.current) return;
-		const next = !prefs.current.leaderboard_opt_in;
+		const next = { ...prefs.current, leaderboard_opt_in: !prefs.current.leaderboard_opt_in };
 		prefsSaving.set(true);
-		const ok = await Req.updatePreferences({ leaderboard_opt_in: next });
+		const ok = await Req.updatePreferences(next);
 		prefsSaving.set(false);
 		if (ok) {
-			prefs.set({ leaderboard_opt_in: next });
+			prefs.set(next);
+		} else {
+			Toast.error('保存失败');
+		}
+	};
+
+	const onToggleDisallowPublicGameStats = async () => {
+		if (!prefs.current) return;
+		const next = { ...prefs.current, disallow_public_game_stats: !prefs.current.disallow_public_game_stats };
+		prefsSaving.set(true);
+		const ok = await Req.updatePreferences(next);
+		prefsSaving.set(false);
+		if (ok) {
+			prefs.set(next);
 		} else {
 			Toast.error('保存失败');
 		}
@@ -175,6 +188,14 @@ export default function Profile() {
 							<Switch
 								checked={prefs.current?.leaderboard_opt_in ?? false}
 								onChange={onToggleLeaderboard}
+								disabled={prefs.current === null || prefsSaving.current}
+							/>
+						</div>
+						<div className="flex items-center justify-between mt-3">
+							<span>将我的游戏统计页面设为不公开</span>
+							<Switch
+								checked={prefs.current?.disallow_public_game_stats ?? false}
+								onChange={onToggleDisallowPublicGameStats}
 								disabled={prefs.current === null || prefsSaving.current}
 							/>
 						</div>

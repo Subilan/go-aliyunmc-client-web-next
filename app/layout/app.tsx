@@ -90,7 +90,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 					</MuiButton>
 					<div className="flex-1" />
 					<MenuBtn
-						icon={<UserCircle2Icon size={20} color="white" />}
+						icon={<UserCircle2Icon size={20} />}
 						vertical={'top'}
 						horizontal={'right'}
 						items={close => (
@@ -102,6 +102,14 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 									}}
 								>
 									个人资料
+								</MenuItem>
+								<MenuItem
+									onClick={() => {
+										close();
+										navigate('/game/statistics/' + user?.whitelist_uuid);
+									}}
+								>
+									游戏统计
 								</MenuItem>
 								<MenuItem
 									onClick={() => {

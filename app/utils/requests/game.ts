@@ -12,8 +12,8 @@ export interface AdvancementEntry {
   criteria: Record<string, string>;
 }
 
-export function getAdvancements() {
-  return get<AdvancementEntry[]>('/user/game/advancements');
+export function getAdvancements(uuid: string) {
+  return get<AdvancementEntry[]>(`/server/advancements/${encodeURIComponent(uuid)}`);
 }
 
 export interface CategoryProgress {
@@ -38,8 +38,8 @@ export interface GameStats {
   last_seen: number | null;
 }
 
-export function getGameStats() {
-  return get<GameStats>('/user/game/stats');
+export function getGameStats(uuid: string) {
+  return get<GameStats>(`/server/stats/${encodeURIComponent(uuid)}`);
 }
 
 export interface LeaderboardEntry {
@@ -50,4 +50,14 @@ export interface LeaderboardEntry {
 
 export function getLeaderboard(metric: string, order?: string) {
   return get<LeaderboardEntry[]>('/server/leaderboard', { metric, order: order ?? 'desc' });
+}
+
+export interface PlayerListEntry {
+  uuid: string;
+  name: string;
+  disallow_public_game_stats: boolean;
+}
+
+export function getPlayerList() {
+  return get<PlayerListEntry[]>('/server/player-list');
 }

@@ -12,7 +12,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Link } from 'react-router';
 import type { Route } from './+types/all';
 import { PAGE_CATEGORY_GAME, PAGE_CATEGORY_INFORMATION } from "~/consts/page-categories";
-import { PAGE_NAME_ECONOMY, PAGE_NAME_ECS_CANDIDATES, PAGE_NAME_GAME_STATISTICS, PAGE_NAME_LEADERBOARD, PAGE_NAME_TASK_LIST, PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
+import { PAGE_NAME_ECONOMY, PAGE_NAME_ECS_CANDIDATES, PAGE_NAME_GAME_STATISTICS, PAGE_NAME_LEADERBOARD, PAGE_NAME_PLAYER_LIST, PAGE_NAME_TASK_LIST, PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
 
 interface FeatureCard {
 	title: string;
@@ -68,9 +68,9 @@ const groups: FeatureGroup[] = [
 		title: PAGE_CATEGORY_GAME,
 		cards: [
 			{
-				title: PAGE_NAME_GAME_STATISTICS,
-				description: '查看玩家在游戏中的各种进度信息，包括成就、统计等数据。',
-				to: '/game/statistics',
+				title: PAGE_NAME_PLAYER_LIST,
+				description: '查看服务器的所有玩家以及他们的个人统计数据。',
+				to: '/game/player-list',
 				icon: Gamepad2Icon
 			},
 			{

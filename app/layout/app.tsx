@@ -35,8 +35,9 @@ export async function clientLoader() {
 }
 
 const activeSx = {
-	bgcolor: 'rgba(255,255,255,0.15)',
-	fontWeight: 'bold'
+	bgcolor: '#e3f2fd',
+	fontWeight: 'bold',
+	color: '#2196f3'
 };
 
 const inactiveSx = {

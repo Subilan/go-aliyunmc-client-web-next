@@ -2,11 +2,11 @@ import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
 import {
 	CpuIcon,
 	DollarSignIcon,
-	Gamepad2Icon,
 	LayoutDashboardIcon,
 	ListTodoIcon,
 	MessageSquareIcon,
-	TrendingUpIcon
+	TrendingUpIcon,
+	UsersIcon
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Link } from 'react-router';
@@ -71,7 +71,7 @@ const groups: FeatureGroup[] = [
 				title: PAGE_NAME_PLAYER_LIST,
 				description: '查看服务器的所有玩家以及他们的个人统计数据。',
 				to: '/game/player-list',
-				icon: Gamepad2Icon
+				icon: UsersIcon
 			},
 			{
 				title: PAGE_NAME_LEADERBOARD,

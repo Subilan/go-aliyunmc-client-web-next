@@ -1,6 +1,8 @@
 import type { AdvancementEntry } from '~/utils/requests/game';
+import { Dialog, useMediaQuery, useTheme } from '@mui/material';
 import { useMcTranslate } from '~/hooks/useMcTranslate';
 import { Times } from '~/utils/times';
+import useStateNamed from '~/hooks/useStateNamed';
 
 export const gifAdvancements = new Set([
 	'minecraft:adventure/avoid_vibration',
@@ -19,6 +21,9 @@ export function AdvancementItem({ a, completed }: { a: AdvancementEntry; complet
 	const grayscaleClass = completed ? '' : 'grayscale';
 	const hasProgress = Object.keys(a.criteria).length > 0;
 	const translate = useMcTranslate();
+	const dialogOpen = useStateNamed(false);
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
 	let background = '/advancement_icons/advbg-progress';
 	if (a.isChallenge) background = '/advancement_icons/advbg-challenge';
@@ -26,70 +31,130 @@ export function AdvancementItem({ a, completed }: { a: AdvancementEntry; complet
 	if (completed) background += '-completed';
 	background += '.png';
 
-	return (
-		<div className={`group/item relative cursor-default p-2 hover:z-20 flex justify-center`}>
-			{/* Tooltip panel */}
+	const tooltipContent = (
+		<div className="bg-black text-white rounded-lg shadow-lg shadow-neutral-600 border-2 border-neutral-300 min-w-[180px] overflow-hidden">
 			<div
-				className="absolute top-[15px] left-[23%] z-10
-				opacity-0 scale-95 group-hover/item:opacity-100 group-hover/item:scale-100
-				transition-all duration-200 ease-out
-				origin-top-left
-				pointer-events-none group-hover/item:pointer-events-auto"
+				className="flex items-center h-[30px]"
+				style={{
+					backgroundColor: completed ? 'rgb(170, 126, 16)' : 'rgb(198,198,198)'
+				}}
 			>
-				<div className="bg-black text-white rounded-lg shadow-lg shadow-neutral-600 border-2 border-neutral-300 min-w-[180px] overflow-hidden">
-					{/* Title row — red bg, full width, icon height */}
-					<div
-						className="flex items-center h-[30px]"
-						style={{
-							backgroundColor: completed ? 'rgb(170, 126, 16)' : 'rgb(198,198,198)'
-						}}
-					>
-						<div className="w-[48px] shrink-0" />
-						<span className="font-bold whitespace-nowrap pr-3 pl-2 text-shadow-black text-shadow-2xs">
-							{a.chineseName}
-						</span>
+				<div className="w-[48px] shrink-0" />
+				<span className="font-bold whitespace-nowrap pr-3 pl-2 text-shadow-black text-shadow-2xs">
+					{a.chineseName}
+				</span>
+			</div>
+			<div className="px-3 pt-3 pb-2 text-sm text-neutral-300 leading-relaxed">
+				{a.chineseDescription}
+			</div>
+			{hasProgress && (
+				<div className="px-3 pb-2 text-xs text-neutral-400 border-t border-neutral-700 pt-2 space-y-0.5">
+					<div className="text-neutral-300 mb-2">
+						{completed ? '已完成的条件' : '进度'}
 					</div>
-					{/* Description — flush to left edge */}
-					<div className="px-3 pt-3 pb-2 text-sm text-neutral-300 leading-relaxed">
-						{a.chineseDescription}
-					</div>
-					{/* Criteria progress */}
-					{hasProgress && (
-						<div className="px-3 pb-2 text-xs text-neutral-400 border-t border-neutral-700 pt-2 space-y-0.5">
-							<div className="text-neutral-300 mb-2">
-								{completed ? '已完成的条件' : '进度'}
-							</div>
-							{Object.entries(a.criteria).map(([key, time]) => (
-								<div key={key} className="truncate" title={time}>
-									{translate(key)} — {Times.formatFromNow(time)}
-								</div>
-							))}
+					{Object.entries(a.criteria).map(([key, time]) => (
+						<div key={key} className="truncate" title={time}>
+							{translate(key)} — {Times.formatFromNow(time)}
 						</div>
-					)}
+					))}
 				</div>
+			)}
+		</div>
+	);
+
+	const dialogContent = (
+		<div className="bg-black text-white rounded-lg shadow-lg shadow-neutral-600 border-2 border-neutral-300 min-w-[180px] overflow-hidden">
+			<div
+				className="flex items-center h-[30px]"
+				style={{
+					backgroundColor: completed ? 'rgb(170, 126, 16)' : 'rgb(198,198,198)'
+				}}
+			>
+				<span className="font-bold whitespace-nowrap px-3 text-shadow-black text-shadow-2xs w-full text-center">
+					{a.chineseName}
+				</span>
+			</div>
+			<div className="px-3 pt-3 pb-2 text-sm text-neutral-300 leading-relaxed">
+				{a.chineseDescription}
+			</div>
+			{hasProgress && (
+				<div className="px-3 pb-2 text-xs text-neutral-400 border-t border-neutral-700 pt-2 space-y-0.5">
+					<div className="text-neutral-300 mb-2">
+						{completed ? '已完成的条件' : '进度'}
+					</div>
+					{Object.entries(a.criteria).map(([key, time]) => (
+						<div key={key} className="truncate" title={time}>
+							{translate(key)} — {Times.formatFromNow(time)}
+						</div>
+					))}
+				</div>
+			)}
+		</div>
+	);
+
+	const iconElement = (
+		<div className="relative z-10 w-[48px] h-[48px] flex items-center justify-center shrink-0">
+			<img
+				src={background}
+				draggable={false}
+				alt=""
+				className="absolute inset-0 w-full h-full"
+			/>
+			<img
+				draggable={false}
+				src={advancementIconPath(a.resourceLocation)}
+				alt={a.chineseName}
+				className={`w-[30px] h-[30px] relative z-10 ${grayscaleClass}`}
+				loading="lazy"
+				style={{ imageRendering: 'pixelated' }}
+			/>
+			{!completed && hasProgress && (
+				<div className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full z-20" />
+			)}
+		</div>
+	);
+
+	return (
+		<>
+			<div
+				className="group/item relative cursor-default p-2 md:hover:z-20 flex justify-center"
+				onClick={() => {
+					if (isMobile) dialogOpen.set(true);
+				}}
+			>
+				{/* Tooltip — md+ hover only */}
+				<div
+					className="hidden md:block absolute top-[15px] left-[23%] z-10
+					opacity-0 scale-95 group-hover/item:opacity-100 group-hover/item:scale-100
+					transition-all duration-200 ease-out
+					origin-top-left
+					pointer-events-none group-hover/item:pointer-events-auto"
+				>
+					{tooltipContent}
+				</div>
+
+				{iconElement}
 			</div>
 
-			{/* Icon with background frame */}
-			<div className="relative z-10 w-[48px] h-[48px] flex items-center justify-center shrink-0">
-				<img
-					src={background}
-					draggable={false}
-					alt=""
-					className="absolute inset-0 w-full h-full"
-				/>
-				<img
-					draggable={false}
-					src={advancementIconPath(a.resourceLocation)}
-					alt={a.chineseName}
-					className={`w-[30px] h-[30px] relative z-10 ${grayscaleClass}`}
-					loading="lazy"
-					style={{ imageRendering: 'pixelated' }}
-				/>
-				{/* Blue dot: uncompleted but has progress */}
-				{!completed && hasProgress && (
-					<div className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full z-20" />
-				)}
-			</div>
-		</div>
+			{/* Click dialog — mobile only */}
+			{isMobile && (
+				<Dialog
+					open={dialogOpen.current}
+					onClose={() => dialogOpen.set(false)}
+					slotProps={{
+						paper: {
+							sx: { background: 'transparent', boxShadow: 'none', overflow: 'visible' }
+						}
+					}}
+				>
+					<div className="flex flex-col items-center gap-10 p-4">
+						<div className="scale-[1.5]">
+							{iconElement}
+						</div>
+						{dialogContent}
+					</div>
+				</Dialog>
+			)}
+		</>
 	);
 }

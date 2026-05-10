@@ -92,6 +92,7 @@ export function StatSection(props: {
 	name: string;
 	label: string;
 	description?: string;
+	denseOnMobile?: boolean;
 }) {
 	const translate = useMcTranslate();
 	const expanded = useStateNamed(false);
@@ -104,6 +105,8 @@ export function StatSection(props: {
 	const excerpt = items.slice(0, STAT_EXCERPT);
 	const remainder = items.slice(STAT_EXCERPT);
 
+	const colsClass = props.denseOnMobile ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-3'
+
 	return (
 		<div>
 			<div className="flex flex-col gap-2 mb-3">
@@ -113,7 +116,7 @@ export function StatSection(props: {
 					</h3>
 					{props.description && <p className="text-neutral-500">{props.description}</p>}
 				</div>
-				<div className="grid grid-cols-3 gap-3">
+				<div className={`grid gap-3 ${colsClass}`}>
 					{excerpt.length > 0 ? (
 						excerpt.map(([k, v]) => <StatValue key={k} k={k} v={v} translate={translate} />)
 					) : (
@@ -122,7 +125,7 @@ export function StatSection(props: {
 				</div>
 			</div>
 			<Collapse in={expanded.current}>
-				<div className="grid grid-cols-3 gap-3">
+				<div className={`grid gap-3 ${colsClass}`}>
 					{remainder.map(([k, v]) => <StatValue key={k} k={k} v={v} translate={translate} />)}
 				</div>
 			</Collapse>

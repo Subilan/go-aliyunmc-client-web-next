@@ -49,3 +49,7 @@ hr {
 	--AppBar-color: black;
 	--AppBar-background: white;
 }
+
+.MuiCardContent-root:last-child {
+	padding-bottom: 16px !important; /* override insymmetry*/
+}

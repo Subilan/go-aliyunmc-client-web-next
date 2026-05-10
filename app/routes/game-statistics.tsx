@@ -33,10 +33,7 @@ type LoaderData =
 export async function clientLoader({ params }: Route.ClientLoaderArgs): Promise<LoaderData> {
 	const uuid = params.uuid;
 
-	const [advRes, statsRes] = await Promise.all([
-		getAdvancements(uuid),
-		getGameStats(uuid),
-	]);
+	const [advRes, statsRes] = await Promise.all([getAdvancements(uuid), getGameStats(uuid)]);
 
 	if (advRes.status === 404 || statsRes.status === 404) {
 		return { error: '暂无此玩家数据', advancements: null, gameStats: null };
@@ -84,12 +81,14 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 				<Card variant="outlined" sx={{ overflow: 'visible' }}>
 					<CardContent>
 						<CardLabel>玩家概览 / PLAYER OVERVIEW</CardLabel>
-						<div className="flex gap-6">
+						<div className="flex flex-col-reverse items-center md:flex-row gap-6">
 							<SkinModel uuid={effectiveUuid!} />
-							<div className="flex-1 flex flex-col gap-3">
+							<div className="flex-1 flex w-full md:w-auto flex-col gap-3">
 								{stats ? (
 									<>
-										<div className="text-2xl border-b border-b-neutral-200">{stats.player_name}</div>
+										<div className="text-2xl border-b border-b-neutral-200">
+											{stats.player_name}
+										</div>
 										{/* Playtime metrics */}
 										<div className="grid grid-cols-3 gap-3">
 											<MetricItem title="游玩时长">
@@ -107,9 +106,9 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 												{advProgress?.completed}/{advProgress?.total}
 											</MetricItem>
 											<MetricItem title="跑图">
-												{(
-													getStat('custom', 'walk_one_cm') / 100
-												).toFixed(0)}{' '}
+												{(getStat('custom', 'walk_one_cm') / 100).toFixed(
+													0
+												)}{' '}
 												格
 											</MetricItem>
 										</div>
@@ -133,7 +132,7 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 							<>
 								<AdvancementMetrics advProgress={advProgress} />
 
-								<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 overflow-visible">
+								<div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 overflow-visible">
 									{completed.map(a => (
 										<AdvancementItem key={a.resourceLocation} a={a} completed />
 									))}
@@ -157,7 +156,7 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 											未完成 ({uncompleted.length})
 										</div>
 										<Collapse in={showUncompleted.current}>
-											<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 mt-3 overflow-visible">
+											<div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 mt-3 overflow-visible">
 												{uncompleted.map(a => (
 													<AdvancementItem
 														key={a.resourceLocation}
@@ -227,6 +226,7 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 							/>
 							<hr />
 							<StatSection
+								denseOnMobile
 								label="杂项"
 								description="一些其它的统计信息。"
 								stats={stats}

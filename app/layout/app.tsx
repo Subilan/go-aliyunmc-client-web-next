@@ -158,7 +158,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 					/>
 				</Toolbar>
 			</AppBar>
-			<main className="max-w-250 mx-auto py-10">
+			<main className="max-w-250 mx-5 md:mx-auto py-10">
 				<UserContext.Provider value={user}>
 					<PermissionsContext.Provider value={permissions}>
 						<McTranslationContext.Provider value={mctranslations}>

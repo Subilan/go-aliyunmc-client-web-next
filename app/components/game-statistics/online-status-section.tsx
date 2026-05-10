@@ -177,7 +177,7 @@ export function OnlineStatusSection({ onlineDates }: OnlineStatusSectionProps) {
                   <div className="w-8 h-8 rounded-full border-2 border-neutral-300" />
                 )}
                 <span className="text-xs text-neutral-500">{dayLabel}</span>
-                <span className="text-xs text-neutral-400">{dayOfWeek}</span>
+                {/* <span className="text-xs text-neutral-400">{dayOfWeek}</span> */}
               </div>
             );
           })}

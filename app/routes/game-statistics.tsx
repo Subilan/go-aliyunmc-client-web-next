@@ -81,7 +81,7 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 			<PageHeader>{PAGE_NAME_GAME_STATISTICS}</PageHeader>
 			<div className="flex flex-col gap-3">
 				{/* Player Overview */}
-				<Card variant="outlined">
+				<Card variant="outlined" sx={{ overflow: 'visible' }}>
 					<CardContent>
 						<CardLabel>玩家概览 / PLAYER OVERVIEW</CardLabel>
 						<div className="flex gap-6">

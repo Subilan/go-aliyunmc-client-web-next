@@ -9,9 +9,14 @@ export function formatFromNow(dateLike: Date | number | string) {
 	return date.fromNow();
 }
 
+export function formatDate(dateLike: Date | number | string, format = 'YYYY-MM-DD HH:mm:ss') {
+	return dayjs(dateLike).format(format);
+}
+
 export const Times = {
 	formatFromNow,
-	formatDuration
+	formatDuration,
+	formatDate
 };
 
 export function formatDuration(seconds: number): string {

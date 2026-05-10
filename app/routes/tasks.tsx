@@ -4,7 +4,6 @@ import type { Task } from '~/types/Task';
 import { getTasks as fetchTasks, getTaskStats, type TaskStats } from '~/utils/requests/home';
 import {
 	Button,
-	Chip,
 	Dialog,
 	DialogTitle,
 	DialogContent,
@@ -12,20 +11,17 @@ import {
 	Tooltip,
 	Typography,
 	Card,
-	CardContent,
-	Paper,
-	Box,
-	CircularProgress
-} from '@mui/material';
+	CardContent} from '@mui/material';
 import MetricCard from '~/components/metric-card';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import 'dayjs/locale/zh-cn';
-dayjs.extend(relativeTime);
-dayjs.locale('zh-cn');
-import { CheckCircleIcon, ClockIcon, Loader2Icon, XCircleIcon, XIcon } from 'lucide-react';
+import {
+	CheckIcon,
+	ClockIcon,
+	Loader2Icon,
+	XIcon
+} from 'lucide-react';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_TASK_LIST } from '~/consts/page-names';
+import { Times } from '~/utils/times';
 
 function taskTypeLabel(type: string) {
 	switch (type) {
@@ -46,51 +42,27 @@ function taskTypeLabel(type: string) {
 	}
 }
 
-function taskStatusIcon(status: string) {
-	switch (status) {
-		case 'success':
-			return <CheckCircleIcon size={14} />;
-		case 'running':
-			return <Loader2Icon size={14} className="animate-spin" />;
-		case 'failed':
-			return <XCircleIcon size={14} />;
-		default:
-			return <ClockIcon size={14} />;
+export function taskStatusIcon(status: string) {
+	function icon() {
+		switch (status) {
+			case 'success':
+				return <CheckIcon size={16} color="green" />;
+			case 'running':
+				return <Loader2Icon size={16} color="blue" className="animate-spin" />;
+			case 'failed':
+				return <XIcon size={16} color="red" />;
+			default:
+				return <ClockIcon size={16} />;
+		}
 	}
-}
-
-function taskStatusLabel(status: string) {
-	switch (status) {
-		case 'success':
-			return '成功';
-		case 'running':
-			return '运行中';
-		case 'failed':
-			return '失败';
-		default:
-			return '已创建';
-	}
-}
-
-function taskStatusColor(status: string): 'success' | 'warning' | 'error' | 'info' {
-	switch (status) {
-		case 'success':
-			return 'success';
-		case 'running':
-			return 'info';
-		case 'failed':
-			return 'error';
-		default:
-			return 'warning';
-	}
+	return <div className="flex justify-center">{icon()}</div>;
 }
 
 function TimeCell({ ts }: { ts?: string }) {
 	if (!ts) return <span className="text-neutral-400">—</span>;
-	const d = dayjs(ts);
 	return (
-		<Tooltip title={d.format('YYYY-MM-DD HH:mm:ss')}>
-			<span>{d.fromNow()}</span>
+		<Tooltip title={Times.formatDate(ts)}>
+			<span>{Times.formatFromNow(ts)}</span>
 		</Tooltip>
 	);
 }
@@ -164,44 +136,31 @@ const columns: Column<Task>[] = [
 		id: 'status',
 		label: '状态',
 		align: 'center',
-		render: t => (
-			<Chip
-				icon={taskStatusIcon(t.status)}
-				label={taskStatusLabel(t.status)}
-				color={taskStatusColor(t.status)}
-				size="small"
-				variant={t.status === 'running' ? 'filled' : 'outlined'}
-			/>
-		)
+		render: t => taskStatusIcon(t.status)
 	},
 	// { id: 'step', label: '步骤', render: t => t.step, align: 'center' },
 	{
 		id: 'created_at',
 		label: '创建时间',
-		align: 'left',
+		align: 'center',
 		render: t => <TimeCell ts={t.CreatedAt} />,
 		sortable: true
 	},
 	{
 		id: 'updated_at',
 		label: '更新时间',
-		align: 'left',
+		align: 'center',
 		render: t => <TimeCell ts={t.UpdatedAt} />,
 		sortable: true
 	},
 	{
-		id: 'start_at',
-		label: '开始时间',
-		align: 'left',
-		render: t => <TimeCell ts={t.startAt} />,
-		sortable: true
-	},
-	{
-		id: 'end_at',
-		label: '结束时间',
-		align: 'left',
-		render: t => <TimeCell ts={t.endAt} />,
-		sortable: true
+		id: 'duration',
+		label: '耗时',
+		align: 'center',
+		render: t =>
+			t.endAt && t.startAt
+				? ((new Date(t.endAt).getTime() - new Date(t.startAt).getTime()) / 1000).toFixed(1) + 's'
+				: <span className="text-neutral-400">—</span>
 	},
 	{
 		id: 'output',
@@ -274,7 +233,9 @@ export default function TasksPage() {
 	const successRate =
 		stats && stats.total > 0 ? `${Math.round((stats.successCount / stats.total) * 100)}%` : '—';
 
-	const lastCompletedAgo = stats?.lastCompletedAt ? dayjs(stats.lastCompletedAt).fromNow() : '—';
+	const lastCompletedAgo = stats?.lastCompletedAt
+		? Times.formatFromNow(stats.lastCompletedAt)
+		: '—';
 
 	const lastCreator =
 		stats?.lastCreatedUser?.username ??

@@ -786,24 +786,6 @@ export default function Home() {
 										>
 											可用区
 										</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											vCPU
-										</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											内存 (GiB)
-										</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											可用区
-										</TableCell>
 										<TableCell align="center">价格 (元/小时)</TableCell>
 									</TableRow>
 								</TableHead>
@@ -817,24 +799,6 @@ export default function Home() {
 														<CheckIcon color="green" size={16} />
 													)}
 												</div>
-											</TableCell>
-											<TableCell
-												align="center"
-												sx={{ display: { xs: 'none', md: 'table-cell' } }}
-											>
-												{c.cpuCoreCount}
-											</TableCell>
-											<TableCell
-												align="center"
-												sx={{ display: { xs: 'none', md: 'table-cell' } }}
-											>
-												{c.memory}
-											</TableCell>
-											<TableCell
-												align="center"
-												sx={{ display: { xs: 'none', md: 'table-cell' } }}
-											>
-												{c.zoneId}
 											</TableCell>
 											<TableCell
 												align="center"
@@ -902,19 +866,7 @@ export default function Home() {
 										>
 											耗时
 										</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											耗时
-										</TableCell>
 										<TableCell align="center">创建时间</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											备注
-										</TableCell>
 										<TableCell
 											align="center"
 											sx={{ display: { xs: 'none', md: 'table-cell' } }}

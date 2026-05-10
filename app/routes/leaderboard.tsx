@@ -41,17 +41,19 @@ function PodiumCard({
   return (
     <Card
       variant="outlined"
-      className={`${isFirst ? 'h-52 w-42' : 'h-40 w-36'} ${colors.border} border-t-4`}
+      className={`w-full ${isFirst ? 'sm:h-52 sm:w-42' : 'sm:h-40 sm:w-36'} ${colors.border} border-l-4 sm:border-l-0 sm:border-t-4`}
     >
-      <CardContent className="flex flex-col items-center justify-center h-full gap-1.5">
-        <div className={`text-sm font-bold tracking-wider ${colors.text}`}>#{rank}</div>
-        <div className={isFirst ? 'text-xl font-medium' : 'text-lg font-medium'}>
+      <CardContent className="flex flex-row sm:flex-col items-center sm:justify-center sm:h-full gap-1.5 py-3 sm:py-4">
+        <div className={`sm:text-lg font-bold tracking-wider shrink-0 ${colors.text}`}>#{rank}</div>
+        <div className={`flex-1 sm:flex-none min-w-0 sm:text-lg ${isFirst ? 'sm:text-xl' : ''} font-medium truncate`}>
           {entry.player_name}
         </div>
-        <div className={`${isFirst ? 'text-5xl' : 'text-4xl'} font-bold leading-none mt-1`}>
-          {formattedValue}
+        <div className="flex flex-row sm:flex-col items-baseline sm:items-center gap-1 sm:gap-0 shrink-0">
+          <span className={`text-xl ${isFirst ? 'sm:text-3xl' : 'sm:text-2xl'} font-bold leading-none`}>
+            {formattedValue}
+          </span>
+          <span className="text-xs text-neutral-400 sm:mt-1">{unit}</span>
         </div>
-        <div className="text-xs text-neutral-400 mt-0.5">{unit}</div>
       </CardContent>
     </Card>
   );
@@ -126,15 +128,21 @@ export default function Leaderboard() {
 
         {!loading.current && entries.current.length > 0 && (
           <>
-            <div className="flex items-end justify-center gap-3 flex-wrap">
-              {second && (
-                <PodiumCard entry={second} rank={2} formattedValue={formatValue(second.value)} unit={metricInfo.unit} />
-              )}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-end justify-center gap-3">
               {first && (
-                <PodiumCard entry={first} rank={1} formattedValue={formatValue(first.value)} unit={metricInfo.unit} />
+                <div className="sm:order-2">
+                  <PodiumCard entry={first} rank={1} formattedValue={formatValue(first.value)} unit={metricInfo.unit} />
+                </div>
+              )}
+              {second && (
+                <div className="sm:order-1">
+                  <PodiumCard entry={second} rank={2} formattedValue={formatValue(second.value)} unit={metricInfo.unit} />
+                </div>
               )}
               {third && (
-                <PodiumCard entry={third} rank={3} formattedValue={formatValue(third.value)} unit={metricInfo.unit} />
+                <div className="sm:order-3">
+                  <PodiumCard entry={third} rank={3} formattedValue={formatValue(third.value)} unit={metricInfo.unit} />
+                </div>
               )}
             </div>
 

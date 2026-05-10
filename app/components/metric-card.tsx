@@ -20,6 +20,11 @@ export default function MetricCard({
   cols?: number;
   className?: string;
 }) {
+  const colsClass =
+    cols === 4
+      ? 'grid-cols-2 md:grid-cols-4'
+      : 'grid-cols-2 md:grid-cols-3';
+
   return (
     <Card variant="outlined" className={className}>
       <CardContent>
@@ -28,10 +33,7 @@ export default function MetricCard({
             {title}
           </div>
         )}
-        <div
-          className="grid gap-6"
-          style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-        >
+        <div className={`grid gap-6 ${colsClass}`}>
           {metrics.map((m, i) => (
             <div key={i}>
               <div className="text-xs text-neutral-500 mb-1 flex items-center gap-1">

@@ -61,7 +61,7 @@ export function SkinModel(props: { uuid: string }) {
 	return (
 		<div
 			ref={containerRef}
-			className="relative w-[180px] h-[200px]"
+			className="relative w-[180px] h-[320px]"
 			style={{
 				overflow: 'visible',
 				transform: `scale(${scale.current})`,

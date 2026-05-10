@@ -803,13 +803,28 @@ export default function Home() {
 							</Tooltip>
 						</div>
 						<TableContainer component={Paper} variant="outlined">
-							<Table size="small">
+							<Table size="small" sx={{ tableLayout: { xs: 'auto', md: 'fixed' } }}>
 								<TableHead>
 									<TableRow>
 										<TableCell align="center">实例规格</TableCell>
-										<TableCell align="center">vCPU</TableCell>
-										<TableCell align="center">内存 (GiB)</TableCell>
-										<TableCell align="center">可用区</TableCell>
+										<TableCell
+											align="center"
+											sx={{ display: { xs: 'none', md: 'table-cell' } }}
+										>
+											vCPU
+										</TableCell>
+										<TableCell
+											align="center"
+											sx={{ display: { xs: 'none', md: 'table-cell' } }}
+										>
+											内存 (GiB)
+										</TableCell>
+										<TableCell
+											align="center"
+											sx={{ display: { xs: 'none', md: 'table-cell' } }}
+										>
+											可用区
+										</TableCell>
 										<TableCell align="center">价格 (元/小时)</TableCell>
 									</TableRow>
 								</TableHead>
@@ -823,6 +838,12 @@ export default function Home() {
 													</code>
 													{i === 0 && (
 														<Chip
+															sx={{
+																display: {
+																	xs: 'none',
+																	md: 'inline-block'
+																}
+															}}
 															label="最优"
 															color="primary"
 															size="small"
@@ -830,9 +851,24 @@ export default function Home() {
 													)}
 												</div>
 											</TableCell>
-											<TableCell align="center">{c.cpuCoreCount}</TableCell>
-											<TableCell align="center">{c.memory}</TableCell>
-											<TableCell align="center">{c.zoneId}</TableCell>
+											<TableCell
+												align="center"
+												sx={{ display: { xs: 'none', md: 'table-cell' } }}
+											>
+												{c.cpuCoreCount}
+											</TableCell>
+											<TableCell
+												align="center"
+												sx={{ display: { xs: 'none', md: 'table-cell' } }}
+											>
+												{c.memory}
+											</TableCell>
+											<TableCell
+												align="center"
+												sx={{ display: { xs: 'none', md: 'table-cell' } }}
+											>
+												{c.zoneId}
+											</TableCell>
 											<TableCell align="center">
 												¥{c.tradePrice.toFixed(2)}
 											</TableCell>
@@ -870,14 +906,24 @@ export default function Home() {
 							</Tooltip>
 						</div>
 						<TableContainer component={Paper} variant="outlined">
-							<Table size="small">
+							<Table size="small" sx={{ tableLayout: { xs: 'auto', md: 'fixed' } }}>
 								<TableHead>
 									<TableRow>
 										<TableCell align="center">类型</TableCell>
 										<TableCell align="center">状态</TableCell>
-										<TableCell align="center">耗时</TableCell>
+										<TableCell
+											align="center"
+											sx={{ display: { xs: 'none', md: 'table-cell' } }}
+										>
+											耗时
+										</TableCell>
 										<TableCell align="center">创建时间</TableCell>
-										<TableCell align="center">备注</TableCell>
+										<TableCell
+											align="center"
+											sx={{ display: { xs: 'none', md: 'table-cell' } }}
+										>
+											备注
+										</TableCell>
 									</TableRow>
 								</TableHead>
 								<TableBody>
@@ -897,6 +943,7 @@ export default function Home() {
 											</TableCell>
 											<TableCell
 												align="center"
+												sx={{ display: { xs: 'none', md: 'table-cell' } }}
 												className="text-neutral-500 text-sm"
 											>
 												{task.endAt && task.startAt
@@ -920,6 +967,7 @@ export default function Home() {
 											</TableCell>
 											<TableCell
 												align="center"
+												sx={{ display: { xs: 'none', md: 'table-cell' } }}
 												className="text-neutral-500 text-sm"
 											>
 												{task.error ? (

@@ -5,8 +5,10 @@ import useStateNamed from '~/hooks/useStateNamed';
 
 export function SkinModel(props: { uuid: string }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
 	const viewerRef = useRef<SkinViewer | null>(null);
 	const loading = useStateNamed(true);
+	const scale = useStateNamed(1);
 
 	useEffect(() => {
 		if (!canvasRef.current) return;
@@ -18,13 +20,15 @@ export function SkinModel(props: { uuid: string }) {
 		img.onload = () => {
 			if (cancelled || !canvasRef.current) return;
 			loading.set(false);
-			viewerRef.current = new SkinViewer({
+			const viewer = new SkinViewer({
 				canvas: canvasRef.current,
 				width: 180,
 				height: 320,
 				skin: skinUrl
 			});
-			viewerRef.current.autoRotate = true;
+			viewer.autoRotate = true;
+			viewer.controls.enableZoom = false;
+			viewerRef.current = viewer;
 		};
 
 		img.onerror = () => {
@@ -39,8 +43,32 @@ export function SkinModel(props: { uuid: string }) {
 		};
 	}, [props.uuid]);
 
+	useEffect(() => {
+		const el = containerRef.current;
+		if (!el) return;
+
+		const onWheel = (e: WheelEvent) => {
+			e.preventDefault();
+			const step = 0.1;
+			const delta = e.deltaY > 0 ? -step : step;
+			scale.set(current => Math.max(0.5, Math.min(2.5, current + delta)));
+		};
+
+		el.addEventListener('wheel', onWheel, { passive: false });
+		return () => el.removeEventListener('wheel', onWheel);
+	}, []);
+
 	return (
-		<div className="relative w-[180px] h-[200px]">
+		<div
+			ref={containerRef}
+			className="relative w-[180px] h-[200px]"
+			style={{
+				overflow: 'visible',
+				transform: `scale(${scale.current})`,
+				transformOrigin: 'center center',
+				transition: 'transform 0.1s ease-out'
+			}}
+		>
 			{loading.current && (
 				<div className="absolute inset-0 flex items-center justify-center">
 					<LinearProgress className="w-full" />

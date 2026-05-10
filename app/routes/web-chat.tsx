@@ -13,6 +13,7 @@ import { PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
 import { UserContext } from '~/contexts/user';
 import useStateNamed from '~/hooks/useStateNamed';
 import { useNavigate } from 'react-router';
+import getChatToken from '~/utils/requests/chat-token';
 
 const WS_HOST = '127.0.0.1';
 const WS_PORT = '33795';
@@ -34,6 +35,7 @@ export function meta({}: Route.MetaArgs) {
 export default function WebChat() {
 	const user = useContext(UserContext);
 	const uuid = user?.whitelist_uuid;
+	const playername = useStateNamed('');
 
 	const messageText = useStateNamed('');
 	const status = useStateNamed<ConnectionStatus>('connecting');
@@ -50,12 +52,20 @@ export default function WebChat() {
 		}, 50);
 	};
 
-	const doConnect = useCallback(() => {
+	const doConnect = useCallback(async () => {
 		if (!uuid) return;
 
 		status.set('connecting');
 
-		const ws = new WebSocket(`ws://${WS_HOST}:${WS_PORT}`);
+		const { data, error } = await getChatToken();
+		if (error || !data?.token) {
+			status.set('disconnected');
+			return;
+		}
+
+		playername.set(data.playername);
+
+		const ws = new WebSocket(`wss://${WS_HOST}:${WS_PORT}/?token=${data.token}`);
 		wsRef.current = ws;
 
 		ws.onopen = () => {
@@ -91,7 +101,12 @@ export default function WebChat() {
 			ws.onclose = null;
 			ws.onerror = null;
 			ws.onmessage = null;
-			ws.close();
+			if (ws.readyState === WebSocket.OPEN) {
+				ws.close();
+			} else if (ws.readyState === WebSocket.CONNECTING) {
+				// Defer close until handshake completes to avoid "closed before established" error
+				ws.onopen = () => ws.close();
+			}
 		}
 		status.set('disconnected');
 	}, []);
@@ -128,7 +143,7 @@ export default function WebChat() {
 		const msg: ChatMessage = {
 			type: 'chat',
 			source: 'web',
-			player: uuid,
+			player: playername.current,
 			content: text,
 			timestamp: Math.floor(Date.now() / 1000)
 		};
@@ -219,30 +234,31 @@ export default function WebChat() {
 									</Button>
 								</div>
 							)}
-							{connected && messages.current.length > 0 ? (
-								<pre
-									ref={chatLogRef}
-									className="flex-1 overflow-y-auto font-mono text-sm leading-relaxed m-0 whitespace-pre-wrap break-all"
-								>
-									<code>
-										{messages.current.map(msg => {
-											if (msg.type === 'error') {
-												return `错误: ${msg.content}\n`;
-											}
-											const prefix = sourcePrefix(msg.source);
-											const time = msg.timestamp
-												? formatTime(msg.timestamp)
-												: '';
-											return `${time ? `[${time}] ` : ''}${prefix.text} ${msg.player}: ${msg.content}\n`;
-										})}
-									</code>
-								</pre>
-							) : (
-								<div className="flex flex-col h-full items-center justify-center text-neutral-400 gap-2">
-									<MessagesSquareIcon size={28} />
-									<span>等待发送或接收到消息</span>
-								</div>
-							)}
+							{connected &&
+								(messages.current.length > 0 ? (
+									<pre
+										ref={chatLogRef}
+										className="flex-1 overflow-y-auto font-mono text-sm leading-relaxed m-0 whitespace-pre-wrap break-all"
+									>
+										<code>
+											{messages.current.map(msg => {
+												if (msg.type === 'error') {
+													return `错误: ${msg.content}\n`;
+												}
+												const prefix = sourcePrefix(msg.source);
+												const time = msg.timestamp
+													? formatTime(msg.timestamp)
+													: '';
+												return `${time ? `[${time}] ` : ''}${prefix.text} ${msg.player}: ${msg.content}\n`;
+											})}
+										</code>
+									</pre>
+								) : (
+									<div className="flex flex-col h-full items-center justify-center text-neutral-400 gap-2">
+										<MessagesSquareIcon size={28} />
+										<span>等待发送或接收到消息</span>
+									</div>
+								))}
 						</CardContent>
 					</Card>
 				) : (
@@ -253,7 +269,13 @@ export default function WebChat() {
 									<TriangleAlertIcon size={28} className="mr-2 text-amber-500" />
 									需要绑定游戏账号后才能使用 Web 聊天功能
 								</div>
-								<Button variant='contained' size='small' onClick={() => navigate('/profile')}>立即绑定</Button>
+								<Button
+									variant="contained"
+									size="small"
+									onClick={() => navigate('/profile')}
+								>
+									立即绑定
+								</Button>
 							</div>
 						</CardContent>
 					</Card>

@@ -1,2 +1,0 @@
-- [ ] github contribution like online dates on player profile
-- [ ] custom stat number unit inconsistency

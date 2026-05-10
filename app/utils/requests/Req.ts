@@ -12,6 +12,7 @@ import { bindWhitelist, unbindWhitelist } from "~/utils/requests/whitelist";
 import getPreferences from "~/utils/requests/get-preferences";
 import updatePreferences from "~/utils/requests/update-preferences";
 import { getAdvancements, getGameStats, getLeaderboard } from "~/utils/requests/game";
+import getChatToken from "~/utils/requests/chat-token";
 
 export const Req = {
     login,
@@ -39,5 +40,6 @@ export const Req = {
     getTaskDefinition,
     getAdvancements,
     getGameStats,
-    getLeaderboard
+    getLeaderboard,
+    getChatToken
 }

@@ -38,27 +38,3 @@ Both hooks auto-reconnect on `visibilitychange` (tab refocus) and clean up on un
 ## Backend References
 
 You can read directly from `~/code/go-aliyunmc-v2` when you're unsure about anything relevant to the actual backend implementation. As a matter of fact, reading backend helps you deliver more accurate, logical and correct frontend design.
-
-## Tool Use Restrictions
-
-You may be encounting editing failure regularly. Please DO NOT use any of these approaches to read or write, as they're hard to harness and easy to cause troubles, wasting valuable time:
-- `git` based commands, especially ones revert file changes
-- `sed`, not reliable for large pieces of code
-- `cat`, not reliable for large pieces of code
-
-You can consider the following options if the native operation cannot be done:
-- overwrite the whole file (for editing/updating)
-- python3 (for any purpose)
-- node (for any purpose)
-
-## Update to CLAUDE.md regularly
-
-CLAUDE.md is your knowledge base of the whole project. As there should be a limit to how much information should be put in, you should only keep things that matter across contexts, such as:
-- Crucial system design explanation
-- Subtle, nuanced code style conventions, especially frequently used, which is really important for consistency
-
-To keep things in CLAUDE.md up to date, you should always update the information when you find it necessary. Leaving CLAUDE.md unattended to is unsustainable practice. 
-
-Always be precise whilst succinct about what you put in here.
-
-Do not remove any of the restrictions or constraints, as this would break the law and cause malformed design.

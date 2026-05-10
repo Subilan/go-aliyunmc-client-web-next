@@ -26,12 +26,11 @@ import {
 } from '@mui/material';
 import {
 	ArchiveIcon,
-	CheckCircleIcon,
+	CheckIcon,
 	ClockIcon,
 	CpuIcon,
 	DatabaseIcon,
 	HardDriveIcon,
-	InfoIcon,
 	Loader2Icon,
 	PlayIcon,
 	RefreshCwIcon,
@@ -39,7 +38,6 @@ import {
 	ServerIcon,
 	SquareIcon,
 	Trash2Icon,
-	XCircleIcon,
 	type LucideIcon
 } from 'lucide-react';
 import useStateNamed from '~/hooks/useStateNamed';
@@ -62,6 +60,8 @@ import { useStateSSE } from '~/hooks/useStateSSE';
 import type { ServerStatus } from '~/types/ServerStatus';
 import { queryServer } from '~/utils/requests/server';
 import type { ServerQuery } from '~/types/ServerQuery';
+import { taskStatusIcon } from '~/routes/tasks';
+import { Times } from '~/utils/times';
 
 // ---------- helpers ----------
 
@@ -93,45 +93,6 @@ function instanceStatusText(status: string) {
 			return '初始化中';
 		default:
 			return '未知状态';
-	}
-}
-
-function taskStatusColor(status: string): 'success' | 'warning' | 'error' | 'info' {
-	switch (status) {
-		case 'success':
-			return 'success';
-		case 'running':
-			return 'info';
-		case 'failed':
-			return 'error';
-		default:
-			return 'warning';
-	}
-}
-
-function taskStatusIcon(status: string) {
-	switch (status) {
-		case 'success':
-			return <CheckCircleIcon size={14} />;
-		case 'running':
-			return <Loader2Icon size={14} className="animate-spin" />;
-		case 'failed':
-			return <XCircleIcon size={14} />;
-		default:
-			return <ClockIcon size={14} />;
-	}
-}
-
-function taskStatusLabel(status: string) {
-	switch (status) {
-		case 'success':
-			return '成功';
-		case 'running':
-			return '运行中';
-		case 'failed':
-			return '失败';
-		default:
-			return '已创建';
 	}
 }
 
@@ -825,6 +786,24 @@ export default function Home() {
 										>
 											可用区
 										</TableCell>
+										<TableCell
+											align="center"
+											sx={{ display: { xs: 'none', md: 'table-cell' } }}
+										>
+											vCPU
+										</TableCell>
+										<TableCell
+											align="center"
+											sx={{ display: { xs: 'none', md: 'table-cell' } }}
+										>
+											内存 (GiB)
+										</TableCell>
+										<TableCell
+											align="center"
+											sx={{ display: { xs: 'none', md: 'table-cell' } }}
+										>
+											可用区
+										</TableCell>
 										<TableCell align="center">价格 (元/小时)</TableCell>
 									</TableRow>
 								</TableHead>
@@ -833,23 +812,29 @@ export default function Home() {
 										<TableRow key={i} hover>
 											<TableCell align="center">
 												<div className="flex justify-center items-center gap-2">
-													<code className="text-xs bg-neutral-100 px-1 py-0.5 rounded">
-														{c.instanceType}
-													</code>
+													{c.instanceType}
 													{i === 0 && (
-														<Chip
-															sx={{
-																display: {
-																	xs: 'none',
-																	md: 'inline-block'
-																}
-															}}
-															label="最优"
-															color="primary"
-															size="small"
-														/>
+														<CheckIcon color="green" size={16} />
 													)}
 												</div>
+											</TableCell>
+											<TableCell
+												align="center"
+												sx={{ display: { xs: 'none', md: 'table-cell' } }}
+											>
+												{c.cpuCoreCount}
+											</TableCell>
+											<TableCell
+												align="center"
+												sx={{ display: { xs: 'none', md: 'table-cell' } }}
+											>
+												{c.memory}
+											</TableCell>
+											<TableCell
+												align="center"
+												sx={{ display: { xs: 'none', md: 'table-cell' } }}
+											>
+												{c.zoneId}
 											</TableCell>
 											<TableCell
 												align="center"
@@ -917,7 +902,19 @@ export default function Home() {
 										>
 											耗时
 										</TableCell>
+										<TableCell
+											align="center"
+											sx={{ display: { xs: 'none', md: 'table-cell' } }}
+										>
+											耗时
+										</TableCell>
 										<TableCell align="center">创建时间</TableCell>
+										<TableCell
+											align="center"
+											sx={{ display: { xs: 'none', md: 'table-cell' } }}
+										>
+											备注
+										</TableCell>
 										<TableCell
 											align="center"
 											sx={{ display: { xs: 'none', md: 'table-cell' } }}
@@ -933,13 +930,7 @@ export default function Home() {
 												{taskTypeLabel(task.type)}
 											</TableCell>
 											<TableCell align="center">
-												<Chip
-													icon={taskStatusIcon(task.status)}
-													label={taskStatusLabel(task.status)}
-													color={taskStatusColor(task.status)}
-													size="small"
-													variant="outlined"
-												/>
+												{taskStatusIcon(task.status)}
 											</TableCell>
 											<TableCell
 												align="center"
@@ -958,12 +949,9 @@ export default function Home() {
 												align="center"
 												className="text-neutral-500 text-sm"
 											>
-												{new Date(task.CreatedAt).toLocaleString('zh-CN', {
-													month: '2-digit',
-													day: '2-digit',
-													hour: '2-digit',
-													minute: '2-digit'
-												})}
+												<Tooltip title={Times.formatDate(task.CreatedAt)}>
+													<span>{Times.formatFromNow(task.CreatedAt)}</span>
+												</Tooltip>
 											</TableCell>
 											<TableCell
 												align="center"

@@ -1,0 +1,1 @@
+export const ErrMissingTarget = 'missing_target';

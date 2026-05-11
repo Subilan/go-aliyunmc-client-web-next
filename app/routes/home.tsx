@@ -2,55 +2,37 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import type { Route } from './+types/home';
 import { UserContext } from '~/contexts/user';
-import { CardLabel } from '~/components/card-label';
 import { PermissionsContext } from '~/contexts/permissions';
 import {
 	Alert,
 	Button,
-	Card,
-	CardContent,
-	Chip,
 	Dialog,
 	DialogActions,
 	DialogContent,
 	DialogContentText,
-	DialogTitle,
-	IconButton,
-	Paper,
-	Table,
-	TableBody,
-	TableCell,
-	TableContainer,
-	TableHead,
-	TableRow,
-	Tooltip
+	DialogTitle
 } from '@mui/material';
 import {
 	ArchiveIcon,
-	CheckIcon,
-	ClockIcon,
-	CpuIcon,
 	DatabaseIcon,
-	HardDriveIcon,
-	Loader2Icon,
 	PlayIcon,
-	RefreshCwIcon,
 	RocketIcon,
-	ServerIcon,
 	SquareIcon,
-	Trash2Icon,
-	type LucideIcon
+	Trash2Icon
 } from 'lucide-react';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
 import type { Instance } from '~/types/Instance';
 import type { EcsCandidate } from '~/types/EcsCandidate';
 import type { Task } from '~/types/Task';
-import PlayerCountChart from '~/components/player-count-chart';
 import type { PlayerListChartPoint } from '~/components/player-count-chart';
 import CreateInstanceDialog from '~/components/create-instance-dialog';
-import DeployDialog from '~/components/deploy-dialog';
 import ConfirmTriggerDialog from '~/components/confirm-trigger-dialog';
+import ServerStatusCard from '~/components/home/server-status-card';
+import InstanceStatusCard from '~/components/home/instance-status-card';
+import EcsCandidatesCard from '~/components/home/ecs-candidates-card';
+import RecentTasksCard from '~/components/home/recent-tasks-card';
+import type { FuncListItem } from '~/components/func-list';
 import { getActiveInstance, getCandidates, deleteActiveInstance } from '~/utils/requests/instance';
 import { getServerStatus, getInstanceStatus } from '~/utils/requests/state';
 import { getTasks, getPlayerListHistory, getIdleRemainingSecs } from '~/utils/requests/home';
@@ -61,94 +43,8 @@ import { useStateSSE } from '~/hooks/useStateSSE';
 import type { ServerStatus } from '~/types/ServerStatus';
 import { queryServer } from '~/utils/requests/server';
 import type { ServerQuery } from '~/types/ServerQuery';
-import { taskStatusIcon } from '~/routes/tasks';
 import { Times } from '~/utils/times';
-
-// ---------- helpers ----------
-
-function instanceStatusColor(status: string) {
-	switch (status) {
-		case 'Running':
-			return 'bg-green-500';
-		case 'Starting':
-		case 'Stopping':
-			return 'bg-yellow-500';
-		case 'Stopped':
-			return 'bg-red-500';
-		default:
-			return 'bg-neutral-500';
-	}
-}
-
-function instanceStatusText(status: string) {
-	switch (status) {
-		case 'Running':
-			return '运行中';
-		case 'Starting':
-			return '启动中';
-		case 'Stopping':
-			return '关闭中';
-		case 'Stopped':
-			return '已关闭';
-		case 'Pending':
-			return '初始化中';
-		default:
-			return '未知状态';
-	}
-}
-
-function taskTypeLabel(type: string) {
-	switch (type) {
-		case 'test':
-			return '测试';
-		case 'deploy':
-			return '部署';
-		case 'backup':
-			return '备份';
-		case 'archive':
-			return '归档';
-		case 'create_instance':
-			return '创建实例';
-		case 'start_server':
-			return '启动服务器';
-		default:
-			return type;
-	}
-}
-
-// ---------- FuncList ----------
-
-interface FuncListItem {
-	name: string;
-	action: () => void;
-	icon: LucideIcon;
-	disabled?: boolean;
-}
-
-function FuncList(props: { items: FuncListItem[] }) {
-	return (
-		<div className="flex flex-wrap gap-1 border rounded-full border-neutral-100">
-			{props.items.map((x, i) => {
-				const Icon = x.icon;
-				return (
-					<Tooltip title={x.name} key={i}>
-						<span>
-							<IconButton
-								size="small"
-								disabled={x.disabled}
-								onClick={() => x.action()}
-							>
-								<Icon size={16} />
-							</IconButton>
-						</span>
-					</Tooltip>
-				);
-			})}
-		</div>
-	);
-}
-
-// ---------- page ----------
+import { ErrMissingTarget } from '~/utils/consts';
 
 export function meta({}: Route.MetaArgs) {
 	return [{ title: '控制台 - Seatide' }, { name: 'description', content: 'Seatide 玩家控制台' }];
@@ -177,13 +73,16 @@ export default function Home() {
 	const [createTaskId, setCreateTaskId] = useState<number | null>(null);
 	const [deployTaskId, setDeployTaskId] = useState<number | null>(null);
 	const [startTaskId, setStartTaskId] = useState<number | null>(null);
+	const [archiveTaskId, setArchiveTaskId] = useState<number | null>(null);
 	const [taskRunning, setTaskRunning] = useState(false);
 	const [serverStarting, setServerStarting] = useState(false);
+	const [createLoading, setCreateLoading] = useState(false);
 
 	// SSE for live task output in the instance status card
 	const createSSE = useTaskSSE(createTaskId);
 	const deploySSE = useTaskSSE(deployTaskId);
 	const startSSE = useTaskSSE(startTaskId);
+	const archiveSSE = useTaskSSE(archiveTaskId);
 	const activeOutputs = startTaskId
 		? startSSE.outputs
 		: deployTaskId
@@ -192,9 +91,7 @@ export default function Home() {
 	const latestOutput =
 		activeOutputs.length > 0 ? activeOutputs[activeOutputs.length - 1].output : null;
 
-	// Deploy
 	const [deployConfirmOpen, setDeployConfirmOpen] = useState(false);
-	const [deployDialogOpen, setDeployDialogOpen] = useState(false);
 	const [deployTriggering, setDeployTriggering] = useState(false);
 
 	const [deleteOpen, setDeleteOpen] = useState(false);
@@ -224,6 +121,7 @@ export default function Home() {
 		'instance_status_update'
 	);
 	const startServerTriggeredRef = useRef(false);
+	const instanceDeletedRef = useRef(false);
 	const serverQuery = useRef<ServerQuery>(undefined);
 
 	async function fetchAll() {
@@ -242,6 +140,7 @@ export default function Home() {
 		if (instRes.error === null) {
 			setInstance(instRes.data);
 			instanceNotFound.set(false);
+			instanceDeletedRef.current = false;
 		} else {
 			instanceNotFound.set(true);
 		}
@@ -272,6 +171,10 @@ export default function Home() {
 					startServerTriggeredRef.current = true;
 				}
 			}
+			const runningArchive = tasksRes.data!.tasks.find(
+				t => t.type === 'archive' && t.status === 'running'
+			);
+			if (runningArchive) setArchiveTaskId(runningArchive.ID);
 		}
 		if (srvRes.error === null) {
 			serverOnline.set(srvRes.data!.Value.online);
@@ -304,13 +207,7 @@ export default function Home() {
 			if (chartRes.error === null) {
 				chartData.set(
 					chartRes.data!.map(p => ({
-						time: new Date(p.time).toLocaleString('zh-CN', {
-							month: '2-digit',
-							day: '2-digit',
-							hour: '2-digit',
-							minute: '2-digit',
-							second: '2-digit'
-						}),
+						time: Times.formatDate(p.time, 'MM-DD HH:mm:ss'),
 						playerNames: p.playerNames
 					}))
 				);
@@ -352,6 +249,10 @@ export default function Home() {
 	useEffect(() => {
 		if (instSSE.value) {
 			instanceStatus.set(instSSE.value.Value);
+			if (instSSE.value.Error === ErrMissingTarget && !instanceDeletedRef.current) {
+				instanceDeletedRef.current = true;
+				fetchAll();
+			}
 		}
 	}, [instSSE.value]);
 
@@ -375,6 +276,52 @@ export default function Home() {
 		fetchAll();
 	}, []);
 
+	// Chain create -> deploy
+	useEffect(() => {
+		if (!createSSE.done || !createTaskId) return;
+		if (createSSE.error) {
+			Toast.error('创建实例失败: ' + createSSE.error);
+			setCreateTaskId(null);
+			setTaskRunning(false);
+			return;
+		}
+		Toast.success('实例创建成功');
+		triggerTask('deploy', {}).then(res => {
+			if (res.data) {
+				setDeployTaskId(res.data.ID);
+				fetchAll();
+			} else {
+				Toast.error('触发部署失败: ' + res.error);
+				setCreateTaskId(null);
+				setTaskRunning(false);
+			}
+		});
+	}, [createSSE.done]);
+
+	// Chain deploy -> start_server
+	useEffect(() => {
+		if (!deploySSE.done || !deployTaskId) return;
+		if (deploySSE.error) {
+			Toast.error('部署失败: ' + deploySSE.error);
+			setDeployTaskId(null);
+			setTaskRunning(false);
+			return;
+		}
+		Toast.success('部署成功');
+		setServerStarting(true);
+		startServerTriggeredRef.current = true;
+		triggerTask('start_server', {}).then(res => {
+			if (res.data) {
+				setStartTaskId(res.data.ID);
+				fetchAll();
+			} else {
+				Toast.error('触发启动服务器失败: ' + res.error);
+				setDeployTaskId(null);
+				setTaskRunning(false);
+			}
+		});
+	}, [deploySSE.done]);
+
 	// Refresh tasks when standalone start_server completes
 	useEffect(() => {
 		if (startSSE.done && startTaskId) {
@@ -387,6 +334,19 @@ export default function Home() {
 		}
 	}, [startSSE.done]);
 
+	// Refresh tasks when archive completes
+	useEffect(() => {
+		if (archiveSSE.done && archiveTaskId) {
+			if (archiveSSE.error) {
+				Toast.error('归档失败: ' + archiveSSE.error);
+			} else {
+				Toast.success('归档成功');
+			}
+			setArchiveTaskId(null);
+			fetchTasksRef.current();
+		}
+	}, [archiveSSE.done]);
+
 	const isDeployed = instance?.isDeployed ?? false;
 
 	const canStartServer = isDeployed && !serverOnline.current;
@@ -394,6 +354,7 @@ export default function Home() {
 	const canDeploy = !isDeployed;
 	const canBackup = isDeployed;
 
+	const archiving = archiveTaskId !== null;
 	const handleAction = (name: string) => {
 		if (name === '创建实例') {
 			if (!taskRunning) {
@@ -505,7 +466,25 @@ export default function Home() {
 		setDeployTaskId(data!.ID);
 		setTaskRunning(true);
 		setDeployTriggering(false);
-		setDeployDialogOpen(true);
+		fetchAll();
+	}
+
+	async function handleCreateInstance() {
+		setCreateLoading(true);
+		const { data, error } = await triggerTask('create_instance', {
+			useDefaultVSwitch: true,
+			startWhenCreated: true
+		});
+		if (error) {
+			Toast.error(typeof error === 'string' ? error : '触发创建失败');
+			setCreateLoading(false);
+			return;
+		}
+		Toast.success('创建任务已触发');
+		setCreateTaskId(data!.ID);
+		setTaskRunning(true);
+		setCreateLoading(false);
+		setDialogOpen(false);
 		fetchAll();
 	}
 
@@ -514,7 +493,10 @@ export default function Home() {
 			name: '启动服务器',
 			icon: PlayIcon,
 			action: () => handleAction('启动服务器'),
-			disabled: !canStartServer || (permissions !== null && !permissions.can_trigger_task)
+			disabled:
+				!canStartServer ||
+				(permissions !== null && !permissions.can_trigger_task) ||
+				archiving
 		},
 		{
 			name: '停止服务器',
@@ -558,6 +540,12 @@ export default function Home() {
 				<h1 className="text-3xl">Hi, {user?.username}</h1>
 			</div>
 
+			{archiving && (
+				<Alert severity="warning" className="mb-4">
+					当前实例正在归档中，请勿与实例进行交互。
+				</Alert>
+			)}
+
 			{user && !user.whitelist_uuid && (
 				<Alert
 					severity="info"
@@ -584,343 +572,40 @@ export default function Home() {
 			)}
 
 			<div className="flex flex-col gap-4">
-				{/* server status — full width, left 1/3 info + right 2/3 chart */}
-				<Card variant="outlined">
-					<CardContent>
-						<CardLabel
-							icon={<ServerIcon size={14} />}
-							actions={
-								!instanceNotFound.current && isDeployed ? (
-									<Tooltip title="刷新图表">
-										<IconButton
-											size="small"
-											disabled={refreshingServerStatus}
-											onClick={fetchServerStatus}
-										>
-											<RefreshCwIcon
-												size={16}
-												className={
-													refreshingServerStatus ? 'animate-spin' : ''
-												}
-											/>
-										</IconButton>
-									</Tooltip>
-								) : undefined
-							}
-						>
-							服务器状态
-						</CardLabel>
-						{instanceNotFound.current || !isDeployed ? (
-							<div className="flex flex-col items-center gap-3 py-8">
-								<ServerIcon size={40} className="text-neutral-300" />
-								<span className="text-neutral-500">请先创建并部署实例</span>
-							</div>
-						) : serverStarting ? (
-							<div className="flex flex-col items-center gap-3 py-8">
-								<Loader2Icon size={40} className="text-neutral-300 animate-spin" />
-								<span className="text-neutral-500">正在启动服务器...</span>
-							</div>
-						) : (
-							<div className="flex flex-col md:flex-row gap-4">
-								{/* left: status info */}
-								<div className="flex flex-col items-start gap-2">
-									<div className="flex items-center gap-2">
-										<div
-											className={`w-2.5 h-2.5 rounded-full ${serverOnline.current ? 'bg-green-500' : 'bg-red-500'}`}
-										/>
-										<span className="text-xl font-bold">
-											{serverOnline.current ? '在线' : '离线'}
-										</span>
-										{serverOnline.current && (
-											<span className="text-xl">
-												{playerCount.current}/20
-											</span>
-										)}
-									</div>
-									{serverQuery.current && (
-										<Chip
-											icon={
-												serverQuery.current.platform.includes('Paper') ? (
-													<img
-														draggable="false"
-														alt="papermc"
-														src="/paper.svg"
-														height="16px"
-														width="16px"
-													/>
-												) : undefined
-											}
-											variant="outlined"
-											label={serverQuery.current.platform}
-										/>
-									)}
-									<div className="flex-1" />
-									<FuncList items={serverActions} />
-								</div>
-								<div className="flex-1" />
-								{/* right: chart */}
-								<div className="min-w-0 grow basis-[66%]">
-									<PlayerCountChart data={chartData.current} />
-								</div>
-							</div>
-						)}
-					</CardContent>
-				</Card>
-
-				{/* instance status — full width, left half status + right half spec/region */}
-				<Card variant="outlined">
-					<CardContent>
-						<CardLabel icon={<HardDriveIcon size={14} />}>实例状态</CardLabel>
-						{taskRunning && !startTaskId ? (
-							<div className="flex flex-col items-center gap-3 py-8">
-								<Loader2Icon size={40} className="text-neutral-300 animate-spin" />
-								<span className="text-neutral-500">
-									{deployTaskId ? '实例部署中' : '实例创建中'}
-								</span>
-								{latestOutput && (
-									<span className="text-xs text-neutral-400 font-mono max-w-md text-center truncate px-4">
-										{latestOutput}
-									</span>
-								)}
-								<Button
-									size="small"
-									variant="contained"
-									onClick={() => {
-										if (createTaskId) {
-											setDialogOpen(true);
-										} else {
-											setDeployDialogOpen(true);
-										}
-									}}
-								>
-									查看进度
-								</Button>
-							</div>
-						) : instanceNotFound.current ? (
-							<div className="flex flex-col items-center gap-3 py-8">
-								<HardDriveIcon size={40} className="text-neutral-300" />
-								<span className="text-neutral-500">尚未创建实例</span>
-								<Button
-									variant="contained"
-									size="small"
-									onClick={() => handleAction('创建实例')}
-								>
-									创建实例
-								</Button>
-							</div>
-						) : (
-							<div className="flex flex-col items-start md:flex-row gap-4">
-								<div className="flex flex-col gap-3">
-									<div className="flex items-center gap-2">
-										<div
-											className={`w-2.5 h-2.5 rounded-full ${instanceStatusColor(instanceStatus.current)}`}
-										/>
-										<span className="text-xl font-bold">
-											{instanceStatusText(instanceStatus.current)}
-										</span>
-									</div>
-									<FuncList items={instanceActions} />
-								</div>
-								<div className="flex-1" />
-								<div className="md:w-1/2 flex-col gap-4 md:flex-row grow md:justify-around flex md:gap-8">
-									<div className="flex flex-col">
-										<span className="text-xs text-neutral-400 mb-1">规格</span>
-										<span className="text-xl font-bold">
-											{instance?.instanceType ?? '—'}
-										</span>
-									</div>
-									<div className="flex flex-col">
-										<span className="text-xs text-neutral-400 mb-1">地域</span>
-										<span className="text-xl font-bold">
-											{instance?.zoneId ?? '—'}
-										</span>
-									</div>
-									<div className="flex flex-col">
-										<span className="text-xs text-neutral-400 mb-1">IP</span>
-										<span className="text-xl font-bold">
-											{instance?.ip ?? '—'}
-										</span>
-									</div>
-								</div>
-							</div>
-						)}
-					</CardContent>
-				</Card>
-
-				{/* ecs candidates */}
-				<Card variant="outlined">
-					<CardContent>
-						<CardLabel
-							icon={<CpuIcon size={14} />}
-							actions={
-								<Tooltip title="刷新">
-									<IconButton
-										size="small"
-										disabled={refreshingCandidates}
-										onClick={fetchCandidates}
-									>
-										<RefreshCwIcon
-											size={16}
-											className={refreshingCandidates ? 'animate-spin' : ''}
-										/>
-									</IconButton>
-								</Tooltip>
-							}
-						>
-							ECS 候选实例
-						</CardLabel>
-						<TableContainer component={Paper} variant="outlined">
-							<Table size="small" sx={{ tableLayout: { xs: 'auto', md: 'fixed' } }}>
-								<TableHead>
-									<TableRow>
-										<TableCell align="center">实例规格</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											vCPU
-										</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											内存 (GiB)
-										</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											可用区
-										</TableCell>
-										<TableCell align="center">价格 (元/小时)</TableCell>
-									</TableRow>
-								</TableHead>
-								<TableBody>
-									{candidates.slice(0, 5).map((c, i) => (
-										<TableRow key={i} hover>
-											<TableCell align="center">
-												<div className="flex justify-center items-center gap-2">
-													{c.instanceType}
-													{i === 0 && (
-														<CheckIcon color="green" size={16} />
-													)}
-												</div>
-											</TableCell>
-											<TableCell
-												align="center"
-												sx={{ display: { xs: 'none', md: 'table-cell' } }}
-											>
-												{c.cpuCoreCount}
-											</TableCell>
-											<TableCell
-												align="center"
-												sx={{ display: { xs: 'none', md: 'table-cell' } }}
-											>
-												{c.memory}
-											</TableCell>
-											<TableCell
-												align="center"
-												sx={{ display: { xs: 'none', md: 'table-cell' } }}
-											>
-												{c.zoneId}
-											</TableCell>
-											<TableCell align="center">
-												¥{c.tradePrice.toFixed(2)}
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</TableContainer>
-						<div className="mt-2 text-right">
-							<Button size="small" component={Link} to="/info/ecs-candidates">
-								查看全部
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
-
-				{/* recent tasks */}
-				<Card variant="outlined">
-					<CardContent>
-						<CardLabel
-							icon={<ClockIcon size={14} />}
-							actions={
-								<Tooltip title="刷新">
-									<IconButton
-										size="small"
-										disabled={refreshingTasks}
-										onClick={fetchTasks}
-									>
-										<RefreshCwIcon
-											size={16}
-											className={refreshingTasks ? 'animate-spin' : ''}
-										/>
-									</IconButton>
-								</Tooltip>
-							}
-						>
-							最近任务
-						</CardLabel>
-						<TableContainer component={Paper} variant="outlined">
-							<Table size="small" sx={{ tableLayout: { xs: 'auto', md: 'fixed' } }}>
-								<TableHead>
-									<TableRow>
-										<TableCell align="center">类型</TableCell>
-										<TableCell align="center">状态</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											耗时
-										</TableCell>
-										<TableCell align="center">创建时间</TableCell>
-									</TableRow>
-								</TableHead>
-								<TableBody>
-									{tasks.slice(0, 5).map(task => (
-										<TableRow key={task.ID} hover>
-											<TableCell align="center">
-												{taskTypeLabel(task.type)}
-											</TableCell>
-											<TableCell align="center">
-												{taskStatusIcon(task.status)}
-											</TableCell>
-											<TableCell
-												align="center"
-												sx={{ display: { xs: 'none', md: 'table-cell' } }}
-												className="text-neutral-500 text-sm"
-											>
-												{task.endAt && task.startAt
-													? (
-															(new Date(task.endAt).getTime() -
-																new Date(task.startAt).getTime()) /
-															1000
-														).toFixed(1) + 's'
-													: '—'}
-											</TableCell>
-											<TableCell
-												align="center"
-												className="text-neutral-500 text-sm"
-											>
-												<Tooltip title={Times.formatDate(task.CreatedAt)}>
-													<span>
-														{Times.formatFromNow(task.CreatedAt)}
-													</span>
-												</Tooltip>
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</TableContainer>
-						<div className="mt-2 text-right">
-							<Button size="small" component={Link} to="/info/tasks">
-								查看全部
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
+				<ServerStatusCard
+					notReady={instanceNotFound.current || !isDeployed}
+					starting={serverStarting}
+					online={serverOnline.current}
+					playerCount={playerCount.current}
+					platform={serverQuery.current?.platform}
+					isPaper={!!serverQuery.current?.platform?.includes('Paper')}
+					chartData={chartData.current}
+					refreshing={refreshingServerStatus}
+					serverActions={serverActions}
+					onRefresh={fetchServerStatus}
+				/>
+				<InstanceStatusCard
+					notFound={instanceNotFound.current}
+					busy={taskRunning && !startTaskId}
+					busyLabel={deployTaskId ? '实例部署中' : '实例创建中'}
+					latestOutput={latestOutput}
+					instanceStatus={instanceStatus.current}
+					instanceType={instance?.instanceType ?? '—'}
+					zoneId={instance?.zoneId ?? '—'}
+					ip={instance?.ip ?? '—'}
+					instanceActions={instanceActions}
+					onCreateInstance={() => handleAction('创建实例')}
+				/>
+				<EcsCandidatesCard
+					candidates={candidates}
+					refreshing={refreshingCandidates}
+					onRefresh={fetchCandidates}
+				/>
+				<RecentTasksCard
+					tasks={tasks}
+					refreshing={refreshingTasks}
+					onRefresh={fetchTasks}
+				/>
 			</div>
 
 			<Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} maxWidth="xs" fullWidth>
@@ -990,28 +675,12 @@ export default function Home() {
 				loading={stopping}
 			/>
 
-			<DeployDialog
-				open={deployDialogOpen}
-				onClose={() => setDeployDialogOpen(false)}
-				onDeployed={() => fetchAll()}
-				deployTaskId={deployTaskId}
-				onDeployTaskIdChange={setDeployTaskId}
-				onRunningChange={setTaskRunning}
-			/>
-
 			<CreateInstanceDialog
 				open={dialogOpen}
 				onClose={() => setDialogOpen(false)}
 				bestCandidate={candidates[0] ?? null}
-				onCreated={() => fetchAll()}
-				onTaskChange={() => fetchAll()}
-				createTaskId={createTaskId}
-				onCreateTaskIdChange={setCreateTaskId}
-				deployTaskId={deployTaskId}
-				onDeployTaskIdChange={setDeployTaskId}
-				startTaskId={startTaskId}
-				onStartTaskIdChange={setStartTaskId}
-				onRunningChange={setTaskRunning}
+				onTriggered={handleCreateInstance}
+				loading={createLoading}
 			/>
 		</>
 	);

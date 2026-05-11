@@ -73,6 +73,19 @@ export function post<T = any>(url: string, body: Record<string, any>) {
 }
 
 /**
+ * 向url发送一个请求体为body的PATCH请求。请求体类型固定为JSON
+ */
+export function patch<T = any>(url: string, body: Record<string, any>) {
+	return req<T>(url, {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(body)
+	});
+}
+
+/**
  * 向url发送一个DELETE请求
  * @param url
  * @returns 是否成功

@@ -54,3 +54,14 @@ export function deleteChangelog(id: number) {
 export function toggleLike(id: number) {
   return post<{ liked: boolean; like_count: number }>(`/changelog/${id}/like`, {});
 }
+
+export function categoryText(category: ChangelogItem['category']) {
+  switch (category) {
+    case 'platform':
+      return '平台更新';
+    case 'server':
+      return '服务器更新';
+    default:
+      return '';
+  }
+}

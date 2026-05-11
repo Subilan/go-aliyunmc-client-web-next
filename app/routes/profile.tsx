@@ -15,6 +15,7 @@ import {
 	TextField
 } from '@mui/material';
 import type { Preferences } from '~/types/Preferences';
+import { CardLabel } from '~/components/card-label';
 import { useForm } from 'react-hook-form';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
@@ -163,7 +164,7 @@ export default function Profile() {
 			<div className="flex flex-col gap-3">
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4">账户信息 / PROFILE</div>
+						<CardLabel>账户信息</CardLabel>
 						<div className="flex flex-col gap-3">
 							<InfoRow label="用户 ID" value={String(user.ID)} />
 							<InfoRow label="用户名" value={user.username} />
@@ -182,7 +183,7 @@ export default function Profile() {
 
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4">偏好设置 / PREFERENCES</div>
+						<CardLabel>偏好设置</CardLabel>
 						<div className="flex items-center justify-between">
 							<span>参与排行榜</span>
 							<Switch
@@ -204,7 +205,7 @@ export default function Profile() {
 
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4">修改密码 / RESET PASSWORD</div>
+						<CardLabel>修改密码</CardLabel>
 						<form
 							className="flex flex-col gap-3"
 							onSubmit={handleSubmit(onSubmit)}
@@ -253,7 +254,7 @@ export default function Profile() {
 
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4">白名单绑定 / GAME ACCOUNT BINDING</div>
+						<CardLabel>白名单绑定</CardLabel>
 						{user.whitelist_uuid ? (
 							<div className="flex flex-col gap-3">
 								<InfoRow label="绑定状态" value="已绑定" />
@@ -299,7 +300,7 @@ export default function Profile() {
 
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4">危险操作 / DANGER ZONE</div>
+						<CardLabel>危险操作</CardLabel>
 						<Button
 							variant="outlined"
 							color="error"

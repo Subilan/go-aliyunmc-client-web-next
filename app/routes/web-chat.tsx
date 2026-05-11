@@ -1,5 +1,14 @@
 import { useCallback, useContext, useEffect, useRef } from 'react';
-import { Button, Card, CardContent, IconButton, TextField, Tooltip } from '@mui/material';
+import {
+	Button,
+	Card,
+	CardContent,
+	IconButton,
+	TextField,
+	Tooltip,
+	useMediaQuery,
+	useTheme
+} from '@mui/material';
 import {
 	Loader2Icon,
 	MessagesSquareIcon,
@@ -184,38 +193,41 @@ export default function WebChat() {
 
 	const navigate = useNavigate();
 
+	const chatInput = (
+		<div className="fixed w-full left-0 bottom-0 p-5 md:p-0 bg-white border-t border-t-neutral-200 md:border-t-0 md:bg-auto md:w-auto md:static grid grid-cols-[1fr_auto] gap-3 items-center">
+			<TextField
+				inputRef={messageInputRef}
+				fullWidth
+				size="small"
+				placeholder={
+					connected
+						? '输入消息，按 Enter 发送'
+						: connecting
+							? '正在连接...'
+							: '未连接服务器'
+				}
+				value={messageText.current}
+				onChange={e => messageText.set(e.target.value)}
+				onKeyDown={handleKeyDown}
+				disabled={!connected}
+			/>
+			<Button
+				startIcon={<SendIcon size={16} />}
+				color="primary"
+				variant="contained"
+				onClick={sendMessage}
+				disabled={!connected || !messageText.current.trim()}
+			>
+				发送
+			</Button>
+		</div>
+	);
+
 	return (
 		<>
 			<PageHeader>{PAGE_NAME_WEB_CHAT}</PageHeader>
-
-			<div className="flex flex-col h-[70vh]">
-				<div className="grid grid-cols-[1fr_auto] gap-3 items-center mb-4">
-					<TextField
-						inputRef={messageInputRef}
-						fullWidth
-						size="small"
-						placeholder={
-							connected
-								? '输入消息，按 Enter 发送'
-								: connecting
-									? '正在连接...'
-									: '未连接服务器'
-						}
-						value={messageText.current}
-						onChange={e => messageText.set(e.target.value)}
-						onKeyDown={handleKeyDown}
-						disabled={!connected}
-					/>
-					<Button
-						startIcon={<SendIcon size={16} />}
-						color="primary"
-						variant="contained"
-						onClick={sendMessage}
-						disabled={!connected || !messageText.current.trim()}
-					>
-						发送
-					</Button>
-				</div>
+			<div className="flex gap-3 flex-col h-[70vh]">
+				{chatInput}
 				{uuid ? (
 					<Card variant="outlined" className="flex-1 flex flex-col min-h-0">
 						<CardContent className="flex-1 flex flex-col min-h-0 p-4">

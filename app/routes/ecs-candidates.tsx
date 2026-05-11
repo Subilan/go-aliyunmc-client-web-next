@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
 	Paper,
 	Table,
@@ -6,13 +6,11 @@ import {
 	TableCell,
 	TableContainer,
 	TableHead,
-	TableRow,
-	Chip
-} from '@mui/material';
-import { CheckCircleIcon, ClockIcon, ServerIcon } from 'lucide-react';
+	TableRow} from '@mui/material';
+import { CheckCircleIcon, CheckIcon, ClockIcon, ServerIcon } from 'lucide-react';
 import type { EcsCandidate } from '~/types/EcsCandidate';
 import { getCandidates } from '~/utils/requests/instance';
-import MetricCard, { type MetricItem } from '~/components/metric-card';
+import MetricCard from '~/components/metric-card';
 import PageHeader from '~/components/page-header';
 import { getBalance } from '~/utils/requests/home';
 import useStateNamed from '~/hooks/useStateNamed';
@@ -40,7 +38,7 @@ const columns = [
 
 export default function EcsCandidatesPage() {
 	const candidates = useStateNamed<EcsCandidate[]>([]);
-	const balance = useStateNamed(0)
+	const balance = useStateNamed(0);
 
 	useEffect(() => {
 		getCandidates().then(res => {
@@ -99,16 +97,8 @@ export default function EcsCandidatesPage() {
 									<TableRow key={i} hover>
 										<TableCell align="center">
 											<div className="flex justify-center items-center gap-2">
-												<code className="text-xs bg-neutral-100 px-1 py-0.5 rounded">
-													{c.instanceType}
-												</code>
-												{i === 0 && (
-													<Chip
-														label="最优"
-														color="primary"
-														size="small"
-													/>
-												)}
+												{c.instanceType}{' '}
+												{i === 0 && <CheckIcon size={16} color="green" />}
 											</div>
 										</TableCell>
 										<TableCell align="center">{c.cpuCoreCount}</TableCell>

@@ -130,6 +130,8 @@ export default function CreateInstanceDialog({
 
 		if (startSSE.error) {
 			Toast.error('启动服务器失败: ' + startSSE.error);
+		} else {
+			Toast.success('实例创建成功');
 		}
 		onRunningChange(false);
 		finish();
@@ -141,7 +143,6 @@ export default function CreateInstanceDialog({
 		onCreateTaskIdChange(null);
 		onDeployTaskIdChange(null);
 		onStartTaskIdChange(null);
-		Toast.success('实例创建成功');
 		onCreated();
 		onClose();
 	}
@@ -170,12 +171,10 @@ export default function CreateInstanceDialog({
 		phase === 'deploying'
 			? [...createSSE.outputs, ...deploySSE.outputs]
 			: phase === 'starting'
-			? [...createSSE.outputs, ...deploySSE.outputs, ...startSSE.outputs]
-			: createSSE.outputs;
+				? [...createSSE.outputs, ...deploySSE.outputs, ...startSSE.outputs]
+				: createSSE.outputs;
 
-	const currentStep = allOutputs.length > 0
-		? allOutputs[allOutputs.length - 1].step
-		: 0;
+	const currentStep = allOutputs.length > 0 ? allOutputs[allOutputs.length - 1].step : 0;
 
 	// Sync phase when task IDs become non-null (e.g. after page refresh)
 	useEffect(() => {
@@ -244,7 +243,11 @@ export default function CreateInstanceDialog({
 					<div className="mb-4">
 						<div className="text-sm text-neutral-500 mb-2 flex items-center gap-2">
 							<span>
-								{phase === 'creating' ? '正在创建实例...' : phase === 'deploying' ? '正在部署...' : '正在启动服务器...'}
+								{phase === 'creating'
+									? '正在创建实例...'
+									: phase === 'deploying'
+										? '正在部署...'
+										: '正在启动服务器...'}
 							</span>
 							{currentStep > 0 && (
 								<span className="text-blue-500 font-mono text-xs">
@@ -281,9 +284,7 @@ export default function CreateInstanceDialog({
 				)}
 			</DialogContent>
 			<DialogActions>
-				<Button onClick={onClose}>
-					{isRunning ? '后台执行' : '取消'}
-				</Button>
+				<Button onClick={onClose}>{isRunning ? '后台执行' : '取消'}</Button>
 				{phase === 'idle' && (
 					<Button variant="contained" onClick={handleCreate}>
 						创建
@@ -295,7 +296,11 @@ export default function CreateInstanceDialog({
 						disabled
 						startIcon={<Loader2Icon size={16} className="animate-spin" />}
 					>
-						{phase === 'creating' ? '创建中...' : phase === 'deploying' ? '部署中...' : '启动中...'}
+						{phase === 'creating'
+							? '创建中...'
+							: phase === 'deploying'
+								? '部署中...'
+								: '启动中...'}
 					</Button>
 				)}
 			</DialogActions>

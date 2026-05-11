@@ -96,7 +96,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 		<>
 			<AppBar position="sticky">
 				<Toolbar>
-					<h1 className="text-xl leading-none mr-6">TiLab</h1>
+					<h1 className="text-xl leading-none mr-2 md:mr-6">TiLab</h1>
 					<div className="flex items-center gap-1">
 						<MuiButton
 							color="inherit"

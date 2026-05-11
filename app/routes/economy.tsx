@@ -10,7 +10,8 @@ import {
 } from 'lucide-react';
 import useStateNamed from '~/hooks/useStateNamed';
 import BalanceChart from '~/components/balance-chart';
-import type { BalanceChartPoint, BalanceChartPointRaw } from '~/components/balance-chart';
+import type { BalanceChartPoint } from '~/components/balance-chart';
+import { CardLabel } from '~/components/card-label';
 import MetricCard from '~/components/metric-card';
 import { getBalance, getAccountBalanceHistory } from '~/utils/requests/home';
 import { getCandidates } from '~/utils/requests/instance';
@@ -129,19 +130,21 @@ export default function Economy() {
 				{/* balance history chart */}
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4 flex items-center gap-2">
-							<TrendingUpIcon size={14} />
-							余额走势 / BALANCE TREND
-							<div className="flex-1" />
-							<Tooltip title="刷新">
-								<IconButton size="small" disabled={refreshing} onClick={refresh}>
+						<CardLabel
+							icon={<TrendingUpIcon size={14} />}
+							actions={
+								<Tooltip title="刷新">
+									<IconButton size="small" disabled={refreshing} onClick={refresh}>
 									<RefreshCwIcon
 										size={16}
 										className={refreshing ? 'animate-spin' : ''}
 									/>
-								</IconButton>
-							</Tooltip>
-						</div>
+									</IconButton>
+								</Tooltip>
+							}
+						>
+							余额走势
+						</CardLabel>
 						<BalanceChart data={chartData.current} />
 					</CardContent>
 				</Card>

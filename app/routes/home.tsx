@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import type { Route } from './+types/home';
 import { UserContext } from '~/contexts/user';
+import { CardLabel } from '~/components/card-label';
 import { PermissionsContext } from '~/contexts/permissions';
 import {
 	Alert,
@@ -280,11 +281,7 @@ export default function Home() {
 		if (chartRes.error === null) {
 			chartData.set(
 				chartRes.data!.map(p => ({
-					time: new Date(p.time).toLocaleTimeString('zh-CN', {
-						hour: '2-digit',
-						minute: '2-digit',
-						second: '2-digit'
-					}),
+					time: Times.formatDate(p.time, 'MM-DD HH:mm:ss'),
 					playerNames: p.playerNames
 				}))
 			);
@@ -307,7 +304,9 @@ export default function Home() {
 			if (chartRes.error === null) {
 				chartData.set(
 					chartRes.data!.map(p => ({
-						time: new Date(p.time).toLocaleTimeString('zh-CN', {
+						time: new Date(p.time).toLocaleString('zh-CN', {
+							month: '2-digit',
+							day: '2-digit',
 							hour: '2-digit',
 							minute: '2-digit',
 							second: '2-digit'
@@ -375,6 +374,18 @@ export default function Home() {
 	useEffect(() => {
 		fetchAll();
 	}, []);
+
+	// Refresh tasks when standalone start_server completes
+	useEffect(() => {
+		if (startSSE.done && startTaskId) {
+			if (startSSE.error) {
+				Toast.error('启动服务器失败: ' + startSSE.error);
+			}
+			setStartTaskId(null);
+			setTaskRunning(false);
+			fetchAll();
+		}
+	}, [startSSE.done]);
 
 	const isDeployed = instance?.isDeployed ?? false;
 
@@ -552,7 +563,7 @@ export default function Home() {
 					severity="info"
 					className="mb-4"
 					action={
-						<div className="flex gap-2">
+						<div className="md:flex gap-2 hidden">
 							<Button
 								size="small"
 								color="inherit"
@@ -576,25 +587,27 @@ export default function Home() {
 				{/* server status — full width, left 1/3 info + right 2/3 chart */}
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4 flex items-center gap-2">
-							<ServerIcon size={14} />
-							服务器状态 / SERVER STATUS
-							<div className="flex-1" />
-							{!instanceNotFound.current && isDeployed && (
-								<Tooltip title="刷新图表">
-									<IconButton
-										size="small"
-										disabled={refreshingServerStatus}
-										onClick={fetchServerStatus}
-									>
-										<RefreshCwIcon
-											size={16}
-											className={refreshingServerStatus ? 'animate-spin' : ''}
-										/>
-									</IconButton>
-								</Tooltip>
-							)}
-						</div>
+						<CardLabel
+							icon={<ServerIcon size={14} />}
+							actions={
+								!instanceNotFound.current && isDeployed ? (
+									<Tooltip title="刷新图表">
+										<IconButton
+											size="small"
+											disabled={refreshingServerStatus}
+											onClick={fetchServerStatus}
+										>
+											<RefreshCwIcon
+												size={16}
+												className={refreshingServerStatus ? 'animate-spin' : ''}
+											/>
+										</IconButton>
+									</Tooltip>
+								) : undefined
+							}
+						>
+							服务器状态
+						</CardLabel>
 						{instanceNotFound.current || !isDeployed ? (
 							<div className="flex flex-col items-center gap-3 py-8">
 								<ServerIcon size={40} className="text-neutral-300" />
@@ -655,18 +668,18 @@ export default function Home() {
 				{/* instance status — full width, left half status + right half spec/region */}
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4 flex items-center gap-2">
-							<HardDriveIcon size={14} />
-							实例状态 / INSTANCE STATUS
-							{!instanceNotFound.current && (
-								<>
-									<div className="flex-1" />
+						<CardLabel
+							icon={<HardDriveIcon size={14} />}
+							actions={
+								!instanceNotFound.current ? (
 									<span className="font-mono text-xs">
 										{instance?.instanceId ?? '—'}
 									</span>
-								</>
-							)}
-						</div>
+								) : undefined
+							}
+						>
+							实例状态
+						</CardLabel>
 						{taskRunning && !startTaskId ? (
 							<div className="flex flex-col items-center gap-3 py-8">
 								<Loader2Icon size={40} className="text-neutral-300 animate-spin" />
@@ -697,7 +710,7 @@ export default function Home() {
 								<HardDriveIcon size={40} className="text-neutral-300" />
 								<span className="text-neutral-500">尚未创建实例</span>
 								<Button
-									variant="outlined"
+									variant="contained"
 									size="small"
 									onClick={() => handleAction('创建实例')}
 								>
@@ -705,7 +718,7 @@ export default function Home() {
 								</Button>
 							</div>
 						) : (
-							<div className="flex flex-col md:flex-row items-center gap-4">
+							<div className="flex flex-col items-start md:flex-row gap-4">
 								<div className="flex flex-col gap-3">
 									<div className="flex items-center gap-2">
 										<div
@@ -718,7 +731,7 @@ export default function Home() {
 									<FuncList items={instanceActions} />
 								</div>
 								<div className="flex-1" />
-								<div className="md:w-1/2 grow justify-around flex gap-8">
+								<div className="md:w-1/2 flex-col gap-4 md:flex-row grow md:justify-around flex md:gap-8">
 									<div className="flex flex-col">
 										<span className="text-xs text-neutral-400 mb-1">规格</span>
 										<span className="text-xl font-bold">
@@ -746,23 +759,25 @@ export default function Home() {
 				{/* ecs candidates */}
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4 flex items-center gap-2">
-							<CpuIcon size={14} />
-							ECS 候选实例 / ECS CANDIDATES
-							<div className="flex-1" />
-							<Tooltip title="刷新">
-								<IconButton
-									size="small"
-									disabled={refreshingCandidates}
-									onClick={fetchCandidates}
-								>
-									<RefreshCwIcon
-										size={16}
-										className={refreshingCandidates ? 'animate-spin' : ''}
-									/>
-								</IconButton>
-							</Tooltip>
-						</div>
+						<CardLabel
+							icon={<CpuIcon size={14} />}
+							actions={
+								<Tooltip title="刷新">
+									<IconButton
+										size="small"
+										disabled={refreshingCandidates}
+										onClick={fetchCandidates}
+									>
+										<RefreshCwIcon
+											size={16}
+											className={refreshingCandidates ? 'animate-spin' : ''}
+										/>
+									</IconButton>
+								</Tooltip>
+							}
+						>
+							ECS 候选实例
+						</CardLabel>
 						<TableContainer component={Paper} variant="outlined">
 							<Table size="small" sx={{ tableLayout: { xs: 'auto', md: 'fixed' } }}>
 								<TableHead>
@@ -837,23 +852,25 @@ export default function Home() {
 				{/* recent tasks */}
 				<Card variant="outlined">
 					<CardContent>
-						<div className="tracking-wider text-sm mb-4 flex items-center gap-2">
-							<ClockIcon size={14} />
-							最近任务 / RECENT TASKS
-							<div className="flex-1" />
-							<Tooltip title="刷新">
-								<IconButton
-									size="small"
-									disabled={refreshingTasks}
-									onClick={fetchTasks}
-								>
-									<RefreshCwIcon
-										size={16}
-										className={refreshingTasks ? 'animate-spin' : ''}
-									/>
-								</IconButton>
-							</Tooltip>
-						</div>
+						<CardLabel
+							icon={<ClockIcon size={14} />}
+							actions={
+								<Tooltip title="刷新">
+									<IconButton
+										size="small"
+										disabled={refreshingTasks}
+										onClick={fetchTasks}
+									>
+										<RefreshCwIcon
+											size={16}
+											className={refreshingTasks ? 'animate-spin' : ''}
+										/>
+									</IconButton>
+								</Tooltip>
+							}
+						>
+							最近任务
+						</CardLabel>
 						<TableContainer component={Paper} variant="outlined">
 							<Table size="small" sx={{ tableLayout: { xs: 'auto', md: 'fixed' } }}>
 								<TableHead>
@@ -902,7 +919,9 @@ export default function Home() {
 												className="text-neutral-500 text-sm"
 											>
 												<Tooltip title={Times.formatDate(task.CreatedAt)}>
-													<span>{Times.formatFromNow(task.CreatedAt)}</span>
+													<span>
+														{Times.formatFromNow(task.CreatedAt)}
+													</span>
 												</Tooltip>
 											</TableCell>
 											<TableCell

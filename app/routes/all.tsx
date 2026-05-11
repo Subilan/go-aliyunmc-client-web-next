@@ -1,18 +1,18 @@
 import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
 import {
+	AlignEndHorizontalIcon,
 	CpuIcon,
 	DollarSignIcon,
 	LayoutDashboardIcon,
 	ListTodoIcon,
 	MessagesSquareIcon,
-	TrendingUpIcon,
 	UsersIcon
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Link } from 'react-router';
 import type { Route } from './+types/all';
 import { PAGE_CATEGORY_GAME, PAGE_CATEGORY_INFORMATION } from "~/consts/page-categories";
-import { PAGE_NAME_ECONOMY, PAGE_NAME_ECS_CANDIDATES, PAGE_NAME_GAME_STATISTICS, PAGE_NAME_LEADERBOARD, PAGE_NAME_PLAYER_LIST, PAGE_NAME_TASK_LIST, PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
+import { PAGE_NAME_ECONOMY, PAGE_NAME_ECS_CANDIDATES, PAGE_NAME_LEADERBOARD, PAGE_NAME_PLAYER_LIST, PAGE_NAME_TASK_LIST, PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
 
 interface FeatureCard {
 	title: string;
@@ -77,7 +77,7 @@ const groups: FeatureGroup[] = [
 				title: PAGE_NAME_LEADERBOARD,
 				description: '浏览服务器玩家各项指标的排行榜，了解顶尖玩家的游戏数据。',
 				to: '/game/leaderboard',
-				icon: TrendingUpIcon
+				icon: AlignEndHorizontalIcon
 			},
 			{
 				title: PAGE_NAME_WEB_CHAT,

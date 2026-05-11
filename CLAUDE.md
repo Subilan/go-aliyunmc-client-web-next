@@ -15,7 +15,7 @@ npm run typecheck    # Run react-router typegen then tsc
 
 This is a React Router 7 SPA (SSR disabled via `react-router.config.ts`) — a front-end control panel for the Seatide Minecraft server management platform. The backend API is at `http://localhost:45678`.
 
-**Routing** (`app/routes.ts`): `layout/app.tsx` wraps the main routes (index → `home.tsx`, `/profile`, `/all`, and a nested `layout/inner-app.tsx` for `/info/tasks` and `/info/ecs-candidates` with breadcrumb nav). `/lor` (`routes/lor.tsx`) is the standalone login/register page outside the app layout.
+**Routing** (`app/routes.ts`): `layout/app.tsx` wraps the main routes (index → `home.tsx`, `/profile`, `/all`, and a nested `layout/inner-app.tsx` for `/info/*`, `/game/*`, and `/updates` with breadcrumb nav). `/lor` (`routes/lor.tsx`) is the standalone login/register page outside the app layout.
 
 **Auth flow** (`app/utils/auth.ts`): The `Auth` object caches the user in memory and deduplicates concurrent `getUser()` calls. The layout route's `clientLoader` runs `Auth.isLoggedIn()` and redirects to `/lor` (mapped as `/login` by the server) if not authenticated. The login page's `clientLoader` does the inverse — redirects to `/` if already logged in.
 

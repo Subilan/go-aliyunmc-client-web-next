@@ -77,6 +77,8 @@ export default function CreateInstanceDialog({
 			onRunningChange(false);
 			onCreateTaskIdChange(null);
 			return;
+		} else {
+			Toast.success('实例创建成功')
 		}
 
 		if (oneClick) {
@@ -131,7 +133,7 @@ export default function CreateInstanceDialog({
 		if (startSSE.error) {
 			Toast.error('启动服务器失败: ' + startSSE.error);
 		} else {
-			Toast.success('实例创建成功');
+			Toast.success('服务器启动成功');
 		}
 		onRunningChange(false);
 		finish();

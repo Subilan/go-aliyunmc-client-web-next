@@ -599,7 +599,9 @@ export default function Home() {
 										>
 											<RefreshCwIcon
 												size={16}
-												className={refreshingServerStatus ? 'animate-spin' : ''}
+												className={
+													refreshingServerStatus ? 'animate-spin' : ''
+												}
 											/>
 										</IconButton>
 									</Tooltip>
@@ -668,18 +670,7 @@ export default function Home() {
 				{/* instance status — full width, left half status + right half spec/region */}
 				<Card variant="outlined">
 					<CardContent>
-						<CardLabel
-							icon={<HardDriveIcon size={14} />}
-							actions={
-								!instanceNotFound.current ? (
-									<span className="font-mono text-xs">
-										{instance?.instanceId ?? '—'}
-									</span>
-								) : undefined
-							}
-						>
-							实例状态
-						</CardLabel>
+						<CardLabel icon={<HardDriveIcon size={14} />}>实例状态</CardLabel>
 						{taskRunning && !startTaskId ? (
 							<div className="flex flex-col items-center gap-3 py-8">
 								<Loader2Icon size={40} className="text-neutral-300 animate-spin" />
@@ -884,12 +875,6 @@ export default function Home() {
 											耗时
 										</TableCell>
 										<TableCell align="center">创建时间</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											备注
-										</TableCell>
 									</TableRow>
 								</TableHead>
 								<TableBody>
@@ -923,21 +908,6 @@ export default function Home() {
 														{Times.formatFromNow(task.CreatedAt)}
 													</span>
 												</Tooltip>
-											</TableCell>
-											<TableCell
-												align="center"
-												sx={{ display: { xs: 'none', md: 'table-cell' } }}
-												className="text-neutral-500 text-sm"
-											>
-												{task.error ? (
-													<Tooltip title={task.error}>
-														<span className="text-red-500 cursor-help">
-															{task.error}
-														</span>
-													</Tooltip>
-												) : (
-													<span>—</span>
-												)}
 											</TableCell>
 										</TableRow>
 									))}

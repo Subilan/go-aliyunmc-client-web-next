@@ -13,6 +13,7 @@ import getPreferences from "~/utils/requests/get-preferences";
 import updatePreferences from "~/utils/requests/update-preferences";
 import { getAdvancements, getGameStats, getLeaderboard } from "~/utils/requests/game";
 import getChatToken from "~/utils/requests/chat-token";
+import { getChangelogs, createChangelog, updateChangelog, deleteChangelog, toggleLike } from "~/utils/requests/changelog";
 
 export const Req = {
     login,
@@ -41,5 +42,10 @@ export const Req = {
     getAdvancements,
     getGameStats,
     getLeaderboard,
-    getChatToken
+    getChatToken,
+    getChangelogs,
+    createChangelog,
+    updateChangelog,
+    deleteChangelog,
+    toggleLike
 }

@@ -5,14 +5,15 @@ import {
 	DollarSignIcon,
 	LayoutDashboardIcon,
 	ListTodoIcon,
+	LogsIcon,
 	MessagesSquareIcon,
 	UsersIcon
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Link } from 'react-router';
 import type { Route } from './+types/all';
-import { PAGE_CATEGORY_GAME, PAGE_CATEGORY_INFORMATION } from "~/consts/page-categories";
-import { PAGE_NAME_ECONOMY, PAGE_NAME_ECS_CANDIDATES, PAGE_NAME_LEADERBOARD, PAGE_NAME_PLAYER_LIST, PAGE_NAME_TASK_LIST, PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
+import { PAGE_CATEGORY_GAME, PAGE_CATEGORY_INFORMATION, PAGE_CATEGORY_MISC } from "~/consts/page-categories";
+import { PAGE_NAME_ECONOMY, PAGE_NAME_ECS_CANDIDATES, PAGE_NAME_LEADERBOARD, PAGE_NAME_PLAYER_LIST, PAGE_NAME_TASK_LIST, PAGE_NAME_UPDATES, PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
 
 interface FeatureCard {
 	title: string;
@@ -26,7 +27,7 @@ interface FeatureGroup {
 	cards: FeatureCard[];
 }
 
-const groups: FeatureGroup[] = [
+export const groups: FeatureGroup[] = [
 	{
 		title: '控制台',
 		cards: [
@@ -86,8 +87,21 @@ const groups: FeatureGroup[] = [
 				icon: MessagesSquareIcon
 			}
 		]
+	},
+	{
+		title: PAGE_CATEGORY_MISC,
+		cards: [
+			{
+				title: PAGE_NAME_UPDATES,
+				description: '查看平台以及游戏的更新内容。',
+				to: '/updates',
+				icon: LogsIcon
+			}
+		]
 	}
 ];
+
+
 
 export function meta({}: Route.MetaArgs) {
 	return [{ title: '所有功能 - Seatide' }];

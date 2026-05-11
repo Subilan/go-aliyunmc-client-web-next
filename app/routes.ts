@@ -11,7 +11,8 @@ export default [
 			route('/game/player-list', 'routes/player-list.tsx'),
 			route('/game/statistics/:uuid', 'routes/game-statistics.tsx'),
 			route('/game/leaderboard', 'routes/leaderboard.tsx'),
-			route('/game/web-chat', 'routes/web-chat.tsx')
+			route('/game/web-chat', 'routes/web-chat.tsx'),
+			route('/updates', 'routes/updates.tsx')
 		]),
 		route('/all', 'routes/all.tsx')
 	]),

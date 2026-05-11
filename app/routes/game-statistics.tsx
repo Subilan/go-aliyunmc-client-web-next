@@ -80,7 +80,7 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 				{/* Player Overview */}
 				<Card variant="outlined" sx={{ overflow: 'visible' }}>
 					<CardContent>
-						<CardLabel>玩家概览 / PLAYER OVERVIEW</CardLabel>
+						<CardLabel>玩家概览</CardLabel>
 						<div className="flex flex-col-reverse items-center md:flex-row gap-6">
 							<SkinModel uuid={effectiveUuid!} />
 							<div className="flex-1 flex w-full md:w-auto flex-col gap-3">
@@ -125,7 +125,7 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 				{/* Advancements */}
 				<Card variant="outlined" sx={{ overflow: 'visible' }}>
 					<CardContent>
-						<CardLabel>成就 / ADVANCEMENTS</CardLabel>
+						<CardLabel>成就</CardLabel>
 						{advancements.length === 0 ? (
 							<div className="text-neutral-400 text-sm">暂无成就数据</div>
 						) : (
@@ -174,7 +174,7 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 				</Card>
 				<Card variant="outlined">
 					<CardContent>
-						<CardLabel>统计数据 / STATISTICS</CardLabel>
+						<CardLabel>统计数据</CardLabel>
 						<div className="flex flex-col gap-5">
 							<StatSection
 								label="使用或放置"

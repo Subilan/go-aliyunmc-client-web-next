@@ -1,19 +1,25 @@
 export const BASE_URL = 'http://localhost:45678';
 
-async function req<T = any>(
-	url: string,
-	options: RequestInit
-): Promise<{ data: null; error: string; status: number } | { data: T; error: null; status: number }> {
+export type Resp<T = any> =
+	| { data: null; error: string; status: number }
+	| { data: T; error: null; status: number };
+
+async function req<T = any>(url: string, options: RequestInit): Promise<Resp<T>> {
 	const result = await fetch(BASE_URL + url, {
 		...options,
 		credentials: 'include'
 	});
 
+	if (result?.status && result.status >= 500) {
+		console.error(`Request to ${url} failed with 5xx status ${result.status}`);
+	}
+
 	let json;
 	try {
 		json = await result.json();
 	} catch (e) {
-		return { data: null, error: 'unknown', status: result.status };
+		console.error(`Request to ${url} failed to parse JSON response`);
+		return { data: null, error: '未知返回结构', status: result?.status ?? 0 };
 	}
 
 	return result.status !== 200
@@ -87,6 +93,6 @@ export async function put(url: string, body: Record<string, any>) {
 		},
 		body: JSON.stringify(body)
 	});
-	
+
 	return result.error === null;
 }

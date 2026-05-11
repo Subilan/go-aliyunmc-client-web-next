@@ -43,6 +43,8 @@ export default function DeployDialog({
 
 		if (deploySSE.error) {
 			Toast.error('部署失败: ' + deploySSE.error);
+		} else {
+			Toast.success('部署成功');
 		}
 		onRunningChange(false);
 		finish();
@@ -59,7 +61,6 @@ export default function DeployDialog({
 		setPhase('done');
 		onRunningChange(false);
 		onDeployTaskIdChange(null);
-		Toast.success('部署成功');
 		onDeployed();
 		onClose();
 	}

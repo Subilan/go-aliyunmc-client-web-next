@@ -22,6 +22,7 @@ import { Toast } from '~/root';
 import { Req } from '~/utils/requests/Req';
 import { Auth } from '~/utils/auth';
 import { Form } from '~/components/form/Form';
+import { Times } from '~/utils/times';
 
 interface ChangePasswordPayload {
 	oldPassword: string;
@@ -171,11 +172,7 @@ export default function Profile() {
 							<InfoRow label="权限等级" value={userRoleText(user.role)} />
 							<InfoRow
 								label="注册时间"
-								value={new Date(user.CreatedAt).toLocaleString('zh-CN')}
-							/>
-							<InfoRow
-								label="最后更新"
-								value={new Date(user.UpdatedAt).toLocaleString('zh-CN')}
+								value={Times.formatDate(user.CreatedAt)}
 							/>
 						</div>
 					</CardContent>

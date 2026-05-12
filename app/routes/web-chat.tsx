@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router';
 import getChatToken from '~/utils/requests/chat-token';
 import EmptyState from '~/components/empty-state';
 
-const WS_HOST = '127.0.0.1';
+const WS_HOST = 'play.seatide.net';
 const WS_PORT = '33795';
 
 interface ChatMessage {

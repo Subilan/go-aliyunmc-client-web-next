@@ -1,9 +1,12 @@
-import { Button, Card, CardContent } from '@mui/material';
-import { HardDriveIcon } from 'lucide-react';
+import { Button, Card, CardContent, IconButton } from '@mui/material';
+import { CopyIcon, HardDriveIcon } from 'lucide-react';
 import { CardLabel } from '~/components/card-label';
 import { FuncList, type FuncListItem } from '~/components/func-list';
 import { instanceStatusColor, instanceStatusText } from '~/routes/home/utils';
 import EmptyState from '~/components/empty-state';
+import { useContext } from 'react';
+import { UserContext } from '~/contexts/user';
+import { Toast } from '~/root';
 
 interface InstanceStatusCardProps {
 	notFound: boolean;
@@ -31,6 +34,7 @@ export default function InstanceStatusCard(props: InstanceStatusCardProps) {
 		instanceActions,
 		onCreateInstance
 	} = props;
+	const user = useContext(UserContext);
 
 	return (
 		<Card variant="outlined">
@@ -60,7 +64,12 @@ export default function InstanceStatusCard(props: InstanceStatusCardProps) {
 						iconClassName="text-neutral-300"
 						description={<span className="text-neutral-500">尚未创建实例</span>}
 						action={
-							<Button variant="contained" size="small" onClick={onCreateInstance}>
+							<Button
+								disabled={!user?.whitelist_uuid}
+								variant="contained"
+								size="small"
+								onClick={onCreateInstance}
+							>
 								创建实例
 							</Button>
 						}
@@ -83,21 +92,27 @@ export default function InstanceStatusCard(props: InstanceStatusCardProps) {
 						<div className="md:w-1/2 flex-col gap-4 md:flex-row grow md:justify-around flex md:gap-8">
 							<div className="flex flex-col">
 								<span className="text-xs text-neutral-400 mb-1">规格</span>
-								<span className="text-xl font-bold">
-									{instanceType || '—'}
-								</span>
+								<span className="text-xl font-bold">{instanceType || '—'}</span>
 							</div>
 							<div className="flex flex-col">
 								<span className="text-xs text-neutral-400 mb-1">地域</span>
-								<span className="text-xl font-bold">
-									{zoneId || '—'}
-								</span>
+								<span className="text-xl font-bold">{zoneId || '—'}</span>
 							</div>
 							<div className="flex flex-col">
 								<span className="text-xs text-neutral-400 mb-1">IP</span>
-								<span className="text-xl font-bold">
-									{ip || '—'}
-								</span>
+								<div className="flex items-center gap-1">
+									<span className="text-xl font-bold">{ip || '—'}</span>
+									{ip && (
+										<IconButton
+											onClick={() => {
+												navigator.clipboard.writeText(ip);
+												Toast.success('已复制 IP 地址到剪贴板');
+											}}
+										>
+											<CopyIcon size={16} />
+										</IconButton>
+									)}
+								</div>
 							</div>
 						</div>
 					</div>

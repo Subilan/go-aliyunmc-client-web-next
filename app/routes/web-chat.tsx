@@ -286,7 +286,6 @@ export default function WebChat() {
 								action={
 									<Button
 										variant="contained"
-										size="small"
 										onClick={() => navigate('/profile')}
 									>
 										立即绑定

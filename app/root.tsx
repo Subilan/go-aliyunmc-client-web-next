@@ -95,30 +95,44 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-	let message = 'Oops!';
-	let details = 'An unexpected error occurred.';
+	let jackpot = window.innerWidth > 1000 && Math.random() > 0.99;
+	let message = 'O' + 'o'.repeat(jackpot ? 100 : Math.round(Math.random() * 8) + 1) + 'ps!';
+	let details = '此页面遇到了问题，请联系管理员。';
 	let stack: string | undefined;
 
 	if (isRouteErrorResponse(error)) {
 		message = error.status === 404 ? '404' : 'Error';
 		details =
-			error.status === 404
-				? 'The requested page could not be found.'
-				: error.statusText || details;
-	} else if (import.meta.env.DEV && error && error instanceof Error) {
-		details = error.message;
-		stack = error.stack;
+			error.status === 404 ? '此页面不存在，请检查 URL 拼写' : error.statusText || details;
+	} else if (error && error instanceof Error) {
+		if (error.message.trim() === 'Failed to fetch') {
+			details = '我们暂时无法连接到控制台，请稍候再试';
+		} else {
+			details = error.message;
+			stack = error.stack;
+		}
 	}
 
 	return (
-		<main className="pt-16 p-4 container mx-auto">
-			<h1>{message}</h1>
-			<p>{details}</p>
-			{stack && (
-				<pre className="w-full p-4 overflow-x-auto">
-					<code>{stack}</code>
-				</pre>
-			)}
-		</main>
+		<div className="h-dvh w-dvw flex items-center justify-center">
+			<main className="pt-16 p-4 max-w-[1000px]">
+				<h1
+					className={`text-3xl wrap-break-word mb-2 ${message.startsWith('O') && message.endsWith('ps!') ? 'italic' : ''}`}
+				>
+					{message}
+				</h1>
+				<p className="text-xl">{details}</p>
+				{jackpot && (
+					<p className="text-neutral-300">
+						（你抽到了 1% 概率的隐藏款！请联系服主领取奖励）
+					</p>
+				)}
+				{stack && (
+					<pre className="w-full p-4 overflow-x-auto">
+						<code>{stack}</code>
+					</pre>
+				)}
+			</main>
+		</div>
 	);
 }

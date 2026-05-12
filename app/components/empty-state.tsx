@@ -43,7 +43,7 @@ export default function EmptyState({
 	) : null;
 
 	return (
-		<div className={`flex flex-col items-center justify-center text-neutral-400 ${className}`}>
+		<div className={`flex flex-col items-center justify-center text-neutral-500 ${className}`}>
 			<div className={`flex ${isHorizontal ? 'flex-row items-center' : 'flex-col items-center'} gap-2`}>
 				{iconEl}
 				{textBlock}

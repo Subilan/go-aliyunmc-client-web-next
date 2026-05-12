@@ -18,7 +18,7 @@ import {
 	ToggleButtonGroup
 } from '@mui/material';
 import { HeartIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
-import dayjs from 'dayjs';
+import { Remark, useRemark } from 'react-remark';
 import PageHeader from '~/components/page-header';
 import { UserContext } from '~/contexts/user';
 import { PAGE_NAME_UPDATES } from '~/consts/page-names';
@@ -184,14 +184,14 @@ export default function Updates() {
 				actions={
 					canEdit && (
 						<Button
-							variant="outlined"
+							variant="contained"
 							startIcon={<PlusIcon size={16} />}
 							onClick={() => {
 								createForm.reset({ title: '', body: '', category: 'platform' });
 								setCreating(true);
 							}}
 						>
-							新增
+							发布
 						</Button>
 					)
 				}
@@ -238,9 +238,9 @@ export default function Updates() {
 														className="shrink-0"
 													/>
 												</div>
-												<p className="text-neutral-500 text-sm mb-4 leading-relaxed line-clamp-3">
-													{update.body}
-												</p>
+												<div className="text-neutral-500 text-sm mb-4 leading-relaxed line-clamp-3">
+													<Remark>{update.body}</Remark>
+												</div>
 												<div className="flex items-center justify-between">
 													<span className="text-neutral-500 text-sm">
 														{Times.formatDate(
@@ -248,36 +248,38 @@ export default function Updates() {
 															'M 月 D 日'
 														)}
 													</span>
-													<div className="flex items-center gap-0.5">
-														<IconButton
-															size="small"
+													<div className="flex items-center gap-1">
+														<Button
+															color="error"
+															onMouseDown={e => e.stopPropagation()}
 															onClick={e => {
 																e.stopPropagation();
-																handleLike(update.id);
+																handleLike(update.id)
 															}}
 															className={
 																update.liked
 																	? 'text-red-600!'
 																	: 'text-neutral-400!'
 															}
+															startIcon={
+																<HeartIcon
+																	size={16}
+																	fill={
+																		update.liked
+																			? 'currentColor'
+																			: 'none'
+																	}
+																/>
+															}
 														>
-															<HeartIcon
-																size={16}
-																fill={
-																	update.liked
-																		? 'currentColor'
-																		: 'none'
-																}
-															/>
-														</IconButton>
-														<span className="text-neutral-500 text-sm w-5 text-center">
 															{update.like_count}
-														</span>
+														</Button>
+
 														{canEdit && (
 															<>
 																<IconButton
-																	size="small"
 																	className="text-neutral-400 hover:text-neutral-600 ml-2"
+																	onMouseDown={e => e.stopPropagation()}
 																	onClick={e => {
 																		e.stopPropagation();
 																		editForm.reset({
@@ -292,8 +294,8 @@ export default function Updates() {
 																	<PencilIcon size={14} />
 																</IconButton>
 																<IconButton
-																	size="small"
 																	className="text-neutral-400 hover:text-red-500"
+																	onMouseDown={e => e.stopPropagation()}
 																	onClick={e => {
 																		e.stopPropagation();
 																		setDeleting(update);
@@ -345,19 +347,17 @@ export default function Updates() {
 								className="shrink-0"
 							/>
 						</DialogTitle>
-						<DialogContent>
-							{selected.body.split('\n').map((line, i) => (
-								<p key={i} className="text-sm mb-2 leading-relaxed">
-									{line || ' '}
-								</p>
-							))}
+						<DialogContent className="prose">
+							<Remark>{selected.body}</Remark>
 						</DialogContent>
 						<DialogActions className="justify-between px-6">
 							<div className="flex items-center gap-0.5">
 								<IconButton
 									size="small"
 									onClick={() => handleLike(selected.id)}
-									className={selected.liked ? 'text-red-600!' : 'text-neutral-400!'}
+									className={
+										selected.liked ? 'text-red-600!' : 'text-neutral-400!'
+									}
 								>
 									<HeartIcon
 										size={16}
@@ -422,8 +422,8 @@ export default function Updates() {
 									fullWidth
 									className="mt-2"
 								>
-									<ToggleButton value="platform">控制台</ToggleButton>
-									<ToggleButton value="server">服务器</ToggleButton>
+									<ToggleButton value="platform">控制台更新</ToggleButton>
+									<ToggleButton value="server">服务器更新</ToggleButton>
 								</ToggleButtonGroup>
 							)}
 						/>

@@ -44,7 +44,6 @@ import type { ServerStatus } from '~/types/ServerStatus';
 import { queryServer } from '~/utils/requests/server';
 import type { ServerQuery } from '~/types/ServerQuery';
 import { Times } from '~/utils/times';
-import { ErrMissingTarget } from '~/utils/consts';
 
 export function meta({}: Route.MetaArgs) {
 	return [{ title: '控制台 - Seatide' }, { name: 'description', content: 'Seatide 玩家控制台' }];
@@ -249,10 +248,10 @@ export default function Home() {
 	useEffect(() => {
 		if (instSSE.value) {
 			instanceStatus.set(instSSE.value.Value);
-			if (instSSE.value.Error === ErrMissingTarget && !instanceDeletedRef.current) {
-				instanceDeletedRef.current = true;
-				fetchAll();
-			}
+			// if (instSSE.value.Error === ErrMissingTarget && !instanceDeletedRef.current) {
+			// 	instanceDeletedRef.current = true;
+			// 	fetchAll();
+			// }
 		}
 	}, [instSSE.value]);
 

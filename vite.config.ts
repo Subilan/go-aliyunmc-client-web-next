@@ -7,4 +7,14 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://api.seatide.net',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
+  }
 });

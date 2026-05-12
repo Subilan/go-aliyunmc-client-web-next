@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { HeartIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { Remark, useRemark } from 'react-remark';
+import EmptyState from '~/components/empty-state';
 import PageHeader from '~/components/page-header';
 import { UserContext } from '~/contexts/user';
 import { PAGE_NAME_UPDATES } from '~/consts/page-names';
@@ -200,20 +201,19 @@ export default function Updates() {
 			</PageHeader>
 
 			{loading ? (
-				<div className="flex justify-center py-20">
-					<CircularProgress />
-				</div>
+				<EmptyState spinner className="py-20" />
 			) : error ? (
-				<div className="flex flex-col items-center gap-4 py-20">
-					<p className="text-neutral-500 text-sm">{error}</p>
-					<Button variant="outlined" onClick={() => fetchPage(1)}>
-						重试
-					</Button>
-				</div>
+				<EmptyState
+					className="py-20"
+					description={<span className="text-sm">{error}</span>}
+					action={
+						<Button variant="outlined" onClick={() => fetchPage(1)}>
+							重试
+						</Button>
+					}
+				/>
 			) : grouped.size === 0 ? (
-				<div className="flex justify-center py-20">
-					<p className="text-neutral-500 text-sm">暂无更新日志</p>
-				</div>
+				<EmptyState className="py-20" description={<span className="text-sm">暂无更新日志</span>} />
 			) : (
 				<>
 					{[...grouped.entries()].map(([month, updates]) => (

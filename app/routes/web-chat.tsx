@@ -10,7 +10,6 @@ import {
 	useTheme
 } from '@mui/material';
 import {
-	Loader2Icon,
 	MessagesSquareIcon,
 	SendIcon,
 	TriangleAlertIcon,
@@ -23,6 +22,7 @@ import { UserContext } from '~/contexts/user';
 import useStateNamed from '~/hooks/useStateNamed';
 import { useNavigate } from 'react-router';
 import getChatToken from '~/utils/requests/chat-token';
+import EmptyState from '~/components/empty-state';
 
 const WS_HOST = '127.0.0.1';
 const WS_PORT = '33795';
@@ -232,19 +232,18 @@ export default function WebChat() {
 					<Card variant="outlined" className="flex-1 flex flex-col min-h-0">
 						<CardContent className="flex-1 flex flex-col min-h-0 p-4">
 							{connecting && messages.current.length === 0 && (
-								<div className="flex items-center h-full justify-center text-neutral-400 gap-2">
-									<Loader2Icon size={28} className="animate-spin" />
-									正在连接...
-								</div>
+								<EmptyState layout="horizontal" spinner description="正在连接..." />
 							)}
 							{status.current === 'disconnected' && messages.current.length === 0 && (
-								<div className="flex flex-col h-full items-center justify-center text-neutral-400 gap-2">
-									<WifiOffIcon size={28} />
-									<span>连接已断开</span>
-									<Button size="small" variant="outlined" onClick={doConnect}>
-										重新连接
-									</Button>
-								</div>
+								<EmptyState
+									icon={WifiOffIcon}
+									description="连接已断开"
+									action={
+										<Button size="small" variant="outlined" onClick={doConnect}>
+											重新连接
+										</Button>
+									}
+								/>
 							)}
 							{connected &&
 								(messages.current.length > 0 ? (
@@ -266,29 +265,28 @@ export default function WebChat() {
 										</code>
 									</pre>
 								) : (
-									<div className="flex flex-col h-full items-center justify-center text-neutral-400 gap-2">
-										<MessagesSquareIcon size={28} />
-										<span>等待发送或接收到消息</span>
-									</div>
+									<EmptyState icon={MessagesSquareIcon} description="等待发送或接收到消息" />
 								))}
 						</CardContent>
 					</Card>
 				) : (
 					<Card variant="outlined">
-						<CardContent className="flex items-center justify-center h-48">
-							<div className="flex flex-col items-center gap-3">
-								<div className="flex items-center text-neutral-500">
-									<TriangleAlertIcon size={28} className="mr-2 text-amber-500" />
-									需要绑定游戏账号后才能使用 Web 聊天功能
-								</div>
-								<Button
-									variant="contained"
-									size="small"
-									onClick={() => navigate('/profile')}
-								>
-									立即绑定
-								</Button>
-							</div>
+						<CardContent className="h-48">
+							<EmptyState
+								layout="horizontal"
+								icon={TriangleAlertIcon}
+								iconClassName="text-amber-500"
+								description="需要绑定游戏账号后才能使用 Web 聊天功能"
+								action={
+									<Button
+										variant="contained"
+										size="small"
+										onClick={() => navigate('/profile')}
+									>
+										立即绑定
+									</Button>
+								}
+							/>
 						</CardContent>
 					</Card>
 				)}

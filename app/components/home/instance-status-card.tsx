@@ -3,7 +3,7 @@ import { HardDriveIcon } from 'lucide-react';
 import { CardLabel } from '~/components/card-label';
 import { FuncList, type FuncListItem } from '~/components/func-list';
 import { instanceStatusColor, instanceStatusText } from '~/routes/home/utils';
-import { Loader2Icon } from 'lucide-react';
+import EmptyState from '~/components/empty-state';
 
 interface InstanceStatusCardProps {
 	notFound: boolean;
@@ -37,27 +37,35 @@ export default function InstanceStatusCard(props: InstanceStatusCardProps) {
 			<CardContent>
 				<CardLabel icon={<HardDriveIcon size={14} />}>实例状态</CardLabel>
 				{busy ? (
-					<div className="flex flex-col items-center gap-3 py-8">
-						<Loader2Icon size={40} className="text-neutral-300 animate-spin" />
-						<span className="text-neutral-500">{busyLabel}</span>
-						{latestOutput && (
-							<span className="text-xs text-neutral-400 font-mono max-w-md text-center truncate px-4">
-								{latestOutput}
-							</span>
-						)}
-					</div>
+					<EmptyState
+						spinner
+						iconSize={40}
+						iconClassName="text-neutral-300"
+						description={
+							<div className="flex flex-col items-center gap-1">
+								<span className="text-neutral-500">{busyLabel}</span>
+								{latestOutput && (
+									<span className="text-xs text-neutral-400 font-mono max-w-md text-center truncate px-4">
+										{latestOutput}
+									</span>
+								)}
+							</div>
+						}
+						className="py-8"
+					/>
 				) : notFound ? (
-					<div className="flex flex-col items-center gap-3 py-8">
-						<HardDriveIcon size={40} className="text-neutral-300" />
-						<span className="text-neutral-500">尚未创建实例</span>
-						<Button
-							variant="contained"
-							size="small"
-							onClick={onCreateInstance}
-						>
-							创建实例
-						</Button>
-					</div>
+					<EmptyState
+						icon={HardDriveIcon}
+						iconSize={40}
+						iconClassName="text-neutral-300"
+						description={<span className="text-neutral-500">尚未创建实例</span>}
+						action={
+							<Button variant="contained" size="small" onClick={onCreateInstance}>
+								创建实例
+							</Button>
+						}
+						className="py-8"
+					/>
 				) : (
 					<div className="flex flex-col items-start md:flex-row gap-4">
 						<div className="flex flex-col gap-3">

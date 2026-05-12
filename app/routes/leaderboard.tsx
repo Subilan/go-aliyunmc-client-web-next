@@ -8,6 +8,7 @@ import { Req } from '~/utils/requests/Req';
 import type { LeaderboardEntry } from '~/utils/requests/game';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
+import EmptyState from '~/components/empty-state';
 
 const METRICS: Record<string, { label: string; unit: string; decimals: number; divisor: number }> = {
   minecraft_playtime: { label: '游戏时长', unit: '小时', decimals: 1, divisor: 3600 },
@@ -119,11 +120,11 @@ export default function Leaderboard() {
       <div className="flex flex-col gap-4">
 
         {loading.current && (
-          <div className="text-center text-neutral-400 py-12 text-lg">加载中...</div>
+          <EmptyState spinner description="加载中..." className="py-12" />
         )}
 
         {!loading.current && entries.current.length === 0 && (
-          <div className="text-center text-neutral-400 py-12 text-lg">暂无排行数据</div>
+          <EmptyState description="暂无排行数据" className="py-12" />
         )}
 
         {!loading.current && entries.current.length > 0 && (

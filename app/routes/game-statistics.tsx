@@ -18,6 +18,7 @@ import { AdvancementItem } from '~/components/game-statistics/advancement-item';
 import { AdvancementMetrics } from '~/components/game-statistics/advancement-metrics';
 import { StatSection } from '~/components/game-statistics/stat-section';
 import { OnlineStatusSection } from '~/components/game-statistics/online-status-section';
+import EmptyState from '~/components/empty-state';
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -53,9 +54,7 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 		return (
 			<>
 				<PageHeader>{PAGE_NAME_GAME_STATISTICS}</PageHeader>
-				<div className="flex items-center justify-center h-64">
-					<span className="text-neutral-400">{loaderData.error}</span>
-				</div>
+				<EmptyState className="h-64" description={loaderData.error} />
 			</>
 		);
 	}

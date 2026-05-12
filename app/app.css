@@ -53,3 +53,15 @@ hr {
 .MuiCardContent-root:last-child {
 	padding-bottom: 16px !important; /* override insymmetry*/
 }
+
+.prose p {
+	margin: 10px 0;
+}
+
+.prose {
+	@apply text-neutral-600 dark:text-neutral-200;
+}
+
+.prose strong {
+	@apply text-neutral-800 dark:text-neutral-50;
+}

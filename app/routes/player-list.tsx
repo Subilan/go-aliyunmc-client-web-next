@@ -1,7 +1,16 @@
 import { useNavigate, useSearchParams } from 'react-router';
 import type { Route } from './+types/player-list';
-import { Card, CardActionArea, CardContent, CardMedia, FormControl, ListItemIcon, ListItemText, MenuItem, Select, Tooltip } from '@mui/material';
-import { ArrowDownAzIcon, ArrowDownIcon, ArrowDownZaIcon, ArrowUpIcon, LockIcon } from 'lucide-react';
+import {
+	Card,
+	CardActionArea,
+	CardContent,
+	CardMedia,
+	FormControl,
+	MenuItem,
+	Select,
+	Tooltip
+} from '@mui/material';
+import { AlertTriangleIcon, LockIcon } from 'lucide-react';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_PLAYER_LIST } from '~/consts/page-names';
 import { getPlayerList, type PlayerListEntry } from '~/utils/requests/game';
@@ -42,7 +51,9 @@ function PlayerCard({ player }: { player: PlayerListEntry }) {
 	const card = (
 		<Card className={isPrivate ? 'opacity-60' : ''}>
 			<CardActionArea
-				onClick={() => !isPrivate && navigate(`/game/statistics/${encodeURIComponent(player.uuid)}`)}
+				onClick={() =>
+					!isPrivate && navigate(`/game/statistics/${encodeURIComponent(player.uuid)}`)
+				}
 				disabled={isPrivate}
 			>
 				<div className="relative">
@@ -66,11 +77,7 @@ function PlayerCard({ player }: { player: PlayerListEntry }) {
 	);
 
 	if (isPrivate) {
-		return (
-			<Tooltip title="该玩家隐藏了游戏统计信息">
-				{card}
-			</Tooltip>
-		);
+		return <Tooltip title="该玩家隐藏了游戏统计信息">{card}</Tooltip>;
 	}
 
 	return card;
@@ -93,28 +100,35 @@ export default function GameStatisticsPlayerList({ loaderData }: Route.Component
 
 	return (
 		<>
-			<PageHeader actions={
-				<FormControl size="small">
-					<Select
-						value={sort}
-						onChange={e => handleSortChange(e.target.value as SortOrder)}
-					>
-						<MenuItem value="asc">
-							首字母 A-Z
-						</MenuItem>
-						<MenuItem value="desc">
-							首字母 Z-A
-						</MenuItem>
-					</Select>
-				</FormControl>
-			}>
+			<PageHeader
+				actions={
+					<FormControl size="small">
+						<Select
+							value={sort}
+							onChange={e => handleSortChange(e.target.value as SortOrder)}
+						>
+							<MenuItem value="asc">首字母 A-Z</MenuItem>
+							<MenuItem value="desc">首字母 Z-A</MenuItem>
+						</Select>
+					</FormControl>
+				}
+			>
 				{PAGE_NAME_PLAYER_LIST}
 			</PageHeader>
-			<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-				{players.map(p => (
-					<PlayerCard key={p.uuid} player={p} />
-				))}
-			</div>
+			{players.length ? (
+				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+					{players.map(p => (
+						<PlayerCard key={p.uuid} player={p} />
+					))}
+				</div>
+			) : (
+				<div className="flex items-center justify-center h-[30vh]">
+					<div className="flex items-center gap-2">
+						<AlertTriangleIcon color='#ff9800'/>
+						<p>请先绑定游戏账号</p>
+					</div>
+				</div>
+			)}
 		</>
 	);
 }

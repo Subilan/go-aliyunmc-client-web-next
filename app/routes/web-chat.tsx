@@ -1,20 +1,6 @@
 import { useCallback, useContext, useEffect, useRef } from 'react';
-import {
-	Button,
-	Card,
-	CardContent,
-	IconButton,
-	TextField,
-	Tooltip,
-	useMediaQuery,
-	useTheme
-} from '@mui/material';
-import {
-	MessagesSquareIcon,
-	SendIcon,
-	TriangleAlertIcon,
-	WifiOffIcon
-} from 'lucide-react';
+import { Button, Card, CardContent, TextField } from '@mui/material';
+import { MessagesSquareIcon, SendIcon, TriangleAlertIcon, WifiOffIcon } from 'lucide-react';
 import type { Route } from './+types/web-chat';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
@@ -265,14 +251,18 @@ export default function WebChat() {
 										</code>
 									</pre>
 								) : (
-									<EmptyState icon={MessagesSquareIcon} description="等待发送或接收到消息" />
+									<EmptyState
+										icon={MessagesSquareIcon}
+										description="等待发送或接收到消息"
+									/>
 								))}
 						</CardContent>
 					</Card>
 				) : (
 					<Card variant="outlined">
-						<CardContent className="h-48">
+						<CardContent>
 							<EmptyState
+								className="h-48"
 								layout="horizontal"
 								icon={TriangleAlertIcon}
 								iconClassName="text-amber-500"

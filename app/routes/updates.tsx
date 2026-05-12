@@ -213,7 +213,10 @@ export default function Updates() {
 					}
 				/>
 			) : grouped.size === 0 ? (
-				<EmptyState className="py-20" description={<span className="text-sm">暂无更新日志</span>} />
+				<EmptyState
+					className="py-20"
+					description={<span className="text-sm">暂无更新日志</span>}
+				/>
 			) : (
 				<>
 					{[...grouped.entries()].map(([month, updates]) => (
@@ -254,7 +257,7 @@ export default function Updates() {
 															onMouseDown={e => e.stopPropagation()}
 															onClick={e => {
 																e.stopPropagation();
-																handleLike(update.id)
+																handleLike(update.id);
 															}}
 															className={
 																update.liked
@@ -279,7 +282,9 @@ export default function Updates() {
 															<>
 																<IconButton
 																	className="text-neutral-400 hover:text-neutral-600 ml-2"
-																	onMouseDown={e => e.stopPropagation()}
+																	onMouseDown={e =>
+																		e.stopPropagation()
+																	}
 																	onClick={e => {
 																		e.stopPropagation();
 																		editForm.reset({
@@ -295,7 +300,9 @@ export default function Updates() {
 																</IconButton>
 																<IconButton
 																	className="text-neutral-400 hover:text-red-500"
-																	onMouseDown={e => e.stopPropagation()}
+																	onMouseDown={e =>
+																		e.stopPropagation()
+																	}
 																	onClick={e => {
 																		e.stopPropagation();
 																		setDeleting(update);
@@ -352,21 +359,22 @@ export default function Updates() {
 						</DialogContent>
 						<DialogActions className="justify-between px-6">
 							<div className="flex items-center gap-0.5">
-								<IconButton
+								<Button
 									size="small"
+									color="error"
+									startIcon={
+										<HeartIcon
+											size={16}
+											fill={selected.liked ? 'currentColor' : 'none'}
+										/>
+									}
 									onClick={() => handleLike(selected.id)}
 									className={
 										selected.liked ? 'text-red-600!' : 'text-neutral-400!'
 									}
 								>
-									<HeartIcon
-										size={16}
-										fill={selected.liked ? 'currentColor' : 'none'}
-									/>
-								</IconButton>
-								<span className="text-neutral-500 text-sm">
 									{selected.like_count}
-								</span>
+								</Button>
 							</div>
 							<Button onClick={() => setSelected(null)}>关闭</Button>
 						</DialogActions>

@@ -1,6 +1,23 @@
 import { useEffect } from 'react';
 import type { Route } from './+types/leaderboard';
-import { Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import {
+	Button,
+	Card,
+	CardContent,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	IconButton,
+	MenuItem,
+	Select,
+	Table,
+	TableBody,
+	TableCell,
+	TableContainer,
+	TableHead,
+	TableRow
+} from '@mui/material';
 import { InfoIcon } from 'lucide-react';
 
 import { PAGE_NAME_LEADERBOARD } from '~/consts/page-names';
@@ -9,203 +26,236 @@ import type { LeaderboardEntry } from '~/utils/requests/game';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
 import EmptyState from '~/components/empty-state';
+import PageHeader from '~/components/page-header';
 
-const METRICS: Record<string, { label: string; unit: string; decimals: number; divisor: number }> = {
-  minecraft_playtime: { label: '游戏时长', unit: '小时', decimals: 1, divisor: 3600 },
-  achievements: { label: '成就数量', unit: '个', decimals: 0, divisor: 1 },
-  distance: { label: '移动距离', unit: 'km', decimals: 2, divisor: 1 },
-  mob_kills: { label: '生物击杀', unit: '个', decimals: 0, divisor: 1 },
-  blocks_mined: { label: '挖掘方块', unit: '个', decimals: 0, divisor: 1 },
-  avg_move_distance: { label: '平均移速', unit: 'km/h', decimals: 2, divisor: 1 },
-};
+const METRICS: Record<string, { label: string; unit: string; decimals: number; divisor: number }> =
+	{
+		minecraft_playtime: { label: '游戏时长', unit: '小时', decimals: 1, divisor: 3600 },
+		achievements: { label: '成就数量', unit: '个', decimals: 0, divisor: 1 },
+		distance: { label: '移动距离', unit: 'km', decimals: 2, divisor: 1 },
+		mob_kills: { label: '生物击杀', unit: '个', decimals: 0, divisor: 1 },
+		blocks_mined: { label: '挖掘方块', unit: '个', decimals: 0, divisor: 1 },
+		avg_move_distance: { label: '平均移速', unit: 'km/h', decimals: 2, divisor: 1 }
+	};
 
 const PODIUM_COLORS = [
-  { border: '', text: '' },
-  { border: 'border-t-amber-400', text: 'text-amber-600' },
-  { border: 'border-t-slate-300', text: 'text-slate-500' },
-  { border: 'border-t-orange-400', text: 'text-orange-600' },
+	{ border: '', text: '' },
+	{ border: 'border-t-amber-400', text: 'text-amber-600' },
+	{ border: 'border-t-slate-300', text: 'text-slate-500' },
+	{ border: 'border-t-orange-400', text: 'text-orange-600' }
 ];
 
 function PodiumCard({
-  entry,
-  rank,
-  formattedValue,
-  unit,
+	entry,
+	rank,
+	formattedValue,
+	unit
 }: {
-  entry: LeaderboardEntry;
-  rank: number;
-  formattedValue: string;
-  unit: string;
+	entry: LeaderboardEntry;
+	rank: number;
+	formattedValue: string;
+	unit: string;
 }) {
-  const colors = PODIUM_COLORS[rank];
-  const isFirst = rank === 1;
-  return (
-    <Card
-      variant="outlined"
-      className={`w-full ${isFirst ? 'sm:h-52 sm:w-42' : 'sm:h-40 sm:w-36'} ${colors.border} border-l-4 sm:border-l-0 sm:border-t-4`}
-    >
-      <CardContent className="flex flex-row sm:flex-col items-center sm:justify-center sm:h-full gap-1.5 py-3 sm:py-4">
-        <div className={`sm:text-lg font-bold tracking-wider shrink-0 ${colors.text}`}>#{rank}</div>
-        <div className={`flex-1 sm:flex-none min-w-0 sm:text-lg ${isFirst ? 'sm:text-xl' : ''} font-medium truncate`}>
-          {entry.player_name}
-        </div>
-        <div className="flex flex-row sm:flex-col items-baseline sm:items-center gap-1 sm:gap-0 shrink-0">
-          <span className={`text-xl ${isFirst ? 'sm:text-3xl' : 'sm:text-2xl'} font-bold leading-none`}>
-            {formattedValue}
-          </span>
-          <span className="text-xs text-neutral-400 sm:mt-1">{unit}</span>
-        </div>
-      </CardContent>
-    </Card>
-  );
+	const colors = PODIUM_COLORS[rank];
+	const isFirst = rank === 1;
+	return (
+		<Card
+			variant="outlined"
+			className={`w-full ${isFirst ? 'sm:h-52 sm:w-42' : 'sm:h-40 sm:w-36'} ${colors.border} border-l-4 sm:border-l-0 sm:border-t-4`}
+		>
+			<CardContent className="flex flex-row sm:flex-col items-center sm:justify-center sm:h-full gap-1.5 py-3 sm:py-4">
+				<div className={`sm:text-lg font-bold tracking-wider shrink-0 ${colors.text}`}>
+					#{rank}
+				</div>
+				<div
+					className={`flex-1 sm:flex-none min-w-0 sm:text-lg ${isFirst ? 'sm:text-xl' : ''} font-medium truncate`}
+				>
+					{entry.player_name}
+				</div>
+				<div className="flex flex-row sm:flex-col items-baseline sm:items-center gap-1 sm:gap-0 shrink-0">
+					<span
+						className={`text-xl ${isFirst ? 'sm:text-3xl' : 'sm:text-2xl'} font-bold leading-none`}
+					>
+						{formattedValue}
+					</span>
+					<span className="text-xs text-neutral-400 sm:mt-1">{unit}</span>
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
+function LeaderboardInfo() {
+	return (
+		<>
+			<p>
+				排行榜使用 Minecraft
+				内置的玩家数据对进入过服务器的玩家进行排名，其目的是直观地展示全服务器玩家的游戏进展情况。
+			</p>
+			<p>排行榜数据更新有 5 分钟延迟，并且当服务器不在线时，不会进行同步。</p>
+			<h4>不参与排行榜</h4>
+			<p>
+				如果你不希望自己的游戏名出现在排行榜中，可以在【个人资料→偏好设置】中将“参与排行榜”一项关闭，此设置将立即生效。
+			</p>
+			<h4>指标解释</h4>
+			<p>排行榜提供下列指标的排序：</p>
+			<ul>
+				<li>游戏时长：进行游戏的总时长，含挂机时间，但不包含暂停游戏的时间。</li>
+				<li>成就数量：完成的游戏成就的数量。</li>
+				<li>移动距离：在游戏中移动的累计距离，一米对应一格。</li>
+				<li>生物击杀：在游戏中击杀的生物总数。</li>
+				<li>挖掘方块：在游戏中挖掘（鼠标左键）的方块总数，含作物收割等。</li>
+				<li>
+					平均移速：总移动距离除以总游戏时长得到的一个理论上的平均移动速度，该指标的大小近乎对应了玩家在游戏过程中静止或移动时间占游戏时长的比例，但其描述的准确性取决于游戏时长大小。若游戏时长过短，此项不准确。
+				</li>
+			</ul>
+		</>
+	);
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [
-    { title: PAGE_NAME_LEADERBOARD + ' - Seatide' },
-    { name: 'description', content: '浏览服务器玩家各项指标的排行榜。' },
-  ];
+	return [
+		{ title: PAGE_NAME_LEADERBOARD + ' - Seatide' },
+		{ name: 'description', content: '浏览服务器玩家各项指标的排行榜。' }
+	];
 }
 
 export default function Leaderboard() {
-  const metric = useStateNamed('minecraft_playtime');
-  const entries = useStateNamed<LeaderboardEntry[]>([]);
-  const loading = useStateNamed(true);
-  const dialogOpen = useStateNamed(false);
+	const metric = useStateNamed('minecraft_playtime');
+	const entries = useStateNamed<LeaderboardEntry[]>([]);
+	const loading = useStateNamed(true);
 
-  useEffect(() => {
-    loading.set(true);
-    Req.getLeaderboard(metric.current).then(res => {
-      loading.set(false);
-      if (res.error === null) {
-        entries.set(res.data!);
-      } else {
-        Toast.error(typeof res.error === 'string' ? res.error : '获取排行榜失败');
-      }
-    });
-  }, [metric.current]);
+	useEffect(() => {
+		loading.set(true);
+		Req.getLeaderboard(metric.current).then(res => {
+			loading.set(false);
+			if (res.error === null) {
+				entries.set(res.data!);
+			} else {
+				Toast.error(typeof res.error === 'string' ? res.error : '获取排行榜失败');
+			}
+		});
+	}, [metric.current]);
 
-  const first = entries.current[0];
-  const second = entries.current[1];
-  const third = entries.current[2];
-  const rest = entries.current.slice(3);
+	const first = entries.current[0];
+	const second = entries.current[1];
+	const third = entries.current[2];
+	const rest = entries.current.slice(3);
 
-  const metricInfo = METRICS[metric.current];
+	const metricInfo = METRICS[metric.current];
 
-  function formatValue(value: number): string {
-    return (value / metricInfo.divisor).toFixed(metricInfo.decimals);
-  }
+	function formatValue(value: number): string {
+		return (value / metricInfo.divisor).toFixed(metricInfo.decimals);
+	}
 
-  return (
-    <>
-      <div className="flex items-center mb-6">
-        <h1 className="text-3xl">{PAGE_NAME_LEADERBOARD}</h1>
-        <IconButton size="small" onClick={() => dialogOpen.set(true)} className="ml-2">
-          <InfoIcon size={18} />
-        </IconButton>
-        <div className="flex-1" />
-        <Select
-          value={metric.current}
-          onChange={e => metric.set(e.target.value)}
-          size="small"
-          sx={{ minWidth: 130, '& .MuiSelect-select': { py: 0.75 } }}
-        >
-          {Object.entries(METRICS).map(([key, m]) => (
-            <MenuItem key={key} value={key}>
-              {m.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </div>
-      <div className="flex flex-col gap-4">
+	return (
+		<>
+			<div className="flex items-center mb-6">
+				<PageHeader info={LeaderboardInfo()}>{PAGE_NAME_LEADERBOARD}</PageHeader>
+				<div className="flex-1" />
+				<Select
+					value={metric.current}
+					onChange={e => metric.set(e.target.value)}
+					size="small"
+					sx={{ minWidth: 130, '& .MuiSelect-select': { py: 0.75 } }}
+				>
+					{Object.entries(METRICS).map(([key, m]) => (
+						<MenuItem key={key} value={key}>
+							{m.label}
+						</MenuItem>
+					))}
+				</Select>
+			</div>
+			<div className="flex flex-col gap-4">
+				{loading.current && (
+					<EmptyState spinner description="加载中..." className="py-12" />
+				)}
 
-        {loading.current && (
-          <EmptyState spinner description="加载中..." className="py-12" />
-        )}
+				{!loading.current && entries.current.length === 0 && (
+					<EmptyState description="暂无排行数据" className="py-12" />
+				)}
 
-        {!loading.current && entries.current.length === 0 && (
-          <EmptyState description="暂无排行数据" className="py-12" />
-        )}
+				{!loading.current && entries.current.length > 0 && (
+					<>
+						<div className="flex flex-col sm:flex-row items-stretch sm:items-end justify-center gap-3">
+							{first && (
+								<div className="sm:order-2">
+									<PodiumCard
+										entry={first}
+										rank={1}
+										formattedValue={formatValue(first.value)}
+										unit={metricInfo.unit}
+									/>
+								</div>
+							)}
+							{second && (
+								<div className="sm:order-1">
+									<PodiumCard
+										entry={second}
+										rank={2}
+										formattedValue={formatValue(second.value)}
+										unit={metricInfo.unit}
+									/>
+								</div>
+							)}
+							{third && (
+								<div className="sm:order-3">
+									<PodiumCard
+										entry={third}
+										rank={3}
+										formattedValue={formatValue(third.value)}
+										unit={metricInfo.unit}
+									/>
+								</div>
+							)}
+						</div>
 
-        {!loading.current && entries.current.length > 0 && (
-          <>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-end justify-center gap-3">
-              {first && (
-                <div className="sm:order-2">
-                  <PodiumCard entry={first} rank={1} formattedValue={formatValue(first.value)} unit={metricInfo.unit} />
-                </div>
-              )}
-              {second && (
-                <div className="sm:order-1">
-                  <PodiumCard entry={second} rank={2} formattedValue={formatValue(second.value)} unit={metricInfo.unit} />
-                </div>
-              )}
-              {third && (
-                <div className="sm:order-3">
-                  <PodiumCard entry={third} rank={3} formattedValue={formatValue(third.value)} unit={metricInfo.unit} />
-                </div>
-              )}
-            </div>
-
-            {rest.length > 0 && (
-              <Card variant="outlined">
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 600, width: 80 }}>排名</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>玩家</TableCell>
-                        <TableCell sx={{ fontWeight: 600, textAlign: 'right' }}>
-                          {metricInfo.label}
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {rest.map((entry, i) => (
-                        <TableRow key={entry.uuid}>
-                          <TableCell>
-                            <span className="text-neutral-400">#{i + 4}</span>
-                          </TableCell>
-                          <TableCell className="text-base">{entry.player_name}</TableCell>
-                          <TableCell align="right" className="text-base">
-                            <span className="font-bold">{formatValue(entry.value)}</span>
-                            <span className="text-neutral-400 text-sm ml-1">{metricInfo.unit}</span>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Card>
-            )}
-          </>
-        )}
-      </div>
-
-      <Dialog open={dialogOpen.current} onClose={() => dialogOpen.set(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>排行榜</DialogTitle>
-        <DialogContent>
-          <div className='prose'>
-            <p>排行榜使用 Minecraft 内置的玩家数据对进入过服务器的玩家进行排名，其目的是直观地展示全服务器玩家的游戏进展情况。</p>
-            <p>排行榜数据更新有 5 分钟延迟，并且当服务器不在线时，不会进行同步。</p>
-            <h4>不参与排行榜</h4>
-            <p>如果你不希望自己的游戏名出现在排行榜中，可以在【个人资料→偏好设置】中将“参与排行榜”一项关闭，此设置将立即生效。</p>
-            <h4>指标解释</h4>
-            <p>排行榜提供下列指标的排序：</p>
-            <ul>
-              <li>游戏时长：进行游戏的总时长，含挂机时间，但不包含暂停游戏的时间。</li>
-              <li>成就数量：完成的游戏成就的数量。</li>
-              <li>移动距离：在游戏中移动的累计距离，一米对应一格。</li>
-              <li>生物击杀：在游戏中击杀的生物总数。</li>
-              <li>挖掘方块：在游戏中挖掘（鼠标左键）的方块总数，含作物收割等。</li>
-              <li>平均移速：总移动距离除以总游戏时长得到的一个理论上的平均移动速度，该指标的大小近乎对应了玩家在游戏过程中静止或移动时间占游戏时长的比例，但其描述的准确性取决于游戏时长大小。若游戏时长过短，此项不准确。</li>
-            </ul>
-          </div>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => dialogOpen.set(false)}>关闭</Button>
-        </DialogActions>
-      </Dialog>
-    </>
-  );
+						{rest.length > 0 && (
+							<Card variant="outlined">
+								<TableContainer>
+									<Table>
+										<TableHead>
+											<TableRow>
+												<TableCell sx={{ fontWeight: 600, width: 80 }}>
+													排名
+												</TableCell>
+												<TableCell sx={{ fontWeight: 600 }}>玩家</TableCell>
+												<TableCell
+													sx={{ fontWeight: 600, textAlign: 'right' }}
+												>
+													{metricInfo.label}
+												</TableCell>
+											</TableRow>
+										</TableHead>
+										<TableBody>
+											{rest.map((entry, i) => (
+												<TableRow key={entry.uuid}>
+													<TableCell>
+														<span className="text-neutral-400">
+															#{i + 4}
+														</span>
+													</TableCell>
+													<TableCell className="text-base">
+														{entry.player_name}
+													</TableCell>
+													<TableCell align="right" className="text-base">
+														<span className="font-bold">
+															{formatValue(entry.value)}
+														</span>
+														<span className="text-neutral-400 text-sm ml-1">
+															{metricInfo.unit}
+														</span>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</TableContainer>
+							</Card>
+						)}
+					</>
+				)}
+			</div>
+		</>
+	);
 }

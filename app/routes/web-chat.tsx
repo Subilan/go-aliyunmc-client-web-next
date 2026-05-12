@@ -27,6 +27,15 @@ export function meta({}: Route.MetaArgs) {
 	return [{ title: PAGE_NAME_WEB_CHAT + ' - Seatide' }];
 }
 
+function WebChatInfo() {
+	return (
+		<>
+			<p>Web 聊天页面提供了与服务器之间的双向交流功能，你可以在这里向服务器发送消息，也可以查看服务器内玩家发送的消息。在这里发送信息时，你的名称与绑定的游戏名保持一致。你需要拥有白名单才能使用此功能。</p>
+			<p>从这里发送的内容以及服务器发送过来的内容在传输过程中均经过了 TLS 加密。</p>
+		</>
+	);
+}
+
 export default function WebChat() {
 	const user = useContext(UserContext);
 	const uuid = user?.whitelist_uuid;
@@ -211,17 +220,23 @@ export default function WebChat() {
 
 	return (
 		<>
-			<PageHeader>{PAGE_NAME_WEB_CHAT}</PageHeader>
-			<div className="flex gap-3 flex-col h-[70vh]">
+			<PageHeader info={WebChatInfo()}>{PAGE_NAME_WEB_CHAT}</PageHeader>
+			<div className="flex gap-3 flex-col">
 				{chatInput}
 				{uuid ? (
 					<Card variant="outlined" className="flex-1 flex flex-col min-h-0">
 						<CardContent className="flex-1 flex flex-col min-h-0 p-4">
 							{connecting && messages.current.length === 0 && (
-								<EmptyState layout="horizontal" spinner description="正在连接..." />
+								<EmptyState
+									className="h-[50vh]"
+									layout="horizontal"
+									spinner
+									description="正在连接..."
+								/>
 							)}
 							{status.current === 'disconnected' && messages.current.length === 0 && (
 								<EmptyState
+									className="h-[50vh]"
 									icon={WifiOffIcon}
 									description="连接已断开"
 									action={
@@ -235,7 +250,7 @@ export default function WebChat() {
 								(messages.current.length > 0 ? (
 									<pre
 										ref={chatLogRef}
-										className="flex-1 overflow-y-auto font-mono text-sm leading-relaxed m-0 whitespace-pre-wrap break-all"
+										className="flex-1 h-[50vh] overflow-y-auto font-mono text-sm leading-relaxed m-0 whitespace-pre-wrap break-all"
 									>
 										<code>
 											{messages.current.map(msg => {
@@ -252,6 +267,7 @@ export default function WebChat() {
 									</pre>
 								) : (
 									<EmptyState
+										className="h-[50vh]"
 										icon={MessagesSquareIcon}
 										description="等待发送或接收到消息"
 									/>
@@ -262,7 +278,7 @@ export default function WebChat() {
 					<Card variant="outlined">
 						<CardContent>
 							<EmptyState
-								className="h-48"
+								className="h-[50vh]"
 								layout="horizontal"
 								icon={TriangleAlertIcon}
 								iconClassName="text-amber-500"

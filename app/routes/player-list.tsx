@@ -14,6 +14,7 @@ import { AlertTriangleIcon, LockIcon } from 'lucide-react';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_PLAYER_LIST } from '~/consts/page-names';
 import { getPlayerList, type PlayerListEntry } from '~/utils/requests/game';
+import EmptyState from '~/components/empty-state';
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -122,12 +123,13 @@ export default function GameStatisticsPlayerList({ loaderData }: Route.Component
 					))}
 				</div>
 			) : (
-				<div className="flex items-center justify-center h-[30vh]">
-					<div className="flex items-center gap-2">
-						<AlertTriangleIcon color='#ff9800'/>
-						<p>请先绑定游戏账号</p>
-					</div>
-				</div>
+				<EmptyState
+					layout="horizontal"
+					className="h-[30vh]"
+					icon={AlertTriangleIcon}
+					iconClassName="text-amber-500"
+					description="请先绑定游戏账号"
+				/>
 			)}
 		</>
 	);

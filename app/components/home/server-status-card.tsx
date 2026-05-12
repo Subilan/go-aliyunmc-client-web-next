@@ -1,8 +1,9 @@
 import { Card, CardContent, Chip, IconButton, Tooltip } from '@mui/material';
-import { Loader2Icon, RefreshCwIcon, ServerIcon } from 'lucide-react';
+import { RefreshCwIcon, ServerIcon } from 'lucide-react';
 import { CardLabel } from '~/components/card-label';
 import { FuncList, type FuncListItem } from '~/components/func-list';
 import PlayerCountChart, { type PlayerListChartPoint } from '~/components/player-count-chart';
+import EmptyState from '~/components/empty-state';
 
 interface ServerStatusCardProps {
 	notReady: boolean;
@@ -56,15 +57,21 @@ export default function ServerStatusCard(props: ServerStatusCardProps) {
 					服务器状态
 				</CardLabel>
 				{notReady ? (
-					<div className="flex flex-col items-center gap-3 py-8">
-						<ServerIcon size={40} className="text-neutral-300" />
-						<span className="text-neutral-500">请先创建并部署实例</span>
-					</div>
+					<EmptyState
+						icon={ServerIcon}
+						iconSize={40}
+						iconClassName="text-neutral-300"
+						description={<span className="text-neutral-500">请先创建并部署实例</span>}
+						className="py-8"
+					/>
 				) : starting ? (
-					<div className="flex flex-col items-center gap-3 py-8">
-						<Loader2Icon size={40} className="text-neutral-300 animate-spin" />
-						<span className="text-neutral-500">正在启动服务器...</span>
-					</div>
+					<EmptyState
+						spinner
+						iconSize={40}
+						iconClassName="text-neutral-300"
+						description={<span className="text-neutral-500">正在启动服务器...</span>}
+						className="py-8"
+					/>
 				) : (
 					<div className="flex flex-col md:flex-row gap-4">
 						<div className="flex flex-col items-start gap-2">

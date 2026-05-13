@@ -38,6 +38,21 @@ const columns = [
 	}
 ];
 
+function Info() {
+	return (
+		<>
+			<p>
+				<strong>候选实例</strong>是指经过控制台选择的那些满足 Minecraft
+				服务器运行要求的实例，我们对这些实例有 vCPU 数量以及内存上的要求。
+			</p>
+			<p>对于满足条件的实例，我们从中选择价格最低的那一个作为下一次开启服务器时使用的实例，这就是<strong>“最优规格”</strong>。</p>
+			<p>
+				<strong>预计支撑时间</strong>等于当前服务器账户余额除以最优规格的小时价格，这是一个偏高的估值，实际可支撑的开服时间会因为一些额外的收费项目（例如下行流量）以及实例本身波动的价格而有所降低。
+			</p>
+		</>
+	);
+}
+
 export default function EcsCandidatesPage() {
 	const candidates = useStateNamed<EcsCandidate[]>([]);
 	const balance = useStateNamed(0);
@@ -62,7 +77,7 @@ export default function EcsCandidatesPage() {
 
 	return (
 		<>
-			<PageHeader>{PAGE_NAME_ECS_CANDIDATES}</PageHeader>
+			<PageHeader info={Info()}>{PAGE_NAME_ECS_CANDIDATES}</PageHeader>
 			<div className="flex flex-col gap-3">
 				<MetricCard
 					cols={3}

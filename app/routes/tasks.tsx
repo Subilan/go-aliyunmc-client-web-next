@@ -23,6 +23,8 @@ import PageHeader from '~/components/page-header';
 import { PAGE_NAME_TASK_LIST } from '~/consts/page-names';
 import { Times } from '~/utils/times';
 
+const System = '系统'
+
 function taskTypeLabel(type: string) {
 	switch (type) {
 		case 'test':
@@ -188,7 +190,7 @@ const columns: Column<Task>[] = [
 		id: 'by',
 		label: '创建者',
 		align: 'center',
-		render: t => t.user?.username ?? (t.by ? String(t.by) : 'sys')
+		render: t => t.user?.username ?? (t.by ? String(t.by) : System)
 	}
 ];
 
@@ -241,7 +243,7 @@ export default function TasksPage() {
 
 	const lastCreator =
 		stats?.lastCreatedUser?.username ??
-		(stats?.lastCreatedBy ? String(stats.lastCreatedBy) : 'sys');
+		(stats?.lastCreatedBy ? String(stats.lastCreatedBy) : System);
 
 	return (
 		<>

@@ -4,8 +4,8 @@ import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_GAME_STATISTICS } from '~/consts/page-names';
 import {
-	getAdvancements,
 	getGameStats,
+	getSortedAdvancements,
 	type AdvancementEntry,
 	type GameStats
 } from '~/utils/requests/game';
@@ -34,7 +34,7 @@ type LoaderData =
 export async function clientLoader({ params }: Route.ClientLoaderArgs): Promise<LoaderData> {
 	const uuid = params.uuid;
 
-	const [advRes, statsRes] = await Promise.all([getAdvancements(uuid), getGameStats(uuid)]);
+	const [advRes, statsRes] = await Promise.all([getSortedAdvancements(uuid), getGameStats(uuid)]);
 
 	if (advRes.status === 404 || statsRes.status === 404) {
 		return { error: '暂无此玩家数据', advancements: null, gameStats: null };
@@ -44,7 +44,7 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs): Promise<
 		return { error: '获取数据过程中出现问题', advancements: null, gameStats: null };
 	}
 
-	return { error: null, advancements: advRes.data!, gameStats: statsRes.data! };
+	return { error: null, advancements: advRes.data, gameStats: statsRes.data };
 }
 
 export default function GameStatistics({ params, loaderData }: Route.ComponentProps) {
@@ -65,11 +65,10 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 	const completed = advancements.filter(a => a.done);
 	const uncompleted = advancements.filter(a => !a.done);
 
-	const stats = gameStats;
-	const advProgress = stats?.advancement_progress;
+	const advProgress = gameStats?.advancement_progress;
 
 	function getStat(category: string, stat: string): number {
-		return stats?.stats?.[`minecraft:${category}`]?.[`minecraft:${stat}`] ?? 0;
+		return gameStats?.stats?.[`minecraft:${category}`]?.[`minecraft:${stat}`] ?? 0;
 	}
 
 	return (
@@ -83,22 +82,22 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 						<div className="flex flex-col-reverse items-center md:flex-row gap-6">
 							<SkinModel uuid={effectiveUuid!} />
 							<div className="flex-1 flex w-full md:w-auto flex-col gap-3">
-								{stats ? (
+								{gameStats ? (
 									<>
 										<div className="text-2xl border-b border-b-neutral-200">
-											{stats.player_name}
+											{gameStats.player_name}
 										</div>
 										{/* Playtime metrics */}
 										<div className="grid grid-cols-3 gap-3">
 											<MetricItem title="游玩时长">
-												{Times.formatDuration(stats.playtime)}
+												{Times.formatDuration(gameStats.playtime)}
 											</MetricItem>
 											<MetricItem title="连续登录">
-												{stats.join_streak} 天
+												{gameStats.join_streak} 天
 											</MetricItem>
 											<MetricItem title="最近在线">
-												{stats.last_seen
-													? Times.formatFromNow(stats.last_seen)
+												{gameStats.last_seen
+													? Times.formatFromNow(gameStats.last_seen)
 													: '—'}
 											</MetricItem>
 											<MetricItem title="成就进度">
@@ -111,7 +110,7 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 												格
 											</MetricItem>
 										</div>
-										<OnlineStatusSection onlineDates={stats.online_dates} />
+										<OnlineStatusSection onlineDates={gameStats.online_dates} />
 									</>
 								) : (
 									<div className="text-neutral-400 text-sm">暂无统计数据</div>
@@ -178,49 +177,49 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 							<StatSection
 								label="使用或放置"
 								description="使用的物品或者放置方块的次数。"
-								stats={stats}
+								stats={gameStats}
 								name="minecraft:used"
 							/>
 							<hr />
 							<StatSection
 								label="拾取"
 								description="从地上捡起的物品个数。"
-								stats={stats}
+								stats={gameStats}
 								name="minecraft:picked_up"
 							/>
 							<hr />
 							<StatSection
 								label="挖掘"
 								description="挖掘的方块个数。"
-								stats={stats}
+								stats={gameStats}
 								name="minecraft:mined"
 							/>
 							<hr />
 							<StatSection
 								label="击杀"
 								description="击杀的生物个数。"
-								stats={stats}
+								stats={gameStats}
 								name="minecraft:killed"
 							/>
 							<hr />
 							<StatSection
 								label="死于"
 								description="被这些生物击杀的次数。"
-								stats={stats}
+								stats={gameStats}
 								name="minecraft:killed_by"
 							/>
 							<hr />
 							<StatSection
 								label="制造"
 								description="制造的物品个数。"
-								stats={stats}
+								stats={gameStats}
 								name="minecraft:crafted"
 							/>
 							<hr />
 							<StatSection
 								label="损坏"
 								description="损坏的工具个数。"
-								stats={stats}
+								stats={gameStats}
 								name="minecraft:broken"
 							/>
 							<hr />
@@ -228,7 +227,7 @@ export default function GameStatistics({ params, loaderData }: Route.ComponentPr
 								denseOnMobile
 								label="杂项"
 								description="一些其它的统计信息。"
-								stats={stats}
+								stats={gameStats}
 								name="minecraft:custom"
 							/>
 						</div>

@@ -42,13 +42,10 @@ const DAMAGE_STATS = new Set([
 	'minecraft:damage_resisted',
 	'minecraft:damage_dealt_absorbed',
 	'minecraft:damage_dealt_resisted',
-	'minecraft:damage_blocked_by_shield',
+	'minecraft:damage_blocked_by_shield'
 ]);
 
-const GAME_TIME_STATS = new Set([
-	'minecraft:time_since_rest',
-	'minecraft:time_since_death'
-]);
+const GAME_TIME_STATS = new Set(['minecraft:time_since_rest', 'minecraft:time_since_death']);
 
 function formatHearts(value: number): string {
 	const hearts = value / 20;
@@ -64,7 +61,15 @@ function transformStat(k: string, v: number): string | number {
 
 const STAT_EXCERPT = 6;
 
-function StatValue({ k, v, translate }: { k: string; v: number; translate: (key: string) => string }) {
+function StatValue({
+	k,
+	v,
+	translate
+}: {
+	k: string;
+	v: number;
+	translate: (key: string) => string;
+}) {
 	return (
 		<div className="flex">
 			<div className="text-neutral-500">{translate(k)}</div>
@@ -81,7 +86,12 @@ function StatValue({ k, v, translate }: { k: string; v: number; translate: (key:
 					/>
 				</div>
 			) : (
-				<div>{transformStat(k, v)} {GAME_TIME_STATS.has(k) && <span className='text-neutral-500'>(Minecraft)</span>}</div>
+				<div>
+					{transformStat(k, v)}{' '}
+					{GAME_TIME_STATS.has(k) && (
+						<span className="text-neutral-500">(Minecraft)</span>
+					)}
+				</div>
 			)}
 		</div>
 	);
@@ -101,11 +111,14 @@ export function StatSection(props: {
 		props.stats?.stats && props.stats.stats[props.name]
 			? Object.entries(props.stats.stats[props.name])
 			: [];
+	items.sort((a, b) => a[0].localeCompare(b[0]));
 	const hasMore = items.length > STAT_EXCERPT;
 	const excerpt = items.slice(0, STAT_EXCERPT);
 	const remainder = items.slice(STAT_EXCERPT);
 
-	const colsClass = props.denseOnMobile ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-3'
+	const colsClass = props.denseOnMobile
+		? 'grid-cols-1 md:grid-cols-3'
+		: 'grid-cols-2 md:grid-cols-3';
 
 	return (
 		<div>
@@ -118,7 +131,9 @@ export function StatSection(props: {
 				</div>
 				<div className={`grid gap-3 ${colsClass}`}>
 					{excerpt.length > 0 ? (
-						excerpt.map(([k, v]) => <StatValue key={k} k={k} v={v} translate={translate} />)
+						excerpt.map(([k, v]) => (
+							<StatValue key={k} k={k} v={v} translate={translate} />
+						))
 					) : (
 						<span>暂无数据</span>
 					)}
@@ -126,7 +141,9 @@ export function StatSection(props: {
 			</div>
 			<Collapse in={expanded.current}>
 				<div className={`grid gap-3 ${colsClass}`}>
-					{remainder.map(([k, v]) => <StatValue key={k} k={k} v={v} translate={translate} />)}
+					{remainder.map(([k, v]) => (
+						<StatValue key={k} k={k} v={v} translate={translate} />
+					))}
 				</div>
 			</Collapse>
 			{hasMore && (

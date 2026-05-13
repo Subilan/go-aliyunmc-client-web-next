@@ -6,8 +6,6 @@ import { PAGE_NAME_GAME_STATISTICS } from '~/consts/page-names';
 import {
 	getGameStats,
 	getSortedAdvancements,
-	type AdvancementEntry,
-	type GameStats
 } from '~/utils/requests/game';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Times } from '~/utils/times';
@@ -19,6 +17,7 @@ import { AdvancementMetrics } from '~/components/game-statistics/advancement-met
 import { StatSection } from '~/components/game-statistics/stat-section';
 import { OnlineStatusSection } from '~/components/game-statistics/online-status-section';
 import EmptyState from '~/components/empty-state';
+import { createLoader } from '~/utils/createLoader';
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -27,12 +26,8 @@ export function meta({}: Route.MetaArgs) {
 	];
 }
 
-type LoaderData =
-	| { error: string; advancements: null; gameStats: null }
-	| { error: null; advancements: AdvancementEntry[]; gameStats: GameStats };
-
-export async function clientLoader({ params }: Route.ClientLoaderArgs): Promise<LoaderData> {
-	const uuid = params.uuid;
+export const gameStatisticsLoader = createLoader(async args => {
+	const uuid = args.params.uuid!;
 
 	const [advRes, statsRes] = await Promise.all([getSortedAdvancements(uuid), getGameStats(uuid)]);
 
@@ -44,11 +39,12 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs): Promise<
 		return { error: '获取数据过程中出现问题', advancements: null, gameStats: null };
 	}
 
-	return { error: null, advancements: advRes.data, gameStats: statsRes.data };
-}
+	return { uuid, error: null, advancements: advRes.data, gameStats: statsRes.data };
+});
 
-export default function GameStatistics({ params, loaderData }: Route.ComponentProps) {
-	const effectiveUuid = params.uuid;
+export default function GameStatistics() {
+	const loaderData = gameStatisticsLoader.get();
+	const effectiveUuid = loaderData.uuid;
 
 	if (loaderData.advancements === null) {
 		return (

@@ -1,5 +1,5 @@
 import { useContext, useEffect } from 'react';
-import { useNavigate, useRevalidator } from 'react-router';
+import { useRevalidator } from 'react-router';
 import type { Route } from './+types/profile';
 import { UserContext } from '~/contexts/user';
 import {
@@ -23,6 +23,7 @@ import { Req } from '~/utils/requests/Req';
 import { Auth } from '~/utils/auth';
 import { Form } from '~/components/form/Form';
 import { Times } from '~/utils/times';
+import { navigate } from '~/utils/navigate';
 
 interface ChangePasswordPayload {
 	oldPassword: string;
@@ -49,7 +50,6 @@ function userRoleText(role: string) {
 
 export default function Profile() {
 	const user = useContext(UserContext);
-	const navigate = useNavigate();
 	const revalidator = useRevalidator();
 	const deleteOpen = useStateNamed(false);
 	const loading = useStateNamed(false);
@@ -85,7 +85,10 @@ export default function Profile() {
 
 	const onToggleDisallowPublicGameStats = async () => {
 		if (!prefs.current) return;
-		const next = { ...prefs.current, disallow_public_game_stats: !prefs.current.disallow_public_game_stats };
+		const next = {
+			...prefs.current,
+			disallow_public_game_stats: !prefs.current.disallow_public_game_stats
+		};
 		prefsSaving.set(true);
 		const ok = await Req.updatePreferences(next);
 		prefsSaving.set(false);
@@ -170,10 +173,7 @@ export default function Profile() {
 							<InfoRow label="用户 ID" value={String(user.ID)} />
 							<InfoRow label="用户名" value={user.username} />
 							<InfoRow label="权限等级" value={userRoleText(user.role)} />
-							<InfoRow
-								label="注册时间"
-								value={Times.formatDate(user.CreatedAt)}
-							/>
+							<InfoRow label="注册时间" value={Times.formatDate(user.CreatedAt)} />
 						</div>
 					</CardContent>
 				</Card>
@@ -203,10 +203,7 @@ export default function Profile() {
 				<Card variant="outlined">
 					<CardContent>
 						<CardLabel>修改密码</CardLabel>
-						<form
-							className="flex flex-col gap-3"
-							onSubmit={handleSubmit(onSubmit)}
-						>
+						<form className="flex flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>
 							<Form.StringInput
 								name="oldPassword"
 								label="原密码"
@@ -231,17 +228,14 @@ export default function Profile() {
 								control={control}
 								rules={{
 									validate(value, formValues) {
-										if (value !== formValues.newPassword) return '两次密码不匹配';
+										if (value !== formValues.newPassword)
+											return '两次密码不匹配';
 										return undefined;
 									}
 								}}
 							/>
 							<div className="flex justify-end">
-								<Button
-									variant="contained"
-									type="submit"
-									loading={loading.current}
-								>
+								<Button variant="contained" type="submit" loading={loading.current}>
 									确认修改
 								</Button>
 							</div>

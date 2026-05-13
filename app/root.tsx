@@ -1,11 +1,5 @@
-import {
-	isRouteErrorResponse,
-	Links,
-	Meta,
-	Outlet,
-	Scripts,
-	ScrollRestoration
-} from 'react-router';
+import { isRouteErrorResponse, Scripts, ScrollRestoration, useRouteError } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 
 import type { Route } from './+types/root';
 import './app.css';
@@ -13,9 +7,11 @@ import toast, { Toaster } from 'react-hot-toast';
 import { createTheme, SnackbarContent, ThemeProvider } from '@mui/material';
 import { AlertCircleIcon, CheckIcon, InfoIcon } from 'lucide-react';
 import Footer from '~/footer';
+import { router } from '~/routes';
+import { createRoot } from 'react-dom/client';
 
 export const Toast = {
-	run(title: string, desc?: string, kind: 'success' | 'error' | 'info' = 'info', timeout = 3000) {
+	run(title: string, kind: 'success' | 'error' | 'info' = 'info', timeout = 3000) {
 		toast.custom(
 			t => {
 				return (
@@ -40,61 +36,46 @@ export const Toast = {
 			}
 		);
 	},
-	success(title: string, desc?: string, timeout = 3000) {
-		this.run(title, desc, 'success', timeout);
+	success(title: string, timeout = 3000) {
+		this.run(title, 'success', timeout);
 	},
-	error(title: string, desc?: string, timeout = 3000) {
-		this.run(title, desc, 'error', timeout);
+	error(title: string, timeout = 3000) {
+		this.run(title, 'error', timeout);
 	},
-	info(title: string, desc?: string, timeout = 3000) {
-		this.run(title, desc, 'info', timeout);
+	info(title: string, timeout = 3000) {
+		this.run(title, 'info', timeout);
 	}
 };
 
-export function Layout({ children }: { children: React.ReactNode }) {
-	return (
-		<html lang="en">
-			<head>
-				<meta charSet="utf-8" />
-				<meta name="viewport" content="width=device-width, initial-scale=1" />
-				<Meta />
-				<Links />
-			</head>
-			<body>
-				<ThemeProvider
-					theme={createTheme({
-						shape: {
-							borderRadius: 10
-						},
-						typography: {
-							fontFamily: 'var(--font-sans)'
-						},
-						palette: {
-							primary: {
-								main: '#1e88e5',
-								light: '#2979ff',
-								dark: '#1565c0',
-								contrastText: '#fff'
-							}
-						}
-					})}
-				>
-					{children}
-				</ThemeProvider>
-				<ScrollRestoration />
-				<Scripts />
-				<Toaster position="top-center" />
-				<Footer />
-			</body>
-		</html>
-	);
-}
+createRoot(document.getElementById('root')!).render(
+	<>
+		<ThemeProvider
+			theme={createTheme({
+				shape: {
+					borderRadius: 10
+				},
+				typography: {
+					fontFamily: 'var(--font-sans)'
+				},
+				palette: {
+					primary: {
+						main: '#1e88e5',
+						light: '#2979ff',
+						dark: '#1565c0',
+						contrastText: '#fff'
+					}
+				}
+			})}
+		>
+			<RouterProvider router={router} />
+		</ThemeProvider>
+		<Toaster position="top-center" />
+		<Footer />
+	</>
+);
 
-export default function App() {
-	return <Outlet />;
-}
-
-export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+export function ErrorBoundary() {
+	const error = useRouteError();
 	let jackpot = window.innerWidth > 1000 && Math.random() > 0.99;
 	let message = 'O' + 'o'.repeat(jackpot ? 100 : Math.round(Math.random() * 8) + 1) + 'ps!';
 	let details = '此页面遇到了问题，请联系管理员。';

@@ -20,11 +20,12 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { redirect, useNavigate } from 'react-router';
+import { redirect } from 'react-router';
 import { Form } from '~/components/form/Form';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
 import { Auth } from '~/utils/auth';
+import { navigate } from '~/utils/navigate';
 import { Req } from '~/utils/requests/Req';
 
 export interface LoginPayload {
@@ -43,7 +44,6 @@ function LoginForm({ setRegister }: { setRegister: () => void }) {
 	const { control, handleSubmit } = useForm<LoginPayload>();
 
 	const loading = useStateNamed(false);
-	const navigate = useNavigate();
 
 	const onSubmit = async (data: LoginPayload) => {
 		loading.set(true);

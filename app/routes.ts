@@ -1,20 +1,97 @@
-import { type RouteConfig, index, layout, route } from '@react-router/dev/routes';
+import { createHashRouter } from 'react-router';
+import AppLayout, { appLoader } from '~/layout/app';
+import InnerAppLayout from '~/layout/inner-app';
+import { ErrorBoundary } from '~/root';
+import AllFeatures from '~/routes/all';
+import Economy from '~/routes/economy';
+import EcsCandidatesPage from '~/routes/ecs-candidates';
+import GameStatistics, { gameStatisticsLoader } from '~/routes/game-statistics';
+import Home from '~/routes/home';
+import Leaderboard from '~/routes/leaderboard';
+import Lor from '~/routes/lor';
+import GameStatisticsPlayerList, { playerListLoader } from '~/routes/player-list';
+import Profile from '~/routes/profile';
+import TasksPage from '~/routes/tasks'; 
+import Updates from '~/routes/updates';
+import WebChat from '~/routes/web-chat';
 
-export default [
-	layout('layout/app.tsx', [
-		index('routes/home.tsx'),
-		route('/profile', 'routes/profile.tsx'),
-		layout('layout/inner-app.tsx', [
-			route('/info/tasks', 'routes/tasks.tsx'),
-			route('/info/ecs-candidates', 'routes/ecs-candidates.tsx'),
-			route('/info/economy', 'routes/economy.tsx'),
-			route('/game/player-list', 'routes/player-list.tsx'),
-			route('/game/statistics/:uuid', 'routes/game-statistics.tsx'),
-			route('/game/leaderboard', 'routes/leaderboard.tsx'),
-			route('/game/web-chat', 'routes/web-chat.tsx'),
-			route('/updates', 'routes/updates.tsx')
-		]),
-		route('/all', 'routes/all.tsx')
-	]),
-	route('/lor', 'routes/lor.tsx')
-] satisfies RouteConfig;
+export const router = createHashRouter([
+	{
+		path: '/',
+		ErrorBoundary: ErrorBoundary,
+		children: [
+			{
+				path: 'lor',
+				Component: Lor
+			},
+			{
+				Component: AppLayout,
+				loader: appLoader.itself,
+				children: [
+					{
+						path: '',
+						Component: Home,
+						index: true
+					},
+					{
+						path: 'profile',
+						Component: Profile
+					},
+					{
+						path: 'all',
+						Component: AllFeatures
+					},
+					{
+						Component: InnerAppLayout,
+						children: [
+							{
+								path: 'info',
+								children: [
+									{
+										path: 'tasks',
+										Component: TasksPage
+									},
+									{
+										path: 'ecs-candidates',
+										Component: EcsCandidatesPage
+									},
+									{
+										path: 'economy',
+										Component: Economy
+									}
+								]
+							},
+							{
+								path: 'game',
+								children: [
+									{
+										path: 'player-list',
+										Component: GameStatisticsPlayerList,
+										loader: playerListLoader.itself
+									},
+									{
+										path: 'statistics/:uuid',
+										Component: GameStatistics,
+										loader: gameStatisticsLoader.itself
+									},
+									{
+										path: 'leaderboard',
+										Component: Leaderboard
+									},
+									{
+										path: 'web-chat',
+										Component: WebChat
+									}
+								]
+							},
+							{
+								path: 'updates',
+								Component: Updates
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+]);

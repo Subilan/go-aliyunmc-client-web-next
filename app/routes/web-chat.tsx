@@ -6,9 +6,9 @@ import PageHeader from '~/components/page-header';
 import { PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
 import { UserContext } from '~/contexts/user';
 import useStateNamed from '~/hooks/useStateNamed';
-import { useNavigate } from 'react-router';
 import getChatToken from '~/utils/requests/chat-token';
 import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
+import { navigate } from '~/utils/navigate';
 
 const WS_HOST = 'play.seatide.net';
 const WS_PORT = '33795';
@@ -188,8 +188,6 @@ export default function WebChat() {
 
 	const connected = status.current === 'connected';
 	const connecting = status.current === 'connecting';
-
-	const navigate = useNavigate();
 
 	const chatInput = (
 		<div className="fixed w-full left-0 bottom-0 p-5 md:p-0 bg-white border-t border-t-neutral-200 md:border-t-0 md:bg-auto md:w-auto md:static grid grid-cols-[1fr_auto] gap-3 items-center">

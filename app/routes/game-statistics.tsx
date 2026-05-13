@@ -115,7 +115,7 @@ export default function GameStatistics() {
 										{/* Playtime metrics */}
 										<div className="grid grid-cols-3 gap-3">
 											<MetricItem title="游玩时长">
-												{Times.formatDuration(gameStats.playtime)}
+												{Times.formatDuration(gameStats.playtime/20)}
 											</MetricItem>
 											<MetricItem title="连续登录">
 												{gameStats.join_streak} 天

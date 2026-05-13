@@ -17,7 +17,8 @@ export const Toast = {
 				return (
 					<SnackbarContent
 						style={{
-							animation: t.visible ? 'FadeIn .2s' : 'FadeOut .2s ease forwards'
+							animation: t.visible ? 'FadeIn .2s' : 'FadeOut .2s ease forwards',
+							fontFamily: 'var(--font-sans)'
 						}}
 						message={
 							<div className="flex items-center gap-2">
@@ -82,7 +83,6 @@ export function ErrorBoundary() {
 	let stack: string | undefined;
 
 	if (isRouteErrorResponse(error)) {
-		message = error.status === 404 ? '404' : 'Error';
 		details =
 			error.status === 404 ? '此页面不存在，请检查 URL 拼写' : error.statusText || details;
 	} else if (error && error instanceof Error) {

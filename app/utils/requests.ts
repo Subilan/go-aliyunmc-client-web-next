@@ -1,3 +1,6 @@
+import { router } from "~/routes";
+import { navigate } from "~/utils/navigate";
+
 // export const BASE_URL = 'http://localhost:45678'
 export const BASE_URL = '/api';
 
@@ -16,7 +19,7 @@ async function req<T = any>(url: string, options: RequestInit): Promise<Resp<T>>
 	}
 
 	if (result.status && result.status === 401) {
-		
+		navigate('/lor')
 	}
 
 	let json;

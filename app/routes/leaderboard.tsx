@@ -1,14 +1,8 @@
 import { useEffect } from 'react';
 import type { Route } from './+types/leaderboard';
 import {
-	Button,
 	Card,
 	CardContent,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
-	IconButton,
 	MenuItem,
 	Select,
 	Table,
@@ -18,7 +12,6 @@ import {
 	TableHead,
 	TableRow
 } from '@mui/material';
-import { InfoIcon } from 'lucide-react';
 
 import { PAGE_NAME_LEADERBOARD } from '~/consts/page-names';
 import { Req } from '~/utils/requests/Req';
@@ -30,7 +23,7 @@ import PageHeader from '~/components/page-header';
 
 const METRICS: Record<string, { label: string; unit: string; decimals: number; divisor: number }> =
 	{
-		minecraft_playtime: { label: '游戏时长', unit: '小时', decimals: 1, divisor: 3600 },
+		minecraft_playtime: { label: '游戏时长', unit: '小时', decimals: 1, divisor: 3600 * 20 },
 		achievements: { label: '成就数量', unit: '个', decimals: 0, divisor: 1 },
 		distance: { label: '移动距离', unit: 'km', decimals: 2, divisor: 1 },
 		mob_kills: { label: '生物击杀', unit: '个', decimals: 0, divisor: 1 },

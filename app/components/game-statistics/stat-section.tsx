@@ -1,4 +1,4 @@
-import { Collapse, IconButton } from '@mui/material';
+import { Collapse, IconButton, Checkbox, FormControlLabel } from '@mui/material';
 import { ChevronRightIcon, ChevronUpIcon } from 'lucide-react';
 import type { GameStats } from '~/utils/requests/game';
 import useStateNamed from '~/hooks/useStateNamed';
@@ -48,7 +48,13 @@ const DAMAGE_STATS = new Set([
 	'minecraft:damage_blocked_by_shield'
 ]);
 
-const GAME_TIME_STATS = new Set(['minecraft:time_since_rest', 'minecraft:time_since_death']);
+const GAME_TIME_STATS = new Set([
+	'minecraft:time_since_rest',
+	'minecraft:time_since_death',
+	'minecraft:total_world_time',
+	'minecraft:play_time',
+	'minecraft:sneak_time'
+]);
 
 function formatHearts(value: number): string {
 	const hearts = value / 20;
@@ -56,8 +62,8 @@ function formatHearts(value: number): string {
 	return hearts.toFixed(1);
 }
 
-function transformStat(k: string, v: number): string | number {
-	if (TIME_STATS.has(k)) return Times.formatDuration(v);
+function transformStat(k: string, v: number, realTime: boolean): string | number {
+	if (TIME_STATS.has(k)) return Times.formatDuration(realTime ? v / 20 : v);
 	if (DISTANCE_STATS.has(k)) return formatDistanceCm(v);
 	return v;
 }
@@ -67,11 +73,13 @@ const STAT_EXCERPT = 6;
 function StatValue({
 	k,
 	v,
-	translate
+	translate,
+	realTime
 }: {
 	k: string;
 	v: number;
 	translate: (key: string) => string;
+	realTime: boolean;
 }) {
 	return (
 		<div className="flex">
@@ -92,8 +100,8 @@ function StatValue({
 				</div>
 			) : (
 				<div>
-					{transformStat(k, v)}{' '}
-					{GAME_TIME_STATS.has(k) && (
+					{transformStat(k, v, realTime)}{' '}
+					{GAME_TIME_STATS.has(k) && !realTime && (
 						<span className="text-neutral-500">(Minecraft)</span>
 					)}
 				</div>
@@ -108,9 +116,11 @@ export function StatSection(props: {
 	label: string;
 	description?: string;
 	denseOnMobile?: boolean;
+	showRealTimeToggle?: boolean;
 }) {
 	const translate = useMcTranslate();
 	const expanded = useStateNamed(false);
+	const realTime = useStateNamed(false);
 
 	const items =
 		props.stats?.stats && props.stats.stats[props.name]
@@ -133,11 +143,23 @@ export function StatSection(props: {
 						{props.label} ({items.length} 项)
 					</h3>
 					{props.description && <p className="text-neutral-500">{props.description}</p>}
+					{props.showRealTimeToggle && (
+						<FormControlLabel
+							control={
+								<Checkbox
+									size="small"
+									checked={realTime.current}
+									onChange={(_, checked) => realTime.set(checked)}
+								/>
+							}
+							label="显示现实时间"
+						/>
+					)}
 				</div>
 				<div className={`grid gap-3 ${colsClass}`}>
 					{excerpt.length > 0 ? (
 						excerpt.map(([k, v]) => (
-							<StatValue key={k} k={k} v={v} translate={translate} />
+							<StatValue key={k} k={k} v={v} translate={translate} realTime={realTime.current} />
 						))
 					) : (
 						<span>暂无数据</span>
@@ -147,7 +169,7 @@ export function StatSection(props: {
 			<Collapse in={expanded.current}>
 				<div className={`grid gap-3 ${colsClass}`}>
 					{remainder.map(([k, v]) => (
-						<StatValue key={k} k={k} v={v} translate={translate} />
+						<StatValue key={k} k={k} v={v} translate={translate} realTime={realTime.current} />
 					))}
 				</div>
 			</Collapse>

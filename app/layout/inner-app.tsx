@@ -1,23 +1,12 @@
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import { Breadcrumbs, IconButton, Typography } from '@mui/material';
 import { ArrowLeftIcon } from 'lucide-react';
-import { PAGE_CATEGORY_GAME } from "~/consts/page-categories";
-import { PAGE_NAME_GAME_STATISTICS } from '~/consts/page-names';
-import { groups } from '~/routes/all';
-
-const pageMeta: Record<string, { group: string; label: string }> = Object.fromEntries(
-	groups
-		.filter(g => g.cards.length > 0)
-		.flatMap(g => g.cards.map(c => [c.to, { group: g.title, label: c.title }] as const))
-);
-
-pageMeta['/game/statistics/'] = { group: PAGE_CATEGORY_GAME, label: PAGE_NAME_GAME_STATISTICS };
+import { getPageMeta } from '~/utils/page-meta';
 
 export default function InnerAppLayout() {
 	const navigate = useNavigate();
 	const { pathname } = useLocation();
-	const meta = pageMeta[pathname]
-		?? Object.entries(pageMeta).find(([k]) => k.endsWith('/') && pathname.startsWith(k))?.[1];
+	const meta = getPageMeta(pathname);
 
 	return (
 		<>

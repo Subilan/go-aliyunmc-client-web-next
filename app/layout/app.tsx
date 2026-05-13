@@ -19,25 +19,7 @@ import { Toast } from '~/root';
 import { getPermissions } from '~/utils/requests/permissions';
 import { McTranslationContext } from '~/contexts/mctranslations';
 import { getMcTranslations } from '~/utils/requests/mc-translation';
-import {
-	PAGE_NAME_ECONOMY,
-	PAGE_NAME_ECS_CANDIDATES,
-	PAGE_NAME_TASK_LIST,
-	PAGE_NAME_PLAYER_LIST,
-	PAGE_NAME_GAME_STATISTICS,
-	PAGE_NAME_LEADERBOARD,
-	PAGE_NAME_WEB_CHAT
-} from '~/consts/page-names';
-
-const pageMeta: Record<string, string> = {
-	'/info/tasks': PAGE_NAME_TASK_LIST,
-	'/info/ecs-candidates': PAGE_NAME_ECS_CANDIDATES,
-	'/info/economy': PAGE_NAME_ECONOMY,
-	'/game/player-list': PAGE_NAME_PLAYER_LIST,
-	'/game/statistics/': PAGE_NAME_GAME_STATISTICS,
-	'/game/leaderboard': PAGE_NAME_LEADERBOARD,
-	'/game/web-chat': PAGE_NAME_WEB_CHAT
-};
+import { getPageMeta } from '~/utils/page-meta';
 
 export async function clientLoader() {
 	if (!(await Auth.isLoggedIn())) {
@@ -74,11 +56,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 		return location.pathname === path;
 	}
 
-	const innerPageLabel =
-		pageMeta[location.pathname] ??
-		Object.entries(pageMeta).find(
-			([k]) => k.endsWith('/') && location.pathname.startsWith(k)
-		)?.[1];
+	const innerPageLabel = getPageMeta(location.pathname)?.label;
 
 	async function handleLogout() {
 		loggingOut.set(true);

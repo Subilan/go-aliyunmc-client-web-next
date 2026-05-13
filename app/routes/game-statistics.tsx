@@ -250,6 +250,7 @@ export default function GameStatistics() {
 							<hr />
 							<StatSection
 								denseOnMobile
+								showRealTimeToggle
 								label="杂项"
 								description="一些其它的统计信息。"
 								stats={gameStats}

@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 import type { Route } from './+types/player-list';
 import {
 	Card,
@@ -15,6 +15,8 @@ import PageHeader from '~/components/page-header';
 import { PAGE_NAME_PLAYER_LIST } from '~/consts/page-names';
 import { getPlayerList, type PlayerListEntry } from '~/utils/requests/game';
 import EmptyState from '~/components/empty-state';
+import { createLoader } from '~/utils/createLoader';
+import { navigate } from '~/utils/navigate';
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -25,13 +27,8 @@ export function meta({}: Route.MetaArgs) {
 
 type SortOrder = 'asc' | 'desc';
 
-interface LoaderData {
-	players: PlayerListEntry[];
-	sort: SortOrder;
-}
-
-export async function clientLoader({ request }: Route.ClientLoaderArgs): Promise<LoaderData> {
-	const url = new URL(request.url);
+export const playerListLoader = createLoader(async args => {
+	const url = new URL(args.request.url);
 	const sort = (url.searchParams.get('sort') as SortOrder) || 'asc';
 
 	const res = await getPlayerList();
@@ -43,10 +40,9 @@ export async function clientLoader({ request }: Route.ClientLoaderArgs): Promise
 	});
 
 	return { players, sort };
-}
+});
 
 function PlayerCard({ player }: { player: PlayerListEntry }) {
-	const navigate = useNavigate();
 	const isPrivate = player.disallow_public_game_stats;
 
 	const card = (
@@ -84,10 +80,9 @@ function PlayerCard({ player }: { player: PlayerListEntry }) {
 	return card;
 }
 
-export default function GameStatisticsPlayerList({ loaderData }: Route.ComponentProps) {
-	const { players, sort } = loaderData;
+export default function GameStatisticsPlayerList() {
+	const { players, sort } = playerListLoader.get();
 	const [searchParams] = useSearchParams();
-	const navigate = useNavigate();
 
 	const handleSortChange = (newSort: SortOrder) => {
 		const params = new URLSearchParams(searchParams);

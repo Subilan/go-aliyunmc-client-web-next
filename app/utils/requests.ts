@@ -15,6 +15,10 @@ async function req<T = any>(url: string, options: RequestInit): Promise<Resp<T>>
 		console.error(`Request to ${url} failed with 5xx status ${result.status}`);
 	}
 
+	if (result.status && result.status === 401) {
+		
+	}
+
 	let json;
 	try {
 		json = await result.json();

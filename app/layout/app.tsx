@@ -8,10 +8,9 @@ import {
 	DialogTitle
 } from '@mui/material';
 import { UserCircle2Icon } from 'lucide-react';
-import { Link, Outlet, redirect, useLocation, useNavigate } from 'react-router';
+import { Link, Outlet, redirect, useLocation } from 'react-router';
 import MenuBtn from '~/components/menu-btn';
 import { Auth } from '~/utils/auth';
-import type { Route } from './+types/app';
 import { UserContext } from '~/contexts/user';
 import { PermissionsContext } from '~/contexts/permissions';
 import useStateNamed from '~/hooks/useStateNamed';
@@ -20,8 +19,10 @@ import { getPermissions } from '~/utils/requests/permissions';
 import { McTranslationContext } from '~/contexts/mctranslations';
 import { getMcTranslations } from '~/utils/requests/mc-translation';
 import { getPageMeta } from '~/utils/page-meta';
+import { createLoader } from '~/utils/createLoader';
+import { navigate } from '~/utils/navigate';
 
-export async function clientLoader() {
+export const appLoader = createLoader(async args => {
 	if (!(await Auth.isLoggedIn())) {
 		throw redirect('/lor');
 	}
@@ -33,7 +34,7 @@ export async function clientLoader() {
 	]);
 
 	return { user, permissions, mctranslations };
-}
+});
 
 const activeSx = {
 	bgcolor: '#e3f2fd',
@@ -45,9 +46,8 @@ const inactiveSx = {
 	fontWeight: 'normal'
 };
 
-export default function AppLayout({ loaderData }: Route.ComponentProps) {
-	const { user, permissions, mctranslations } = loaderData;
-	const navigate = useNavigate();
+export default function AppLayout() {
+	const { user, permissions, mctranslations } = appLoader.get();
 	const location = useLocation();
 	const logoutOpen = useStateNamed(false);
 	const loggingOut = useStateNamed(false);
@@ -92,7 +92,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
 						>
 							所有功能
 						</MuiButton>
-						{innerPageLabel && (
+						{innerPageLabel && innerPageLabel !== '控制台' && (
 							<MuiButton color="inherit" sx={activeSx}>
 								{innerPageLabel}
 							</MuiButton>

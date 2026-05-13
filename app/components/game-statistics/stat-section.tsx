@@ -14,6 +14,10 @@ const TIME_STATS = new Set([
 ]);
 
 const DISTANCE_STATS = new Set([
+	'minecraft:walk_on_water_one_cm',
+	'minecraft:aviate_one_cm',
+	'minecraft:horse_one_cm',
+	'minecraft:minecart_one_cm',
 	'minecraft:boat_one_cm',
 	'minecraft:swim_one_cm',
 	'minecraft:crouch_one_cm',
@@ -22,8 +26,7 @@ const DISTANCE_STATS = new Set([
 	'minecraft:walk_under_water_one_cm',
 	'minecraft:sprint_one_cm',
 	'minecraft:fall_one_cm',
-	'minecraft:fly_one_cm',
-	'minecraft:walk_on_water_one_cm'
+	'minecraft:fly_one_cm'
 ]);
 
 function formatDistanceCm(cm: number): string {
@@ -72,7 +75,9 @@ function StatValue({
 }) {
 	return (
 		<div className="flex">
-			<div className="text-neutral-500">{translate(k)}</div>
+			<div data-key-name={k} className="text-neutral-500">
+				{translate(k)}
+			</div>
 			<div className="flex-1" />
 			{DAMAGE_STATS.has(k) ? (
 				<div className="flex items-center gap-0.5">

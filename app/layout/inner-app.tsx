@@ -1,10 +1,10 @@
-import { Outlet, useLocation, useNavigate } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import { Breadcrumbs, IconButton, Typography } from '@mui/material';
 import { ArrowLeftIcon } from 'lucide-react';
 import { getPageMeta } from '~/utils/page-meta';
+import { navigate } from '~/utils/navigate';
 
 export default function InnerAppLayout() {
-	const navigate = useNavigate();
 	const { pathname } = useLocation();
 	const meta = getPageMeta(pathname);
 

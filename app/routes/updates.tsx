@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { HeartIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { Remark, useRemark } from 'react-remark';
-import EmptyState from '~/components/empty-state';
+import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
 import PageHeader from '~/components/page-header';
 import { UserContext } from '~/contexts/user';
 import { PAGE_NAME_UPDATES } from '~/consts/page-names';
@@ -201,7 +201,7 @@ export default function Updates() {
 			</PageHeader>
 
 			{loading ? (
-				<EmptyState spinner className="py-20" />
+				<LoadingEmptyState className='py-20' />
 			) : error ? (
 				<EmptyState
 					className="py-20"

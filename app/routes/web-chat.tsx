@@ -8,7 +8,7 @@ import { UserContext } from '~/contexts/user';
 import useStateNamed from '~/hooks/useStateNamed';
 import { useNavigate } from 'react-router';
 import getChatToken from '~/utils/requests/chat-token';
-import EmptyState from '~/components/empty-state';
+import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
 
 const WS_HOST = 'play.seatide.net';
 const WS_PORT = '33795';
@@ -30,7 +30,10 @@ export function meta({}: Route.MetaArgs) {
 function WebChatInfo() {
 	return (
 		<>
-			<p>Web 聊天页面提供了与服务器之间的双向交流功能，你可以在这里向服务器发送消息，也可以查看服务器内玩家发送的消息。在这里发送信息时，你的名称与绑定的游戏名保持一致。你需要拥有白名单才能使用此功能。</p>
+			<p>
+				Web
+				聊天页面提供了与服务器之间的双向交流功能，你可以在这里向服务器发送消息，也可以查看服务器内玩家发送的消息。在这里发送信息时，你的名称与绑定的游戏名保持一致。你需要拥有白名单才能使用此功能。
+			</p>
 			<p>从这里发送的内容以及服务器发送过来的内容在传输过程中均经过了 TLS 加密。</p>
 		</>
 	);
@@ -227,12 +230,7 @@ export default function WebChat() {
 					<Card variant="outlined" className="flex-1 flex flex-col min-h-0">
 						<CardContent className="flex-1 flex flex-col min-h-0 p-4">
 							{connecting && messages.current.length === 0 && (
-								<EmptyState
-									className="h-[50vh]"
-									layout="horizontal"
-									spinner
-									description="正在连接..."
-								/>
+								<LoadingEmptyState className="h-[50vh]" description="正在连接" />
 							)}
 							{status.current === 'disconnected' && messages.current.length === 0 && (
 								<EmptyState

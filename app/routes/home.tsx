@@ -66,6 +66,7 @@ export default function Home() {
 	const [refreshingServerStatus, setRefreshingServerStatus] = useState(false);
 	const [refreshingCandidates, setRefreshingCandidates] = useState(false);
 	const [refreshingTasks, setRefreshingTasks] = useState(false);
+	const [initialLoading, setInitialLoading] = useState(true);
 
 	// Create instance dialog
 	const [dialogOpen, setDialogOpen] = useState(false);
@@ -189,6 +190,7 @@ export default function Home() {
 			);
 		}
 		if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
+		setInitialLoading(false);
 	}
 
 	async function fetchServerStatus() {
@@ -240,18 +242,23 @@ export default function Home() {
 	// Sync SSE values into named state
 	useEffect(() => {
 		if (srvSSE.value) {
-			serverOnline.set(srvSSE.value.Value.online);
-			playerCount.set(srvSSE.value.Value.playerCount);
+			if (srvSSE.value.Error) {
+				serverOnline.set(false);
+				playerCount.set(0);
+			} else {
+				serverOnline.set(srvSSE.value.Value.online);
+				playerCount.set(srvSSE.value.Value.playerCount);
+			}
 		}
 	}, [srvSSE.value]);
 
 	useEffect(() => {
 		if (instSSE.value) {
-			instanceStatus.set(instSSE.value.Value);
-			// if (instSSE.value.Error === ErrMissingTarget && !instanceDeletedRef.current) {
-			// 	instanceDeletedRef.current = true;
-			// 	fetchAll();
-			// }
+			if (instSSE.value.Error) {
+				instanceNotFound.set(true);
+			} else {
+				instanceStatus.set(instSSE.value.Value);
+			}
 		}
 	}, [instSSE.value]);
 
@@ -522,13 +529,13 @@ export default function Home() {
 			name: '备份',
 			icon: DatabaseIcon,
 			action: () => handleAction('备份'),
-			disabled: !canBackup || (permissions !== null && !permissions.can_run_backup)
+			disabled: !canBackup || archiving || (permissions !== null && !permissions.can_run_backup)
 		},
 		{
 			name: '归档',
 			icon: ArchiveIcon,
 			action: () => handleAction('归档'),
-			disabled: !canBackup || (permissions !== null && !permissions.can_run_archive)
+			disabled: !canBackup || archiving || (permissions !== null && !permissions.can_run_archive)
 		}
 	];
 
@@ -574,6 +581,7 @@ export default function Home() {
 				<ServerStatusCard
 					notReady={instanceNotFound.current || !isDeployed}
 					starting={serverStarting}
+					loading={initialLoading && instanceNotFound.current && !instance}
 					online={serverOnline.current}
 					playerCount={playerCount.current}
 					platform={serverQuery.current?.platform}
@@ -586,6 +594,7 @@ export default function Home() {
 				<InstanceStatusCard
 					notFound={instanceNotFound.current}
 					busy={taskRunning && !startTaskId}
+					loading={initialLoading && !instance && !instanceNotFound.current}
 					busyLabel={deployTaskId ? '实例部署中' : '实例创建中'}
 					latestOutput={latestOutput}
 					instanceStatus={instanceStatus.current}
@@ -598,11 +607,13 @@ export default function Home() {
 				<EcsCandidatesCard
 					candidates={candidates}
 					refreshing={refreshingCandidates}
+					loading={initialLoading && candidates.length === 0}
 					onRefresh={fetchCandidates}
 				/>
 				<RecentTasksCard
 					tasks={tasks}
 					refreshing={refreshingTasks}
+					loading={initialLoading && tasks.length === 0}
 					onRefresh={fetchTasks}
 				/>
 			</div>

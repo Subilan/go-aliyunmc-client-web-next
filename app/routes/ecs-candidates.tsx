@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
 	Paper,
 	Table,
@@ -6,12 +6,14 @@ import {
 	TableCell,
 	TableContainer,
 	TableHead,
-	TableRow} from '@mui/material';
+	TableRow
+} from '@mui/material';
 import { CheckCircleIcon, CheckIcon, ClockIcon, ServerIcon } from 'lucide-react';
 import type { EcsCandidate } from '~/types/EcsCandidate';
 import { getCandidates } from '~/utils/requests/instance';
 import MetricCard from '~/components/metric-card';
 import PageHeader from '~/components/page-header';
+import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
 import { getBalance } from '~/utils/requests/home';
 import useStateNamed from '~/hooks/useStateNamed';
 import { PAGE_NAME_ECS_CANDIDATES } from '~/consts/page-names';
@@ -39,14 +41,17 @@ const columns = [
 export default function EcsCandidatesPage() {
 	const candidates = useStateNamed<EcsCandidate[]>([]);
 	const balance = useStateNamed(0);
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		getCandidates().then(res => {
-			if (res.error === null) candidates.set(res.data);
-		});
-		getBalance().then(res => {
-			if (res.error === null) balance.set(res.data);
-		});
+		Promise.all([
+			getCandidates().then(res => {
+				if (res.error === null) candidates.set(res.data);
+			}),
+			getBalance().then(res => {
+				if (res.error === null) balance.set(res.data);
+			})
+		]).finally(() => setLoading(false));
 	}, []);
 
 	const estimatedHours = useMemo(() => {
@@ -65,54 +70,72 @@ export default function EcsCandidatesPage() {
 						{
 							icon: <CheckCircleIcon size={12} />,
 							label: '最优规格',
-							value: candidates.current[0]?.instanceType ?? '—'
+							value: candidates.current[0]?.instanceType ?? null,
+							loading
 						},
 						{
 							icon: <ServerIcon size={12} />,
 							label: '符合要求的实例总数',
-							value: candidates.current.length
+							value: !loading ? candidates.current.length : null,
+							loading
 						},
 						{
 							icon: <ClockIcon size={12} />,
 							label: '预计支撑时间（偏高）',
-							value: estimatedHours ?? '—'
+							value: !loading ? (estimatedHours ?? '—') : null,
+							loading
 						}
 					]}
 				/>
 
-				<Paper variant="outlined">
-					<TableContainer>
-						<Table size="small">
-							<TableHead>
-								<TableRow>
-									{columns.map(col => (
-										<TableCell key={col.id} align="center">
-											{col.label}
-										</TableCell>
-									))}
-								</TableRow>
-							</TableHead>
-							<TableBody>
-								{candidates.current.map((c, i) => (
-									<TableRow key={i} hover>
-										<TableCell align="center">
-											<div className="flex justify-center items-center gap-2">
-												{c.instanceType}{' '}
-												{i === 0 && <CheckIcon size={16} color="green" />}
-											</div>
-										</TableCell>
-										<TableCell align="center">{c.cpuCoreCount}</TableCell>
-										<TableCell align="center">{c.memory}</TableCell>
-										<TableCell align="center">{c.zoneId}</TableCell>
-										<TableCell align="center">
-											¥{c.tradePrice.toFixed(2)}
-										</TableCell>
+				{loading ? (
+					<Paper variant="outlined">
+						<LoadingEmptyState />
+					</Paper>
+				) : candidates.current.length === 0 ? (
+					<Paper variant="outlined">
+						<EmptyState
+							description={<span className="text-neutral-500">暂无可用实例</span>}
+							className="py-8"
+						/>
+					</Paper>
+				) : (
+					<Paper variant="outlined">
+						<TableContainer>
+							<Table size="small">
+								<TableHead>
+									<TableRow>
+										{columns.map(col => (
+											<TableCell key={col.id} align="center">
+												{col.label}
+											</TableCell>
+										))}
 									</TableRow>
-								))}
-							</TableBody>
-						</Table>
-					</TableContainer>
-				</Paper>
+								</TableHead>
+								<TableBody>
+									{candidates.current.map((c, i) => (
+										<TableRow key={i} hover>
+											<TableCell align="center">
+												<div className="flex justify-center items-center gap-2">
+													{c.instanceType}{' '}
+													{i === 0 && (
+														<CheckIcon size={16} color="green" />
+													)}
+												</div>
+											</TableCell>
+											<TableCell align="center">{c.cpuCoreCount}</TableCell>
+											<TableCell align="center">{c.memory}</TableCell>
+											<TableCell align="center">{c.zoneId}</TableCell>
+											<TableCell align="center">
+												¥{c.tradePrice.toFixed(2)}
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</TableContainer>
+					</Paper>
+				)}
 			</div>
 		</>
 	);

@@ -11,7 +11,12 @@ export interface BalanceChartPoint {
 	amount: number;
 }
 
-export default function BalanceChart({ data }: { data: BalanceChartPoint[] }) {
+export default function BalanceChart({ data, loading = false }: { data: BalanceChartPoint[]; loading?: boolean }) {
+	if (loading) {
+		return (
+			<div className="animate-pulse bg-neutral-100 rounded" style={{ height: 150, width: '100%' }} />
+		);
+	}
 	if (data.length === 0) {
 		return (
 			<div className="text-neutral-400 text-sm text-center py-8 select-none">

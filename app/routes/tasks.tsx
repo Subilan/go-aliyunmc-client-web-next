@@ -200,6 +200,7 @@ export default function TasksPage() {
 	const [sort, setSort] = useState('created_at');
 	const [order, setOrder] = useState<'asc' | 'desc'>('desc');
 	const [stats, setStats] = useState<TaskStats | null>(null);
+	const [initialLoading, setInitialLoading] = useState(true);
 
 	const fetch = useCallback(async () => {
 		const res = await fetchTasks({
@@ -212,6 +213,7 @@ export default function TasksPage() {
 			setRows(res.data!.tasks);
 			setTotal(res.data!.total);
 		}
+		setInitialLoading(false);
 	}, [page, pageSize, sort, order]);
 
 	useEffect(() => {
@@ -275,6 +277,7 @@ export default function TasksPage() {
 					pageSize={pageSize}
 					sort={sort}
 					order={order}
+					loading={initialLoading}
 					onPageChange={setPage}
 					onPageSizeChange={size => {
 						setPageSize(size);

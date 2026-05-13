@@ -581,7 +581,7 @@ export default function Home() {
 				<ServerStatusCard
 					notReady={instanceNotFound.current || !isDeployed}
 					starting={serverStarting}
-					loading={initialLoading && instanceNotFound.current && !instance}
+					loading={initialLoading}
 					online={serverOnline.current}
 					playerCount={playerCount.current}
 					platform={serverQuery.current?.platform}
@@ -594,7 +594,7 @@ export default function Home() {
 				<InstanceStatusCard
 					notFound={instanceNotFound.current}
 					busy={taskRunning && !startTaskId}
-					loading={initialLoading && !instance && !instanceNotFound.current}
+					loading={initialLoading}
 					busyLabel={deployTaskId ? '实例部署中' : '实例创建中'}
 					latestOutput={latestOutput}
 					instanceStatus={instanceStatus.current}

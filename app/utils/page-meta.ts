@@ -16,6 +16,12 @@ const pageMeta: Record<string, PageMetaEntry> = Object.fromEntries(
 pageMeta['/game/statistics/'] = { group: PAGE_CATEGORY_GAME, label: PAGE_NAME_GAME_STATISTICS };
 
 export function getPageMeta(pathname: string): PageMetaEntry | undefined {
-	return pageMeta[pathname]
-		?? Object.entries(pageMeta).find(([k]) => k.endsWith('/') && pathname.startsWith(k))?.[1];
+	return (
+		pageMeta[pathname] ??
+		pageMeta[
+			Object.keys(pageMeta)
+				.filter(k => pathname.startsWith(k))
+				.reduceRight((prev, current) => (current.length > prev.length ? current : prev))
+		]
+	);
 }

@@ -70,13 +70,13 @@ export const groups: FeatureGroup[] = [
 		cards: [
 			{
 				title: PAGE_NAME_PLAYER_LIST,
-				description: '查看服务器的所有玩家以及他们的个人统计数据。',
+				description: '查看服务器已经获取白名单的玩家列表以及他们的个人统计数据。',
 				to: '/game/player-list',
 				icon: UsersIcon
 			},
 			{
 				title: PAGE_NAME_LEADERBOARD,
-				description: '浏览服务器玩家各项指标的排行榜，了解顶尖玩家的游戏数据。',
+				description: '浏览服务器玩家各项指标的排行榜，了解所有玩家的游戏数据。',
 				to: '/game/leaderboard',
 				icon: AlignEndHorizontalIcon
 			},

@@ -1,12 +1,9 @@
 import type { Route } from './+types/game-statistics';
 import { Card, CardContent, Collapse, IconButton } from '@mui/material';
-import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
+import { AlertTriangleIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_GAME_STATISTICS } from '~/consts/page-names';
-import {
-	getGameStats,
-	getSortedAdvancements,
-} from '~/utils/requests/game';
+import { getGameStats, getSortedAdvancements } from '~/utils/requests/game';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Times } from '~/utils/times';
 import { CardLabel } from '~/components/card-label';
@@ -31,16 +28,44 @@ export const gameStatisticsLoader = createLoader(async args => {
 
 	const [advRes, statsRes] = await Promise.all([getSortedAdvancements(uuid), getGameStats(uuid)]);
 
+	if (advRes.error === null && statsRes.error === null) {
+		return { uuid, error: null, advancements: advRes.data, gameStats: statsRes.data };
+	}
+
+	const result = {
+		uuid: null,
+		error: '获取数据过程中出现问题',
+		advancements: null,
+		gameStats: null
+	};
+
 	if (advRes.status === 404 || statsRes.status === 404) {
-		return { error: '暂无此玩家数据', advancements: null, gameStats: null };
+		result.error = '暂无此玩家数据';
 	}
 
-	if (advRes.error !== null || statsRes.error !== null) {
-		return { error: '获取数据过程中出现问题', advancements: null, gameStats: null };
+	if (advRes.status === 403 || statsRes.status === 403) {
+		result.error = '你没有查看此玩家数据的权限';
 	}
 
-	return { uuid, error: null, advancements: advRes.data, gameStats: statsRes.data };
+	return result;
 });
+
+function Info() {
+	return (
+		<>
+			<p>
+				游戏统计页面的数据来自 Minecraft
+				自带的统计功能，此页面对其中的数据进行了组织和整理，最终以便于查看的形式展示。在游戏中，你可以在暂停屏幕中找到进入统计信息界面的入口。
+			</p>
+			<h4>数据时效</h4>
+			<p>此页面的数据只会在服务器开启的状态下进行同步，同步时间间隔为 5 分钟。</p>
+			<h4>私密数据</h4>
+			<p>
+				默认情况下，你的统计页面也可以被其他获得了白名单的玩家访问。如果你不希望除了你以外的任何人访问，请前往个人资料中将此页面设置为不公开。
+			</p>
+		</>
+	);
+}
 
 export default function GameStatistics() {
 	const loaderData = gameStatisticsLoader.get();
@@ -50,7 +75,11 @@ export default function GameStatistics() {
 		return (
 			<>
 				<PageHeader>{PAGE_NAME_GAME_STATISTICS}</PageHeader>
-				<EmptyState className="h-64" description={loaderData.error} />
+				<EmptyState
+					className="h-64"
+					iconComponent={<AlertTriangleIcon size={20} />}
+					description={loaderData.error}
+				/>
 			</>
 		);
 	}
@@ -69,7 +98,7 @@ export default function GameStatistics() {
 
 	return (
 		<>
-			<PageHeader>{PAGE_NAME_GAME_STATISTICS}</PageHeader>
+			<PageHeader info={Info()}>{PAGE_NAME_GAME_STATISTICS}</PageHeader>
 			<div className="flex flex-col gap-3">
 				{/* Player Overview */}
 				<Card variant="outlined" sx={{ overflow: 'visible' }}>

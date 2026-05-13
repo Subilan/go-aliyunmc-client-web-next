@@ -38,6 +38,7 @@ interface PaginatedTableProps<T> {
 	pageSizeOptions?: number[];
 	sort?: string;
 	order?: 'asc' | 'desc';
+	loading?: boolean;
 	onPageChange: (page: number) => void;
 	onPageSizeChange: (pageSize: number) => void;
 	onSortChange?: (sort: string, order: 'asc' | 'desc') => void;
@@ -140,6 +141,7 @@ export default function PaginatedTable<T>({
 	pageSizeOptions = [5, 10, 15, 20],
 	sort,
 	order,
+	loading = false,
 	onPageChange,
 	onPageSizeChange,
 	onSortChange
@@ -177,15 +179,23 @@ export default function PaginatedTable<T>({
 						</TableRow>
 					</TableHead>
 					<TableBody>
-						{rows.map((row, i) => (
-							<TableRow key={getRowKey(row, i)} hover>
-								{columns.map(col => (
-									<TableCell key={col.id} align={col.align ?? 'left'}>
-										{col.render(row)}
-									</TableCell>
+						{loading && rows.length === 0
+							? Array.from({ length: pageSize }).map((_, i) => (
+									<TableRow key={`skel-${i}`}>
+										<TableCell colSpan={columns.length}>
+											<div className="h-4 bg-neutral-100 rounded animate-pulse" />
+										</TableCell>
+									</TableRow>
+								))
+							: rows.map((row, i) => (
+									<TableRow key={getRowKey(row, i)} hover>
+										{columns.map(col => (
+											<TableCell key={col.id} align={col.align ?? 'left'}>
+												{col.render(row)}
+											</TableCell>
+										))}
+									</TableRow>
 								))}
-							</TableRow>
-						))}
 					</TableBody>
 				</Table>
 			</TableContainer>

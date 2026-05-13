@@ -3,7 +3,7 @@ import { CopyIcon, HardDriveIcon } from 'lucide-react';
 import { CardLabel } from '~/components/card-label';
 import { FuncList, type FuncListItem } from '~/components/func-list';
 import { instanceStatusColor, instanceStatusText } from '~/routes/home/utils';
-import EmptyState from '~/components/empty-state';
+import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
 import { useContext } from 'react';
 import { UserContext } from '~/contexts/user';
 import { Toast } from '~/root';
@@ -11,6 +11,7 @@ import { Toast } from '~/root';
 interface InstanceStatusCardProps {
 	notFound: boolean;
 	busy: boolean;
+	loading?: boolean;
 	busyLabel: string;
 	latestOutput: string | null;
 	instanceStatus: string;
@@ -25,6 +26,7 @@ export default function InstanceStatusCard(props: InstanceStatusCardProps) {
 	const {
 		notFound,
 		busy,
+		loading = false,
 		busyLabel,
 		latestOutput,
 		instanceStatus,
@@ -40,11 +42,10 @@ export default function InstanceStatusCard(props: InstanceStatusCardProps) {
 		<Card variant="outlined">
 			<CardContent>
 				<CardLabel icon={<HardDriveIcon size={14} />}>实例状态</CardLabel>
-				{busy ? (
-					<EmptyState
-						spinner
-						iconSize={40}
-						iconClassName="text-neutral-300"
+				{loading ? (
+					<LoadingEmptyState />
+				) : busy ? (
+					<LoadingEmptyState
 						description={
 							<div className="flex flex-col items-center gap-1">
 								<span className="text-neutral-500">{busyLabel}</span>
@@ -55,7 +56,6 @@ export default function InstanceStatusCard(props: InstanceStatusCardProps) {
 								)}
 							</div>
 						}
-						className="py-8"
 					/>
 				) : notFound ? (
 					<EmptyState

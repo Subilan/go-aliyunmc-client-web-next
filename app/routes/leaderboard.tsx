@@ -25,7 +25,7 @@ import { Req } from '~/utils/requests/Req';
 import type { LeaderboardEntry } from '~/utils/requests/game';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
-import EmptyState from '~/components/empty-state';
+import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
 import PageHeader from '~/components/page-header';
 
 const METRICS: Record<string, { label: string; unit: string; decimals: number; divisor: number }> =
@@ -167,9 +167,7 @@ export default function Leaderboard() {
 				</Select>
 			</div>
 			<div className="flex flex-col gap-4">
-				{loading.current && (
-					<EmptyState spinner description="加载中..." className="py-12" />
-				)}
+				{loading.current && <LoadingEmptyState />}
 
 				{!loading.current && entries.current.length === 0 && (
 					<EmptyState description="暂无排行数据" className="py-12" />

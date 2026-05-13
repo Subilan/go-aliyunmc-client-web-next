@@ -7,28 +7,44 @@ interface EmptyStateProps {
 	icon?: LucideIcon;
 	iconSize?: number;
 	iconClassName?: string;
-	spinner?: boolean;
+	iconComponent?: ReactNode;
 	title?: string;
 	description?: ReactNode;
 	action?: ReactNode;
 	className?: string;
 }
 
+export function LoadingEmptyState(props: { className?: string; iconSize?: number; description?: ReactNode }) {
+	return (
+		<EmptyState
+			layout="vertical"
+			iconComponent={
+				<Loader2Icon
+					size={props.iconSize ?? 20}
+					className={`animate-spin text-neutral-400`}
+				/>
+			}
+			description={props.description ?? <span className="text-neutral-400">加载中...</span>}
+			className={props.className ?? 'py-8'}
+		></EmptyState>
+	);
+}
+
 export default function EmptyState({
 	layout = 'vertical',
 	icon: Icon,
+	iconComponent,
 	iconSize = 28,
 	iconClassName,
-	spinner = false,
 	title,
 	description,
 	action,
-	className = '',
+	className = ''
 }: EmptyStateProps) {
 	const isHorizontal = layout === 'horizontal';
 
-	const iconEl = spinner ? (
-		<Loader2Icon size={iconSize} className={`animate-spin ${iconClassName ?? ''}`} />
+	const iconEl = iconComponent ? (
+		iconComponent
 	) : Icon ? (
 		<Icon size={iconSize} className={iconClassName} />
 	) : null;
@@ -38,13 +54,16 @@ export default function EmptyState({
 	const textBlock = hasText ? (
 		<div className={`flex flex-col ${isHorizontal ? '' : 'text-center'}`}>
 			{title && <span className="font-medium text-neutral-600">{title}</span>}
-			{description && (typeof description === 'string' ? <span>{description}</span> : description)}
+			{description &&
+				(typeof description === 'string' ? <span>{description}</span> : description)}
 		</div>
 	) : null;
 
 	return (
 		<div className={`flex flex-col items-center justify-center text-neutral-500 ${className}`}>
-			<div className={`flex ${isHorizontal ? 'flex-row items-center' : 'flex-col items-center'} gap-2`}>
+			<div
+				className={`flex ${isHorizontal ? 'flex-row items-center' : 'flex-col items-center'} gap-2`}
+			>
 				{iconEl}
 				{textBlock}
 			</div>

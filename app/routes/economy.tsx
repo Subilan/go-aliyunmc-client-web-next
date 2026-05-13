@@ -31,6 +31,7 @@ export default function Economy() {
 	const bestPrice = useStateNamed<number | null>(null);
 	const deductionRate = useStateNamed<number | null>(null);
 	const [refreshing, setRefreshing] = useState(false);
+	const [loading, setLoading] = useState(true);
 
 	async function fetchAll() {
 		const [balRes, chartRes, candRes] = await Promise.all([
@@ -76,10 +77,12 @@ export default function Economy() {
 		if (candRes.error === null && candRes.data!.length > 0) {
 			bestPrice.set(candRes.data![0].tradePrice);
 		}
+		setLoading(false);
 	}
 
 	async function refresh() {
 		setRefreshing(true);
+		setLoading(true);
 		try {
 			await fetchAll();
 		} finally {
@@ -109,20 +112,25 @@ export default function Economy() {
 						{
 							icon: <DollarSignIcon size={12} />,
 							label: '当前余额',
-							value: `¥${balance.current.toFixed(2)}`
+							value: !loading ? `¥${balance.current.toFixed(2)}` : null,
+							loading
 						},
 						{
 							icon: <TrendingDownIcon size={12} />,
 							label: '平均降低',
 							value:
-								deductionRate.current === null
-									? '—'
-									: `¥${deductionRate.current.toFixed(2)}/h`
+								loading
+									? null
+									: deductionRate.current === null
+										? '—'
+										: `¥${deductionRate.current.toFixed(2)}/h`,
+							loading
 						},
 						{
 							icon: <ClockIcon size={12} />,
 							label: '预计支撑时间',
-							value: estimatedHours === null ? '—' : `${estimatedHours.toFixed(1)} h`
+							value: loading ? null : (estimatedHours === null ? '—' : `${estimatedHours.toFixed(1)} h`),
+							loading
 						}
 					]}
 				/>
@@ -145,7 +153,7 @@ export default function Economy() {
 						>
 							余额走势
 						</CardLabel>
-						<BalanceChart data={chartData.current} />
+						<BalanceChart data={chartData.current} loading={loading} />
 					</CardContent>
 				</Card>
 			</div>

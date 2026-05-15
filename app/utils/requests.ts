@@ -2,7 +2,7 @@ import { router } from "~/routes";
 import { navigate } from "~/utils/navigate";
 
 // export const BASE_URL = 'http://localhost:45678'
-export const BASE_URL = '/api';
+export const BASE_URL = import.meta.env.DEV ? '/api' : 'https://api.seatide.net';
 
 export type Resp<T = any> =
 	| { data: null; error: string; status: number }

@@ -12,14 +12,6 @@ import {
 	DialogContentText,
 	DialogTitle
 } from '@mui/material';
-import {
-	ArchiveIcon,
-	DatabaseIcon,
-	PlayIcon,
-	RocketIcon,
-	SquareIcon,
-	Trash2Icon
-} from 'lucide-react';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
 import type { Instance } from '~/types/Instance';
@@ -35,16 +27,17 @@ import { RecentTasks } from '~/components/home/recent-tasks-card';
 import type { ServerStatusFetchResult } from '~/components/home/server-status-card';
 import type { EcsCandidatesFetchResult } from '~/components/home/ecs-candidates-card';
 import type { RecentTasksFetchResult } from '~/components/home/recent-tasks-card';
-import type { FuncListItem } from '~/components/func-list';
 import { deleteActiveInstance } from '~/utils/requests/instance';
 import { triggerTask } from '~/utils/requests/task';
 import { get } from '~/utils/requests';
-import { useTaskSSE } from '~/hooks/useTaskSSE';
 import { useStateSSE } from '~/hooks/useStateSSE';
 import type { ServerStatus as ServerStatusType } from '~/types/ServerStatus';
-import { queryServer } from '~/utils/requests/server';
 import type { ServerQuery } from '~/types/ServerQuery';
 import { Times } from '~/utils/times';
+import { useSSESync } from '~/routes/home/useSSESync';
+import { useServerOnlineTransition } from '~/routes/home/useServerOnlineTransition';
+import { useTaskPipeline } from '~/routes/home/useTaskPipeline';
+import { buildServerActions, buildInstanceActions } from '~/routes/home/actions';
 
 export function meta({}: Route.MetaArgs) {
 	return [{ title: '控制台 - Seatide' }, { name: 'description', content: 'Seatide 玩家控制台' }];
@@ -72,28 +65,8 @@ export default function Home() {
 		useStateNamed(false)
 	];
 
-	// Create instance dialog
 	const [dialogOpen, setDialogOpen] = useState(false);
-	const [createTaskId, setCreateTaskId] = useState<number | null>(null);
-	const [deployTaskId, setDeployTaskId] = useState<number | null>(null);
-	const [startTaskId, setStartTaskId] = useState<number | null>(null);
-	const [archiveTaskId, setArchiveTaskId] = useState<number | null>(null);
-	const [taskRunning, setTaskRunning] = useState(false);
-	const [serverStarting, setServerStarting] = useState(false);
 	const [createLoading, setCreateLoading] = useState(false);
-
-	// SSE for live task output in the instance status card
-	const createSSE = useTaskSSE(createTaskId);
-	const deploySSE = useTaskSSE(deployTaskId);
-	const startSSE = useTaskSSE(startTaskId);
-	const archiveSSE = useTaskSSE(archiveTaskId);
-	const activeOutputs = startTaskId
-		? startSSE.outputs
-		: deployTaskId
-			? deploySSE.outputs
-			: createSSE.outputs;
-	const latestOutput =
-		activeOutputs.length > 0 ? activeOutputs[activeOutputs.length - 1].output : null;
 
 	const [deployConfirmOpen, setDeployConfirmOpen] = useState(false);
 	const [deployTriggering, setDeployTriggering] = useState(false);
@@ -101,19 +74,16 @@ export default function Home() {
 	const [deleteOpen, setDeleteOpen] = useState(false);
 	const [deleting, setDeleting] = useState(false);
 
-	// Backup / Archive confirmation dialogs
 	const [backupOpen, setBackupOpen] = useState(false);
 	const [archiveOpen, setArchiveOpen] = useState(false);
 	const [backupTriggering, setBackupTriggering] = useState(false);
 	const [archiveTriggering, setArchiveTriggering] = useState(false);
 
-	// Start / Stop server confirmation dialogs
 	const [startOpen, setStartOpen] = useState(false);
 	const [stopOpen, setStopOpen] = useState(false);
 	const [starting, setStarting] = useState(false);
 	const [stopping, setStopping] = useState(false);
 
-	// State SSE for live server/instance status updates
 	const srvSSE = useStateSSE<ServerStatusType>(
 		'/state/watch/server-status',
 		'server_status_snapshot',
@@ -124,11 +94,11 @@ export default function Home() {
 		'instance_status_snapshot',
 		'instance_status_update'
 	);
-	const startServerTriggeredRef = useRef(false);
 	const instanceDeletedRef = useRef(false);
 	const serverQuery = useRef<ServerQuery>(undefined);
 
-	const [tasksRefreshKey, setTasksRefreshKey] = useState(0);
+	const fetchAllRef = useRef<() => Promise<void>>(async () => {});
+	const pipeline = useTaskPipeline(() => fetchAllRef.current());
 
 	async function fetchAll() {
 		let srvOnline = false;
@@ -151,36 +121,12 @@ export default function Home() {
 			RecentTasks.fetchData(tasksLoading).then(res => {
 				if (res.error === null) {
 					handleTasksRefresh(res);
-					const runningCreate = res.data!.tasks.find(
-						t => t.type === 'create_instance' && t.status === 'running'
-					);
-					const runningDeploy = res.data!.tasks.find(
-						t => t.type === 'deploy' && t.status === 'running'
-					);
-					if (runningCreate || runningDeploy) {
-						setCreateTaskId(runningCreate?.ID ?? null);
-						setDeployTaskId(runningDeploy?.ID ?? null);
-						setTaskRunning(true);
-					}
-					const runningStart = res.data!.tasks.find(
-						t => t.type === 'start_server' && t.status === 'running'
-					);
-					if (runningStart) {
-						setStartTaskId(runningStart.ID);
-						setTaskRunning(true);
-						if (!srvOnline) {
-							setServerStarting(true);
-							startServerTriggeredRef.current = true;
-						}
-					}
-					const runningArchive = res.data!.tasks.find(
-						t => t.type === 'archive' && t.status === 'running'
-					);
-					if (runningArchive) setArchiveTaskId(runningArchive.ID);
+					pipeline.syncRunningTasks(res.data!.tasks, srvOnline);
 				}
 			})
 		]);
 	}
+	fetchAllRef.current = fetchAll;
 
 	function handleServerRefresh([srvRes, chartRes, idleRes, querySrvRes]: ServerStatusFetchResult) {
 		if (querySrvRes.error === null) serverQuery.current = querySrvRes.data;
@@ -207,117 +153,26 @@ export default function Home() {
 		if (result.error === null) setTasks(result.data!.tasks);
 	}
 
-	// Sync SSE values into named state
-	useEffect(() => {
-		if (srvSSE.value) {
-			if (srvSSE.value.Error) {
-				serverOnline.set(false);
-				playerCount.set(0);
-			} else {
-				serverOnline.set(srvSSE.value.Value.online);
-				playerCount.set(srvSSE.value.Value.playerCount);
-			}
-		}
-	}, [srvSSE.value]);
+	useSSESync({
+		srvValue: srvSSE.value,
+		instValue: instSSE.value,
+		setServerOnline: serverOnline.set,
+		setPlayerCount: playerCount.set,
+		setInstanceStatus: instanceStatus.set,
+		setInstanceNotFound: instanceNotFound.set
+	});
 
-	useEffect(() => {
-		if (instSSE.value) {
-			if (instSSE.value.Error) {
-				instanceNotFound.set(true);
-			} else {
-				instanceStatus.set(instSSE.value.Value);
-			}
-		}
-	}, [instSSE.value]);
-
-	// Auto-refresh tasks when server becomes online after start_server trigger
-	useEffect(() => {
-		if (srvSSE.value?.Value.online) {
-			if (startServerTriggeredRef.current) {
-				startServerTriggeredRef.current = false;
-				setTasksRefreshKey(k => k + 1);
-			}
-			queryServer().then(r => {
-				if (r.error === null) serverQuery.current = r.data;
-			});
-			setServerStarting(false);
-		}
-	}, [srvSSE.value]);
+	useServerOnlineTransition({
+		srvValue: srvSSE.value,
+		startServerTriggeredRef: pipeline.startServerTriggeredRef,
+		setTasksRefreshKey: pipeline.setTasksRefreshKey,
+		serverQuery,
+		setServerStarting: pipeline.setServerStarting
+	});
 
 	useEffect(() => {
 		fetchAll();
 	}, []);
-
-	// Chain create -> deploy
-	useEffect(() => {
-		if (!createSSE.done || !createTaskId) return;
-		if (createSSE.error) {
-			Toast.error('创建实例失败: ' + createSSE.error);
-			setCreateTaskId(null);
-			setTaskRunning(false);
-			return;
-		}
-		Toast.success('实例创建成功');
-		triggerTask('deploy', {}).then(res => {
-			if (res.data) {
-				setDeployTaskId(res.data.ID);
-				fetchAll();
-			} else {
-				Toast.error('触发部署失败: ' + res.error);
-				setCreateTaskId(null);
-				setTaskRunning(false);
-			}
-		});
-	}, [createSSE.done]);
-
-	// Chain deploy -> start_server
-	useEffect(() => {
-		if (!deploySSE.done || !deployTaskId) return;
-		if (deploySSE.error) {
-			Toast.error('部署失败: ' + deploySSE.error);
-			setDeployTaskId(null);
-			setTaskRunning(false);
-			return;
-		}
-		Toast.success('部署成功');
-		setServerStarting(true);
-		startServerTriggeredRef.current = true;
-		triggerTask('start_server', {}).then(res => {
-			if (res.data) {
-				setStartTaskId(res.data.ID);
-				fetchAll();
-			} else {
-				Toast.error('触发启动服务器失败: ' + res.error);
-				setDeployTaskId(null);
-				setTaskRunning(false);
-			}
-		});
-	}, [deploySSE.done]);
-
-	// Refresh tasks when standalone start_server completes
-	useEffect(() => {
-		if (startSSE.done && startTaskId) {
-			if (startSSE.error) {
-				Toast.error('启动服务器失败: ' + startSSE.error);
-			}
-			setStartTaskId(null);
-			setTaskRunning(false);
-			fetchAll();
-		}
-	}, [startSSE.done]);
-
-	// Refresh tasks when archive completes
-	useEffect(() => {
-		if (archiveSSE.done && archiveTaskId) {
-			if (archiveSSE.error) {
-				Toast.error('归档失败: ' + archiveSSE.error);
-			} else {
-				Toast.success('归档成功');
-			}
-			setArchiveTaskId(null);
-			setTasksRefreshKey(k => k + 1);
-		}
-	}, [archiveSSE.done]);
 
 	const isDeployed = instance?.isDeployed ?? false;
 
@@ -326,12 +181,11 @@ export default function Home() {
 	const canDeploy = !isDeployed;
 	const canBackup = isDeployed;
 
-	const archiving = archiveTaskId !== null;
-	const handleAction = (name: string) => {
+	function handleAction(name: string) {
 		if (name === '创建实例') {
-			if (!taskRunning) {
-				setCreateTaskId(null);
-				setDeployTaskId(null);
+			if (!pipeline.taskRunning) {
+				pipeline.setCreateTaskId(null);
+				pipeline.setDeployTaskId(null);
 			}
 			setDialogOpen(true);
 			return;
@@ -357,7 +211,7 @@ export default function Home() {
 			return;
 		}
 		Toast.info(`${name} — 功能开发中`);
-	};
+	}
 
 	async function handleDelete() {
 		setDeleting(true);
@@ -405,8 +259,8 @@ export default function Home() {
 			Toast.error(typeof error === 'string' ? error : '任务触发失败');
 		} else {
 			Toast.success('启动服务器任务已触发');
-			startServerTriggeredRef.current = true;
-			setServerStarting(true);
+			pipeline.startServerTriggeredRef.current = true;
+			pipeline.setServerStarting(true);
 			fetchAll();
 		}
 		setStarting(false);
@@ -435,8 +289,8 @@ export default function Home() {
 			return;
 		}
 		setDeployConfirmOpen(false);
-		setDeployTaskId(data!.ID);
-		setTaskRunning(true);
+		pipeline.setDeployTaskId(data!.ID);
+		pipeline.setTaskRunning(true);
 		setDeployTriggering(false);
 		fetchAll();
 	}
@@ -453,68 +307,37 @@ export default function Home() {
 			return;
 		}
 		Toast.success('创建任务已触发');
-		setCreateTaskId(data!.ID);
-		setTaskRunning(true);
+		pipeline.setCreateTaskId(data!.ID);
+		pipeline.setTaskRunning(true);
 		setCreateLoading(false);
 		setDialogOpen(false);
 		fetchAll();
 	}
 
-	const serverActions: FuncListItem[] = [
-		{
-			name: '启动服务器',
-			icon: PlayIcon,
-			action: () => handleAction('启动服务器'),
-			disabled:
-				!canStartServer ||
-				(permissions !== null && !permissions.can_trigger_task) ||
-				archiving
-		},
-		{
-			name: '停止服务器',
-			icon: SquareIcon,
-			action: () => handleAction('停止服务器'),
-			disabled: !canStopServer || (permissions !== null && !permissions.can_stop_server)
-		}
-	];
+	const serverActions = buildServerActions({
+		canStartServer,
+		canStopServer,
+		permissions,
+		archiving: pipeline.archiving,
+		handleAction
+	});
 
-	const instanceActions: FuncListItem[] = [
-		{
-			name: '部署',
-			icon: RocketIcon,
-			action: () => setDeployConfirmOpen(true),
-			disabled: !canDeploy || (permissions !== null && !permissions.can_trigger_task)
-		},
-		{
-			name: '删除实例',
-			icon: Trash2Icon,
-			action: () => handleAction('删除实例'),
-			disabled: permissions !== null && !permissions.can_delete_instance
-		},
-		{
-			name: '备份',
-			icon: DatabaseIcon,
-			action: () => handleAction('备份'),
-			disabled:
-				!canBackup || archiving || (permissions !== null && !permissions.can_run_backup)
-		},
-		{
-			name: '归档',
-			icon: ArchiveIcon,
-			action: () => handleAction('归档'),
-			disabled:
-				!canBackup || archiving || (permissions !== null && !permissions.can_run_archive)
-		}
-	];
+	const instanceActions = buildInstanceActions({
+		canDeploy,
+		canBackup,
+		permissions,
+		archiving: pipeline.archiving,
+		setDeployConfirmOpen,
+		handleAction
+	});
 
 	return (
 		<>
-			{/* header */}
 			<div className="flex items-center mb-6">
 				<h1 className="text-3xl">Hi, {user?.username}</h1>
 			</div>
 
-			{archiving && (
+			{pipeline.archiving && (
 				<Alert severity="warning" className="mb-4">
 					当前实例正在归档中，请勿与实例进行交互。
 				</Alert>
@@ -548,7 +371,7 @@ export default function Home() {
 			<div className="flex flex-col gap-4">
 				<ServerStatus.Card
 					notReady={instanceNotFound.current || !isDeployed}
-					starting={serverStarting}
+					starting={pipeline.serverStarting}
 					loading={serverLoading.current}
 					online={serverOnline.current}
 					playerCount={playerCount.current}
@@ -560,10 +383,10 @@ export default function Home() {
 				/>
 				<InstanceStatus.Card
 					notFound={instanceNotFound.current}
-					busy={taskRunning && !startTaskId}
+					busy={pipeline.taskRunning && !pipeline.startTaskId}
 					loading={instanceLoading.current}
-					busyLabel={deployTaskId ? '实例部署中' : '实例创建中'}
-					latestOutput={latestOutput}
+					busyLabel={pipeline.deployTaskId ? '实例部署中' : '实例创建中'}
+					latestOutput={pipeline.latestOutput}
 					instanceStatus={instanceStatus.current}
 					instanceType={instance?.instanceType ?? '—'}
 					zoneId={instance?.zoneId ?? '—'}
@@ -579,7 +402,7 @@ export default function Home() {
 				<RecentTasks.Card
 					tasks={tasks}
 					loading={tasksLoading.current && tasks.length === 0}
-					refreshKey={tasksRefreshKey}
+					refreshKey={pipeline.tasksRefreshKey}
 					onRefreshData={handleTasksRefresh}
 				/>
 			</div>

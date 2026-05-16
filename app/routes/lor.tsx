@@ -52,7 +52,7 @@ function LoginForm({ setRegister }: { setRegister: () => void }) {
 		loading.set(false);
 		if (error === null) {
 			Auth.clearCache();
-			Toast.success('登录成功');
+			Toast.success('登录成功，即将跳转');
 			navigate('/');
 		} else {
 			Toast.error(error);

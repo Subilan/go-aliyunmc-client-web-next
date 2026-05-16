@@ -134,21 +134,8 @@ export default function Home() {
 		let srvOnline = false;
 		await Promise.all([
 			ServerStatus.fetchData(serverLoading).then(([srvRes, chartRes, idleRes, querySrvRes]) => {
-				if (querySrvRes.error === null) serverQuery.current = querySrvRes.data;
-				if (srvRes.error === null) {
-					srvOnline = srvRes.data!.Value.online;
-					serverOnline.set(srvOnline);
-					playerCount.set(srvRes.data!.Value.playerCount);
-				}
-				if (chartRes.error === null) {
-					chartData.set(
-						chartRes.data!.map(p => ({
-							time: Times.formatDate(p.time, 'MM-DD HH:mm:ss'),
-							playerNames: p.playerNames
-						}))
-					);
-				}
-				if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
+				handleServerRefresh([srvRes, chartRes, idleRes, querySrvRes]);
+				if (srvRes.error === null) srvOnline = srvRes.data!.Value.online;
 			}),
 			InstanceStatus.fetchData(instanceLoading).then(([instRes, instStatusRes]) => {
 				if (instRes.error === null) {
@@ -160,12 +147,10 @@ export default function Home() {
 				}
 				if (instStatusRes.error === null) instanceStatus.set(instStatusRes.data!.Value);
 			}),
-			EcsCandidates.fetchData(ecsLoading).then(res => {
-				if (res.error === null) setCandidates(res.data!);
-			}),
+			EcsCandidates.fetchData(ecsLoading).then(handleCandidatesRefresh),
 			RecentTasks.fetchData(tasksLoading).then(res => {
 				if (res.error === null) {
-					setTasks(res.data!.tasks);
+					handleTasksRefresh(res);
 					const runningCreate = res.data!.tasks.find(
 						t => t.type === 'create_instance' && t.status === 'running'
 					);

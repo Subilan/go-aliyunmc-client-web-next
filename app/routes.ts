@@ -8,7 +8,7 @@ import EcsCandidatesPage from '~/routes/ecs-candidates';
 import GameStatistics, { gameStatisticsLoader } from '~/routes/game-statistics';
 import Home from '~/routes/home';
 import Leaderboard from '~/routes/leaderboard';
-import Lor from '~/routes/lor';
+import Lor, { lorLoader } from '~/routes/lor';
 import GameStatisticsPlayerList, { playerListLoader } from '~/routes/player-list';
 import Profile from '~/routes/profile';
 import TasksPage from '~/routes/tasks'; 
@@ -22,7 +22,8 @@ export const router = createHashRouter([
 		children: [
 			{
 				path: 'lor',
-				Component: Lor
+				Component: Lor,
+				loader: lorLoader.itself
 			},
 			{
 				Component: AppLayout,

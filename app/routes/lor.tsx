@@ -25,6 +25,7 @@ import { Form } from '~/components/form/Form';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
 import { Auth } from '~/utils/auth';
+import { createLoader } from '~/utils/createLoader';
 import { navigate } from '~/utils/navigate';
 import { Req } from '~/utils/requests/Req';
 
@@ -167,12 +168,12 @@ function RegisterForm({ setLogin }: { setLogin: () => void }) {
 	);
 }
 
-export async function clientLoader() {
+export const lorLoader = createLoader(async args => {
 	if (await Auth.isLoggedIn()) {
 		Toast.info('你已经登录');
 		throw redirect('/');
 	}
-}
+});
 
 export default function Lor() {
 	const [type, setType] = useState<'login' | 'register'>('login');

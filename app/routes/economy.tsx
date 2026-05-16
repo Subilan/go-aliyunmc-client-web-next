@@ -112,25 +112,25 @@ export default function Economy() {
 						{
 							icon: <DollarSignIcon size={12} />,
 							label: '当前余额',
-							value: !loading ? `¥${balance.current.toFixed(2)}` : null,
-							loading
+							value: !loading ? `¥${balance.current.toFixed(2)}` : null
 						},
 						{
 							icon: <TrendingDownIcon size={12} />,
 							label: '平均降低',
-							value:
-								loading
-									? null
-									: deductionRate.current === null
-										? '—'
-										: `¥${deductionRate.current.toFixed(2)}/h`,
-							loading
+							value: loading
+								? null
+								: deductionRate.current === null
+									? '—'
+									: `¥${deductionRate.current.toFixed(2)}/h`
 						},
 						{
 							icon: <ClockIcon size={12} />,
 							label: '预计支撑时间',
-							value: loading ? null : (estimatedHours === null ? '—' : `${estimatedHours.toFixed(1)} h`),
-							loading
+							value: loading
+								? null
+								: estimatedHours === null
+									? '—'
+									: `${estimatedHours.toFixed(1)} h`
 						}
 					]}
 				/>
@@ -142,11 +142,15 @@ export default function Economy() {
 							icon={<TrendingUpIcon size={14} />}
 							actions={
 								<Tooltip title="刷新">
-									<IconButton size="small" disabled={refreshing} onClick={refresh}>
-									<RefreshCwIcon
-										size={16}
-										className={refreshing ? 'animate-spin' : ''}
-									/>
+									<IconButton
+										size="small"
+										disabled={refreshing}
+										onClick={refresh}
+									>
+										<RefreshCwIcon
+											size={16}
+											className={refreshing ? 'animate-spin' : ''}
+										/>
 									</IconButton>
 								</Tooltip>
 							}

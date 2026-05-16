@@ -9,6 +9,7 @@ import { AlertCircleIcon, CheckIcon, InfoIcon } from 'lucide-react';
 import Footer from '~/footer';
 import { router } from '~/routes';
 import { createRoot } from 'react-dom/client';
+import ProgressBar from '~/components/progress-bar';
 
 export const Toast = {
 	run(title: string, kind: 'success' | 'error' | 'info' = 'info', timeout = 3000) {

@@ -59,9 +59,9 @@ hr {
 }
 
 .prose {
-	@apply text-neutral-600 dark:text-neutral-200;
+	@apply text-neutral-600;
 }
 
 .prose strong {
-	@apply text-neutral-800 dark:text-neutral-50;
+	@apply text-neutral-800;
 }

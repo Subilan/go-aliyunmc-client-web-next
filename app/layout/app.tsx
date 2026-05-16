@@ -24,6 +24,7 @@ import { createLoader } from '~/utils/createLoader';
 import { navigate } from '~/utils/navigate';
 import type { UserPermissions } from '~/types/UserPermissions';
 import type { McTranslation } from '~/types/McTranslations';
+import ProgressBar from '~/components/progress-bar';
 
 export const appLoader = createLoader(async () => {
 	const user = await Auth.getUser();

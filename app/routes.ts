@@ -1,6 +1,7 @@
 import { createHashRouter } from 'react-router';
 import AppLayout, { appLoader } from '~/layout/app';
 import InnerAppLayout from '~/layout/inner-app';
+import RootLayout from '~/layout/root';
 import { ErrorBoundary } from '~/root';
 import AllFeatures from '~/routes/all';
 import Economy from '~/routes/economy';
@@ -11,13 +12,14 @@ import Leaderboard from '~/routes/leaderboard';
 import Lor, { lorLoader } from '~/routes/lor';
 import GameStatisticsPlayerList from '~/routes/player-list';
 import Profile from '~/routes/profile';
-import TasksPage from '~/routes/tasks'; 
+import TasksPage from '~/routes/tasks';
 import Updates from '~/routes/updates';
 import WebChat from '~/routes/web-chat';
 
 export const router = createHashRouter([
 	{
 		path: '/',
+		Component: RootLayout,
 		ErrorBoundary: ErrorBoundary,
 		children: [
 			{

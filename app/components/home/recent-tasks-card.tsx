@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from 'react';
 import {
 	Button,
 	Card,
@@ -23,16 +24,35 @@ import type { Task } from '~/types/Task';
 import type { NamedBooleanState } from '~/hooks/useStateNamed';
 import { getTasks } from '~/utils/requests/home';
 
+export type RecentTasksFetchResult = Awaited<ReturnType<typeof getTasks>>;
+
 interface RecentTasksCardProps {
 	tasks: Task[];
-	refreshing: boolean;
 	loading?: boolean;
-	onRefresh: () => void;
+	refreshKey?: number;
+	onRefreshData?: (result: RecentTasksFetchResult) => void;
 }
 
 export const RecentTasks = {
 	Card(props: RecentTasksCardProps) {
-		const { tasks, refreshing, loading = false, onRefresh } = props;
+		const { tasks, loading = false, refreshKey = 0, onRefreshData } = props;
+		const [refreshing, setRefreshing] = useState(false);
+
+		const handleRefresh = useCallback(async () => {
+			setRefreshing(true);
+			try {
+				const result = await RecentTasks.fetchData();
+				onRefreshData?.(result);
+			} finally {
+				setRefreshing(false);
+			}
+		}, [onRefreshData]);
+
+		useEffect(() => {
+			if (refreshKey > 0) {
+				handleRefresh();
+			}
+		}, [refreshKey, handleRefresh]);
 
 		return (
 			<Card variant="outlined">
@@ -41,7 +61,7 @@ export const RecentTasks = {
 						icon={<ClockIcon size={14} />}
 						actions={
 							<Tooltip title="刷新">
-								<IconButton size="small" disabled={refreshing} onClick={onRefresh}>
+								<IconButton size="small" disabled={refreshing} onClick={handleRefresh}>
 									<RefreshCwIcon
 										size={16}
 										className={refreshing ? 'animate-spin' : ''}

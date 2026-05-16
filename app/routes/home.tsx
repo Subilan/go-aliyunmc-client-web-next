@@ -32,10 +32,11 @@ import { ServerStatus } from '~/components/home/server-status-card';
 import { InstanceStatus } from '~/components/home/instance-status-card';
 import { EcsCandidates } from '~/components/home/ecs-candidates-card';
 import { RecentTasks } from '~/components/home/recent-tasks-card';
+import type { ServerStatusFetchResult } from '~/components/home/server-status-card';
+import type { EcsCandidatesFetchResult } from '~/components/home/ecs-candidates-card';
+import type { RecentTasksFetchResult } from '~/components/home/recent-tasks-card';
 import type { FuncListItem } from '~/components/func-list';
-import { getCandidates, deleteActiveInstance } from '~/utils/requests/instance';
-import { getServerStatus } from '~/utils/requests/state';
-import { getTasks, getPlayerListHistory, getIdleRemainingSecs } from '~/utils/requests/home';
+import { deleteActiveInstance } from '~/utils/requests/instance';
 import { triggerTask } from '~/utils/requests/task';
 import { get } from '~/utils/requests';
 import { useTaskSSE } from '~/hooks/useTaskSSE';
@@ -63,9 +64,6 @@ export default function Home() {
 	const playerCount = useStateNamed(0);
 	const idleRemainingSecs = useStateNamed(-1);
 	const chartData = useStateNamed<PlayerListChartPoint[]>([]);
-	const [refreshingServerStatus, setRefreshingServerStatus] = useState(false);
-	const [refreshingCandidates, setRefreshingCandidates] = useState(false);
-	const [refreshingTasks, setRefreshingTasks] = useState(false);
 
 	const [instanceLoading, serverLoading, ecsLoading, tasksLoading] = [
 		useStateNamed(false),
@@ -130,60 +128,81 @@ export default function Home() {
 	const instanceDeletedRef = useRef(false);
 	const serverQuery = useRef<ServerQuery>(undefined);
 
-	async function fetchAll() {
-		const [serverResults, instanceResults, candRes, tasksRes] = await Promise.all([
-			ServerStatus.fetchData(serverLoading),
-			InstanceStatus.fetchData(instanceLoading),
-			EcsCandidates.fetchData(ecsLoading),
-			RecentTasks.fetchData(tasksLoading)
-		]);
-		const [srvRes, chartRes, idleRes, querySrvRes] = serverResults;
-		const [instRes, instStatusRes] = instanceResults;
+	const [tasksRefreshKey, setTasksRefreshKey] = useState(0);
 
-		if (instRes.error === null) {
-			setInstance(instRes.data);
-			instanceNotFound.set(false);
-			instanceDeletedRef.current = false;
-		} else {
-			instanceNotFound.set(true);
-		}
-		if (querySrvRes.error === null) serverQuery.current = querySrvRes.data;
-		if (candRes.error === null) setCandidates(candRes.data!);
-		if (tasksRes.error === null) {
-			setTasks(tasksRes.data!.tasks);
-			const runningCreate = tasksRes.data!.tasks.find(
-				t => t.type === 'create_instance' && t.status === 'running'
-			);
-			const runningDeploy = tasksRes.data!.tasks.find(
-				t => t.type === 'deploy' && t.status === 'running'
-			);
-			if (runningCreate || runningDeploy) {
-				setCreateTaskId(runningCreate?.ID ?? null);
-				setDeployTaskId(runningDeploy?.ID ?? null);
-				setTaskRunning(true);
-			}
-			const runningStart = tasksRes.data!.tasks.find(
-				t => t.type === 'start_server' && t.status === 'running'
-			);
-			const isServerOnline = srvRes.error === null && srvRes.data!.Value.online;
-			if (runningStart) {
-				setStartTaskId(runningStart.ID);
-				setTaskRunning(true);
-				if (!isServerOnline) {
-					setServerStarting(true);
-					startServerTriggeredRef.current = true;
+	async function fetchAll() {
+		let srvOnline = false;
+		await Promise.all([
+			ServerStatus.fetchData(serverLoading).then(([srvRes, chartRes, idleRes, querySrvRes]) => {
+				if (querySrvRes.error === null) serverQuery.current = querySrvRes.data;
+				if (srvRes.error === null) {
+					srvOnline = srvRes.data!.Value.online;
+					serverOnline.set(srvOnline);
+					playerCount.set(srvRes.data!.Value.playerCount);
 				}
-			}
-			const runningArchive = tasksRes.data!.tasks.find(
-				t => t.type === 'archive' && t.status === 'running'
-			);
-			if (runningArchive) setArchiveTaskId(runningArchive.ID);
-		}
+				if (chartRes.error === null) {
+					chartData.set(
+						chartRes.data!.map(p => ({
+							time: Times.formatDate(p.time, 'MM-DD HH:mm:ss'),
+							playerNames: p.playerNames
+						}))
+					);
+				}
+				if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
+			}),
+			InstanceStatus.fetchData(instanceLoading).then(([instRes, instStatusRes]) => {
+				if (instRes.error === null) {
+					setInstance(instRes.data);
+					instanceNotFound.set(false);
+					instanceDeletedRef.current = false;
+				} else {
+					instanceNotFound.set(true);
+				}
+				if (instStatusRes.error === null) instanceStatus.set(instStatusRes.data!.Value);
+			}),
+			EcsCandidates.fetchData(ecsLoading).then(res => {
+				if (res.error === null) setCandidates(res.data!);
+			}),
+			RecentTasks.fetchData(tasksLoading).then(res => {
+				if (res.error === null) {
+					setTasks(res.data!.tasks);
+					const runningCreate = res.data!.tasks.find(
+						t => t.type === 'create_instance' && t.status === 'running'
+					);
+					const runningDeploy = res.data!.tasks.find(
+						t => t.type === 'deploy' && t.status === 'running'
+					);
+					if (runningCreate || runningDeploy) {
+						setCreateTaskId(runningCreate?.ID ?? null);
+						setDeployTaskId(runningDeploy?.ID ?? null);
+						setTaskRunning(true);
+					}
+					const runningStart = res.data!.tasks.find(
+						t => t.type === 'start_server' && t.status === 'running'
+					);
+					if (runningStart) {
+						setStartTaskId(runningStart.ID);
+						setTaskRunning(true);
+						if (!srvOnline) {
+							setServerStarting(true);
+							startServerTriggeredRef.current = true;
+						}
+					}
+					const runningArchive = res.data!.tasks.find(
+						t => t.type === 'archive' && t.status === 'running'
+					);
+					if (runningArchive) setArchiveTaskId(runningArchive.ID);
+				}
+			})
+		]);
+	}
+
+	function handleServerRefresh([srvRes, chartRes, idleRes, querySrvRes]: ServerStatusFetchResult) {
+		if (querySrvRes.error === null) serverQuery.current = querySrvRes.data;
 		if (srvRes.error === null) {
 			serverOnline.set(srvRes.data!.Value.online);
 			playerCount.set(srvRes.data!.Value.playerCount);
 		}
-		if (instStatusRes.error === null) instanceStatus.set(instStatusRes.data!.Value);
 		if (chartRes.error === null) {
 			chartData.set(
 				chartRes.data!.map(p => ({
@@ -195,50 +214,12 @@ export default function Home() {
 		if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
 	}
 
-	async function fetchServerStatus() {
-		setRefreshingServerStatus(true);
-		try {
-			const [srvRes, chartRes, idleRes] = await Promise.all([
-				getServerStatus(),
-				getPlayerListHistory(),
-				getIdleRemainingSecs()
-			]);
-			if (srvRes.error === null) {
-				serverOnline.set(srvRes.data!.Value.online);
-				playerCount.set(srvRes.data!.Value.playerCount);
-			}
-			if (chartRes.error === null) {
-				chartData.set(
-					chartRes.data!.map(p => ({
-						time: Times.formatDate(p.time, 'MM-DD HH:mm:ss'),
-						playerNames: p.playerNames
-					}))
-				);
-			}
-			if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
-		} finally {
-			setRefreshingServerStatus(false);
-		}
+	function handleCandidatesRefresh(result: EcsCandidatesFetchResult) {
+		if (result.error === null) setCandidates(result.data!);
 	}
 
-	async function fetchCandidates() {
-		setRefreshingCandidates(true);
-		try {
-			const { data } = await getCandidates();
-			if (data) setCandidates(data);
-		} finally {
-			setRefreshingCandidates(false);
-		}
-	}
-
-	async function fetchTasks() {
-		setRefreshingTasks(true);
-		try {
-			const { data } = await RecentTasks.fetchData();
-			if (data) setTasks(data.tasks);
-		} finally {
-			setRefreshingTasks(false);
-		}
+	function handleTasksRefresh(result: RecentTasksFetchResult) {
+		if (result.error === null) setTasks(result.data!.tasks);
 	}
 
 	// Sync SSE values into named state
@@ -265,13 +246,11 @@ export default function Home() {
 	}, [instSSE.value]);
 
 	// Auto-refresh tasks when server becomes online after start_server trigger
-	const fetchTasksRef = useRef(fetchTasks);
-	fetchTasksRef.current = fetchTasks;
 	useEffect(() => {
 		if (srvSSE.value?.Value.online) {
 			if (startServerTriggeredRef.current) {
 				startServerTriggeredRef.current = false;
-				fetchTasksRef.current();
+				setTasksRefreshKey(k => k + 1);
 			}
 			queryServer().then(r => {
 				if (r.error === null) serverQuery.current = r.data;
@@ -351,7 +330,7 @@ export default function Home() {
 				Toast.success('归档成功');
 			}
 			setArchiveTaskId(null);
-			fetchTasksRef.current();
+			setTasksRefreshKey(k => k + 1);
 		}
 	}, [archiveSSE.done]);
 
@@ -591,9 +570,8 @@ export default function Home() {
 					platform={serverQuery.current?.platform}
 					isPaper={!!serverQuery.current?.platform?.includes('Paper')}
 					chartData={chartData.current}
-					refreshing={refreshingServerStatus}
 					serverActions={serverActions}
-					onRefresh={fetchServerStatus}
+					onRefreshData={handleServerRefresh}
 				/>
 				<InstanceStatus.Card
 					notFound={instanceNotFound.current}
@@ -610,15 +588,14 @@ export default function Home() {
 				/>
 				<EcsCandidates.Card
 					candidates={candidates}
-					refreshing={refreshingCandidates}
 					loading={ecsLoading.current && candidates.length === 0}
-					onRefresh={fetchCandidates}
+					onRefreshData={handleCandidatesRefresh}
 				/>
 				<RecentTasks.Card
 					tasks={tasks}
-					refreshing={refreshingTasks}
 					loading={tasksLoading.current && tasks.length === 0}
-					onRefresh={fetchTasks}
+					refreshKey={tasksRefreshKey}
+					onRefreshData={handleTasksRefresh}
 				/>
 			</div>
 

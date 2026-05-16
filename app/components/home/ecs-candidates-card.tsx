@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
 	Button,
 	Card,
@@ -20,16 +21,28 @@ import type { NamedBooleanState } from '~/hooks/useStateNamed';
 import type { EcsCandidate } from '~/types/EcsCandidate';
 import { getCandidates } from '~/utils/requests/instance';
 
+export type EcsCandidatesFetchResult = Awaited<ReturnType<typeof getCandidates>>;
+
 interface EcsCandidatesCardProps {
 	candidates: EcsCandidate[];
-	refreshing: boolean;
 	loading?: boolean;
-	onRefresh: () => void;
+	onRefreshData?: (result: EcsCandidatesFetchResult) => void;
 }
 
 export const EcsCandidates = {
 	Card(props: EcsCandidatesCardProps) {
-		const { candidates, refreshing, loading = false, onRefresh } = props;
+		const { candidates, loading = false, onRefreshData } = props;
+		const [refreshing, setRefreshing] = useState(false);
+
+		async function handleRefresh() {
+			setRefreshing(true);
+			try {
+				const result = await EcsCandidates.fetchData();
+				onRefreshData?.(result);
+			} finally {
+				setRefreshing(false);
+			}
+		}
 
 		return (
 			<Card variant="outlined">
@@ -38,7 +51,7 @@ export const EcsCandidates = {
 						icon={<CpuIcon size={14} />}
 						actions={
 							<Tooltip title="刷新">
-								<IconButton size="small" disabled={refreshing} onClick={onRefresh}>
+								<IconButton size="small" disabled={refreshing} onClick={handleRefresh}>
 									<RefreshCwIcon
 										size={16}
 										className={refreshing ? 'animate-spin' : ''}

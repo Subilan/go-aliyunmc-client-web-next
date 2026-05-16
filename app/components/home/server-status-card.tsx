@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, Chip, IconButton, Tooltip } from '@mui/material';
 import { RefreshCwIcon, ServerIcon } from 'lucide-react';
 import { CardLabel } from '~/components/card-label';
@@ -9,6 +10,13 @@ import { getIdleRemainingSecs, getPlayerListHistory } from '~/utils/requests/hom
 import { queryServer } from '~/utils/requests/server';
 import type { NamedBooleanState } from '~/hooks/useStateNamed';
 
+export type ServerStatusFetchResult = readonly [
+	Awaited<ReturnType<typeof getServerStatus>>,
+	Awaited<ReturnType<typeof getPlayerListHistory>>,
+	Awaited<ReturnType<typeof getIdleRemainingSecs>>,
+	Awaited<ReturnType<typeof queryServer>>
+];
+
 interface ServerStatusCardProps {
 	notReady: boolean;
 	starting: boolean;
@@ -18,9 +26,8 @@ interface ServerStatusCardProps {
 	platform: string | undefined;
 	isPaper: boolean;
 	chartData: PlayerListChartPoint[];
-	refreshing: boolean;
 	serverActions: FuncListItem[];
-	onRefresh: () => void;
+	onRefreshData?: (results: ServerStatusFetchResult) => void;
 }
 
 export const ServerStatus = {
@@ -34,10 +41,20 @@ export const ServerStatus = {
 			platform,
 			isPaper,
 			chartData,
-			refreshing,
 			serverActions,
-			onRefresh
+			onRefreshData
 		} = props;
+		const [refreshing, setRefreshing] = useState(false);
+
+		async function handleRefresh() {
+			setRefreshing(true);
+			try {
+				const results = await ServerStatus.fetchData();
+				onRefreshData?.(results);
+			} finally {
+				setRefreshing(false);
+			}
+		}
 
 		return (
 			<Card variant="outlined">
@@ -47,7 +64,7 @@ export const ServerStatus = {
 						actions={
 							!notReady ? (
 								<Tooltip title="刷新图表">
-									<IconButton size="small" disabled={refreshing} onClick={onRefresh}>
+									<IconButton size="small" disabled={refreshing} onClick={handleRefresh}>
 										<RefreshCwIcon
 											size={16}
 											className={refreshing ? 'animate-spin' : ''}

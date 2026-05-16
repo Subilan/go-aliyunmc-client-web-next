@@ -254,19 +254,16 @@ export default function TasksPage() {
 					metrics={[
 						{
 							label: '任务总数',
-							value: stats ? String(stats.total) : null,
-							loading: !stats
+							value: stats ? String(stats.total) : null
 						},
-						{ label: '成功率', value: stats ? successRate : null, loading: !stats },
+						{ label: '成功率', value: stats ? successRate : null },
 						{
 							label: '最近完成',
-							value: stats ? lastCompletedAgo : null,
-							loading: !stats
+							value: stats ? lastCompletedAgo : null
 						},
 						{
 							label: '最近创建者',
-							value: lastCreator,
-							loading: !stats
+							value: stats ? lastCreator : null
 						}
 					]}
 				/>

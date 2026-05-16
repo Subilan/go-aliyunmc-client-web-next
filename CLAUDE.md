@@ -35,6 +35,30 @@ Both hooks auto-reconnect on `visibilitychange` (tab refocus) and clean up on un
 
 **Docker**: Multi-stage build — installs prod deps, builds the app, copies build output to a slim `node:20-alpine` image running `npm start`.
 
+## Loading & empty state conventions
+
+**Data fetching**: Prefer `useEffect` + `useState` over route loaders for page-level data. Route loaders block child rendering and create request waterfalls. Only use loaders at the layout level for auth gating (`app/layout/app.tsx`).
+
+**MetricCard**: Never set `loading: true` on individual `MetricItem` entries — it renders a `CircularProgress` spinner per metric. Instead, pass `value: null` when data isn't ready; `MetricCard` renders `—` for null values, giving a uniform empty-state look.
+
+**Table loading**: Use skeleton rows inside the table, not `LoadingEmptyState` (spinner) outside it. Pattern:
+```tsx
+<TableBody>
+  {loading
+    ? Array.from({ length: 5 }).map((_, i) => (
+        <TableRow key={`skel-${i}`}>
+          <TableCell colSpan={columns.length}>
+            <div className="h-4 bg-neutral-100 rounded animate-pulse" />
+          </TableCell>
+        </TableRow>
+      ))
+    : rows.map(...)}
+</TableBody>
+```
+`PaginatedTable` does this natively via its `loading` prop.
+
+**Card refresh**: Card components that support refresh manage their own `[refreshing, setRefreshing]` state internally. The parent passes an `onRefreshData` callback to receive results, and optionally a `refreshKey` counter prop for imperative external triggers (e.g. from SSE events).
+
 ## Backend References
 
 You can read directly from `~/code/go-aliyunmc-v2` when you're unsure about anything relevant to the actual backend implementation. As a matter of fact, reading backend helps you deliver more accurate, logical and correct frontend design.

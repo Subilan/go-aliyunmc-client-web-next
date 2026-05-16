@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { UserCircle2Icon } from 'lucide-react';
 import { Link, Outlet, redirect, useLocation } from 'react-router';
+import { useEffect, useState } from 'react';
 import MenuBtn from '~/components/menu-btn';
 import { Auth } from '~/utils/auth';
 import { UserContext } from '~/contexts/user';
@@ -21,19 +22,15 @@ import { getMcTranslations } from '~/utils/requests/mc-translation';
 import { getPageMeta } from '~/utils/page-meta';
 import { createLoader } from '~/utils/createLoader';
 import { navigate } from '~/utils/navigate';
+import type { UserPermissions } from '~/types/UserPermissions';
+import type { McTranslation } from '~/types/McTranslations';
 
-export const appLoader = createLoader(async args => {
-	if (!(await Auth.isLoggedIn())) {
+export const appLoader = createLoader(async () => {
+	const user = await Auth.getUser();
+	if (!user) {
 		throw redirect('/lor');
 	}
-
-	const [user, permissions, mctranslations] = await Promise.all([
-		Auth.getUser(),
-		getPermissions(),
-		getMcTranslations()
-	]);
-
-	return { user, permissions, mctranslations };
+	return { user };
 });
 
 const activeSx = {
@@ -47,10 +44,19 @@ const inactiveSx = {
 };
 
 export default function AppLayout() {
-	const { user, permissions, mctranslations } = appLoader.get();
+	const { user } = appLoader.get();
 	const location = useLocation();
 	const logoutOpen = useStateNamed(false);
 	const loggingOut = useStateNamed(false);
+	const [permissions, setPermissions] = useState<UserPermissions | null>(null);
+	const [mctranslations, setMcTranslations] = useState<McTranslation | null>(null);
+
+	useEffect(() => {
+		Promise.all([
+			getPermissions().then(setPermissions),
+			getMcTranslations().then(setMcTranslations)
+		]);
+	}, []);
 
 	function isActive(path: string) {
 		return location.pathname === path;

@@ -13,7 +13,6 @@ import type { EcsCandidate } from '~/types/EcsCandidate';
 import { getCandidates } from '~/utils/requests/instance';
 import MetricCard from '~/components/metric-card';
 import PageHeader from '~/components/page-header';
-import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
 import { getBalance } from '~/utils/requests/home';
 import useStateNamed from '~/hooks/useStateNamed';
 import { PAGE_NAME_ECS_CANDIDATES } from '~/consts/page-names';
@@ -45,9 +44,13 @@ function Info() {
 				<strong>候选实例</strong>是指经过控制台选择的那些满足 Minecraft
 				服务器运行要求的实例，我们对这些实例有 vCPU 数量以及内存上的要求。
 			</p>
-			<p>对于满足条件的实例，我们从中选择价格最低的那一个作为下一次开启服务器时使用的实例，这就是<strong>“最优规格”</strong>。</p>
 			<p>
-				<strong>预计支撑时间</strong>等于当前服务器账户余额除以最优规格的小时价格，这是一个偏高的估值，实际可支撑的开服时间会因为一些额外的收费项目（例如下行流量）以及实例本身波动的价格而有所降低。
+				对于满足条件的实例，我们从中选择价格最低的那一个作为下一次开启服务器时使用的实例，这就是
+				<strong>"最优规格"</strong>。
+			</p>
+			<p>
+				<strong>预计支撑时间</strong>
+				等于当前服务器账户余额除以最优规格的小时价格，这是一个偏高的估值，实际可支撑的开服时间会因为一些额外的收费项目（例如下行流量）以及实例本身波动的价格而有所降低。
 			</p>
 		</>
 	);
@@ -85,50 +88,52 @@ export default function EcsCandidatesPage() {
 						{
 							icon: <CheckCircleIcon size={12} />,
 							label: '最优规格',
-							value: candidates.current[0]?.instanceType ?? null,
-							loading
+							value: !loading ? (candidates.current[0]?.instanceType ?? null) : null
 						},
 						{
 							icon: <ServerIcon size={12} />,
 							label: '符合要求的实例总数',
-							value: !loading ? candidates.current.length : null,
-							loading
+							value: !loading ? candidates.current.length : null
 						},
 						{
 							icon: <ClockIcon size={12} />,
 							label: '预计支撑时间（偏高）',
-							value: !loading ? (estimatedHours ?? '—') : null,
-							loading
+							value: !loading ? (estimatedHours ?? '—') : null
 						}
 					]}
 				/>
 
-				{loading ? (
-					<Paper variant="outlined">
-						<LoadingEmptyState />
-					</Paper>
-				) : candidates.current.length === 0 ? (
-					<Paper variant="outlined">
-						<EmptyState
-							description={<span className="text-neutral-500">暂无可用实例</span>}
-							className="py-8"
-						/>
-					</Paper>
-				) : (
-					<Paper variant="outlined">
-						<TableContainer>
-							<Table size="small">
-								<TableHead>
-									<TableRow>
-										{columns.map(col => (
-											<TableCell key={col.id} align="center">
-												{col.label}
+				<Paper variant="outlined">
+					<TableContainer>
+						<Table size="small">
+							<TableHead>
+								<TableRow>
+									{columns.map(col => (
+										<TableCell key={col.id} align="center">
+											{col.label}
+										</TableCell>
+									))}
+								</TableRow>
+							</TableHead>
+							<TableBody>
+								{loading ? (
+									Array.from({ length: 5 }).map((_, i) => (
+										<TableRow key={`skel-${i}`}>
+											<TableCell colSpan={columns.length}>
+												<div className="h-4 bg-neutral-100 rounded animate-pulse" />
 											</TableCell>
-										))}
+										</TableRow>
+									))
+								) : candidates.current.length === 0 ? (
+									<TableRow>
+										<TableCell colSpan={columns.length} align="center">
+											<span className="text-neutral-500 py-8 block">
+												暂无可用实例
+											</span>
+										</TableCell>
 									</TableRow>
-								</TableHead>
-								<TableBody>
-									{candidates.current.map((c, i) => (
+								) : (
+									candidates.current.map((c, i) => (
 										<TableRow key={i} hover>
 											<TableCell align="center">
 												<div className="flex justify-center items-center gap-2">
@@ -145,12 +150,12 @@ export default function EcsCandidatesPage() {
 												¥{c.tradePrice.toFixed(2)}
 											</TableCell>
 										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</TableContainer>
-					</Paper>
-				)}
+									))
+								)}
+							</TableBody>
+						</Table>
+					</TableContainer>
+				</Paper>
 			</div>
 		</>
 	);

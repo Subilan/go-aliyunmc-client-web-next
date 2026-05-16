@@ -61,7 +61,7 @@ export default function BalanceChart({ data, loading = false }: { data: BalanceC
 			min: dataMin - padding,
 			max: dataMax + padding,
 			splitNumber: 4,
-			axisLabel: { fontSize: 10, color: '#9ca3af' },
+			axisLabel: { fontSize: 10, color: '#9ca3af', formatter: (v: number) => v.toFixed(2) },
 			splitLine: { lineStyle: { color: '#f3f4f6', type: 'dashed' } }
 		},
 		dataZoom:

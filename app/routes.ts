@@ -9,7 +9,7 @@ import GameStatistics, { gameStatisticsLoader } from '~/routes/game-statistics';
 import Home from '~/routes/home';
 import Leaderboard from '~/routes/leaderboard';
 import Lor, { lorLoader } from '~/routes/lor';
-import GameStatisticsPlayerList, { playerListLoader } from '~/routes/player-list';
+import GameStatisticsPlayerList from '~/routes/player-list';
 import Profile from '~/routes/profile';
 import TasksPage from '~/routes/tasks'; 
 import Updates from '~/routes/updates';
@@ -67,8 +67,7 @@ export const router = createHashRouter([
 								children: [
 									{
 										path: 'player-list',
-										Component: GameStatisticsPlayerList,
-										loader: playerListLoader.itself
+										Component: GameStatisticsPlayerList
 									},
 									{
 										path: 'statistics/:uuid',

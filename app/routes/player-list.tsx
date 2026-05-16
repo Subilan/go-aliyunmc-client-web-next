@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import type { Route } from './+types/player-list';
 import {
@@ -15,7 +16,6 @@ import PageHeader from '~/components/page-header';
 import { PAGE_NAME_PLAYER_LIST } from '~/consts/page-names';
 import { getPlayerList, type PlayerListEntry } from '~/utils/requests/game';
 import EmptyState from '~/components/empty-state';
-import { createLoader } from '~/utils/createLoader';
 import { navigate } from '~/utils/navigate';
 
 export function meta({}: Route.MetaArgs) {
@@ -26,21 +26,6 @@ export function meta({}: Route.MetaArgs) {
 }
 
 type SortOrder = 'asc' | 'desc';
-
-export const playerListLoader = createLoader(async args => {
-	const url = new URL(args.request.url);
-	const sort = (url.searchParams.get('sort') as SortOrder) || 'asc';
-
-	const res = await getPlayerList();
-	const players = res.data ?? [];
-
-	players.sort((a, b) => {
-		const cmp = a.name.localeCompare(b.name, 'zh-Hans');
-		return sort === 'asc' ? cmp : -cmp;
-	});
-
-	return { players, sort };
-});
 
 function PlayerCard({ player }: { player: PlayerListEntry }) {
 	const isPrivate = player.disallow_public_game_stats;
@@ -81,8 +66,26 @@ function PlayerCard({ player }: { player: PlayerListEntry }) {
 }
 
 export default function GameStatisticsPlayerList() {
-	const { players, sort } = playerListLoader.get();
+	const [players, setPlayers] = useState<PlayerListEntry[]>([]);
+	const [loading, setLoading] = useState(true);
 	const [searchParams] = useSearchParams();
+	const sort = (searchParams.get('sort') as SortOrder) || 'asc';
+
+	useEffect(() => {
+		getPlayerList().then(res => {
+			if (res.data) setPlayers(res.data);
+			setLoading(false);
+		});
+	}, []);
+
+	const sortedPlayers = useMemo(() => {
+		const sorted = [...players];
+		sorted.sort((a, b) => {
+			const cmp = a.name.localeCompare(b.name, 'zh-Hans');
+			return sort === 'asc' ? cmp : -cmp;
+		});
+		return sorted;
+	}, [players, sort]);
 
 	const handleSortChange = (newSort: SortOrder) => {
 		const params = new URLSearchParams(searchParams);
@@ -111,9 +114,15 @@ export default function GameStatisticsPlayerList() {
 			>
 				{PAGE_NAME_PLAYER_LIST}
 			</PageHeader>
-			{players.length ? (
+			{loading ? (
 				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-					{players.map(p => (
+					{Array.from({ length: 8 }).map((_, i) => (
+						<div key={i} className="aspect-square bg-neutral-100 rounded-xl animate-pulse" />
+					))}
+				</div>
+			) : sortedPlayers.length ? (
+				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+					{sortedPlayers.map(p => (
 						<PlayerCard key={p.uuid} player={p} />
 					))}
 				</div>

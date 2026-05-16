@@ -28,19 +28,19 @@ import type { Task } from '~/types/Task';
 import type { PlayerListChartPoint } from '~/components/player-count-chart';
 import CreateInstanceDialog from '~/components/create-instance-dialog';
 import ConfirmTriggerDialog from '~/components/confirm-trigger-dialog';
-import ServerStatusCard from '~/components/home/server-status-card';
-import InstanceStatusCard from '~/components/home/instance-status-card';
-import EcsCandidatesCard from '~/components/home/ecs-candidates-card';
-import RecentTasksCard from '~/components/home/recent-tasks-card';
+import { ServerStatus } from '~/components/home/server-status-card';
+import { InstanceStatus } from '~/components/home/instance-status-card';
+import { EcsCandidates } from '~/components/home/ecs-candidates-card';
+import { RecentTasks } from '~/components/home/recent-tasks-card';
 import type { FuncListItem } from '~/components/func-list';
-import { getActiveInstance, getCandidates, deleteActiveInstance } from '~/utils/requests/instance';
-import { getServerStatus, getInstanceStatus } from '~/utils/requests/state';
+import { getCandidates, deleteActiveInstance } from '~/utils/requests/instance';
+import { getServerStatus } from '~/utils/requests/state';
 import { getTasks, getPlayerListHistory, getIdleRemainingSecs } from '~/utils/requests/home';
 import { triggerTask } from '~/utils/requests/task';
 import { get } from '~/utils/requests';
 import { useTaskSSE } from '~/hooks/useTaskSSE';
 import { useStateSSE } from '~/hooks/useStateSSE';
-import type { ServerStatus } from '~/types/ServerStatus';
+import type { ServerStatus as ServerStatusType } from '~/types/ServerStatus';
 import { queryServer } from '~/utils/requests/server';
 import type { ServerQuery } from '~/types/ServerQuery';
 import { Times } from '~/utils/times';
@@ -66,7 +66,13 @@ export default function Home() {
 	const [refreshingServerStatus, setRefreshingServerStatus] = useState(false);
 	const [refreshingCandidates, setRefreshingCandidates] = useState(false);
 	const [refreshingTasks, setRefreshingTasks] = useState(false);
-	const [initialLoading, setInitialLoading] = useState(true);
+
+	const [instanceLoading, serverLoading, ecsLoading, tasksLoading] = [
+		useStateNamed(false),
+		useStateNamed(false),
+		useStateNamed(false),
+		useStateNamed(false)
+	];
 
 	// Create instance dialog
 	const [dialogOpen, setDialogOpen] = useState(false);
@@ -110,7 +116,7 @@ export default function Home() {
 	const [stopping, setStopping] = useState(false);
 
 	// State SSE for live server/instance status updates
-	const srvSSE = useStateSSE<ServerStatus>(
+	const srvSSE = useStateSSE<ServerStatusType>(
 		'/state/watch/server-status',
 		'server_status_snapshot',
 		'server_status_update'
@@ -125,17 +131,14 @@ export default function Home() {
 	const serverQuery = useRef<ServerQuery>(undefined);
 
 	async function fetchAll() {
-		const [instRes, candRes, tasksRes, srvRes, instStatusRes, chartRes, idleRes, querySrvRes] =
-			await Promise.all([
-				getActiveInstance(),
-				getCandidates(),
-				getTasks({ limit: 5 }),
-				getServerStatus(),
-				getInstanceStatus(),
-				getPlayerListHistory(),
-				getIdleRemainingSecs(),
-				queryServer()
-			]);
+		const [serverResults, instanceResults, candRes, tasksRes] = await Promise.all([
+			ServerStatus.fetchData(serverLoading),
+			InstanceStatus.fetchData(instanceLoading),
+			EcsCandidates.fetchData(ecsLoading),
+			RecentTasks.fetchData(tasksLoading)
+		]);
+		const [srvRes, chartRes, idleRes, querySrvRes] = serverResults;
+		const [instRes, instStatusRes] = instanceResults;
 
 		if (instRes.error === null) {
 			setInstance(instRes.data);
@@ -190,7 +193,6 @@ export default function Home() {
 			);
 		}
 		if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
-		setInitialLoading(false);
 	}
 
 	async function fetchServerStatus() {
@@ -232,7 +234,7 @@ export default function Home() {
 	async function fetchTasks() {
 		setRefreshingTasks(true);
 		try {
-			const { data } = await getTasks({ limit: 5 });
+			const { data } = await RecentTasks.fetchData();
 			if (data) setTasks(data.tasks);
 		} finally {
 			setRefreshingTasks(false);
@@ -529,13 +531,15 @@ export default function Home() {
 			name: '备份',
 			icon: DatabaseIcon,
 			action: () => handleAction('备份'),
-			disabled: !canBackup || archiving || (permissions !== null && !permissions.can_run_backup)
+			disabled:
+				!canBackup || archiving || (permissions !== null && !permissions.can_run_backup)
 		},
 		{
 			name: '归档',
 			icon: ArchiveIcon,
 			action: () => handleAction('归档'),
-			disabled: !canBackup || archiving || (permissions !== null && !permissions.can_run_archive)
+			disabled:
+				!canBackup || archiving || (permissions !== null && !permissions.can_run_archive)
 		}
 	];
 
@@ -578,10 +582,10 @@ export default function Home() {
 			)}
 
 			<div className="flex flex-col gap-4">
-				<ServerStatusCard
+				<ServerStatus.Card
 					notReady={instanceNotFound.current || !isDeployed}
 					starting={serverStarting}
-					loading={initialLoading}
+					loading={serverLoading.current}
 					online={serverOnline.current}
 					playerCount={playerCount.current}
 					platform={serverQuery.current?.platform}
@@ -591,10 +595,10 @@ export default function Home() {
 					serverActions={serverActions}
 					onRefresh={fetchServerStatus}
 				/>
-				<InstanceStatusCard
+				<InstanceStatus.Card
 					notFound={instanceNotFound.current}
 					busy={taskRunning && !startTaskId}
-					loading={initialLoading}
+					loading={instanceLoading.current}
 					busyLabel={deployTaskId ? '实例部署中' : '实例创建中'}
 					latestOutput={latestOutput}
 					instanceStatus={instanceStatus.current}
@@ -604,16 +608,16 @@ export default function Home() {
 					instanceActions={instanceActions}
 					onCreateInstance={() => handleAction('创建实例')}
 				/>
-				<EcsCandidatesCard
+				<EcsCandidates.Card
 					candidates={candidates}
 					refreshing={refreshingCandidates}
-					loading={initialLoading && candidates.length === 0}
+					loading={ecsLoading.current && candidates.length === 0}
 					onRefresh={fetchCandidates}
 				/>
-				<RecentTasksCard
+				<RecentTasks.Card
 					tasks={tasks}
 					refreshing={refreshingTasks}
-					loading={initialLoading && tasks.length === 0}
+					loading={tasksLoading.current && tasks.length === 0}
 					onRefresh={fetchTasks}
 				/>
 			</div>

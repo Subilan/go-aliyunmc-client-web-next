@@ -27,6 +27,7 @@ import { Toast } from '~/root';
 import { Auth } from '~/utils/auth';
 import { createLoader } from '~/utils/createLoader';
 import { navigate } from '~/utils/navigate';
+import { resetLoginRedirect } from '~/utils/requests';
 import { Req } from '~/utils/requests/Req';
 
 export interface LoginPayload {
@@ -51,6 +52,7 @@ function LoginForm({ setRegister }: { setRegister: () => void }) {
 		const { error } = await Req.login(data.username, data.password, data.remember);
 		loading.set(false);
 		if (error === null) {
+			resetLoginRedirect();
 			Auth.clearCache();
 			Toast.success('登录成功');
 			navigate('/');
@@ -173,6 +175,7 @@ export const lorLoader = createLoader(async args => {
 		Toast.info('你已经登录');
 		throw redirect('/');
 	}
+	resetLoginRedirect();
 });
 
 export default function Lor() {

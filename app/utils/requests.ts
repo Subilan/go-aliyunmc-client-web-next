@@ -1,5 +1,5 @@
-import { router } from "~/routes";
 import { navigate } from "~/utils/navigate";
+import { Auth } from "~/utils/auth";
 
 // export const BASE_URL = 'http://localhost:45678'
 export const BASE_URL = import.meta.env.DEV ? '/api' : 'https://api.seatide.net';
@@ -7,6 +7,12 @@ export const BASE_URL = import.meta.env.DEV ? '/api' : 'https://api.seatide.net'
 export type Resp<T = any> =
 	| { data: null; error: string; status: number }
 	| { data: T; error: null; status: number };
+
+let redirectingToLogin = false;
+
+export function resetLoginRedirect() {
+	redirectingToLogin = false;
+}
 
 async function req<T = any>(url: string, options: RequestInit): Promise<Resp<T>> {
 	const result = await fetch(BASE_URL + url, {
@@ -18,8 +24,10 @@ async function req<T = any>(url: string, options: RequestInit): Promise<Resp<T>>
 		console.error(`Request to ${url} failed with 5xx status ${result.status}`);
 	}
 
-	if (result.status && result.status === 401) {
-		navigate('/lor')
+	if (result.status && result.status === 401 && !redirectingToLogin) {
+		redirectingToLogin = true;
+		Auth.clearCache();
+		navigate('/lor');
 	}
 
 	let json;

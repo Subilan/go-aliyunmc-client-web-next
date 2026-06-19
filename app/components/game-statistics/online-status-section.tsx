@@ -31,7 +31,7 @@ function getLast7Days(): Date[] {
 }
 
 // 数据最早有记录的日期，此日期之前的数据无效
-const DATA_START_DATE = '2025-07-01';
+const DATA_START_DATE = '2026-01-23';
 
 const CELL = 14;
 

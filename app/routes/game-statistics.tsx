@@ -117,7 +117,7 @@ export default function GameStatistics() {
 											<MetricItem title="游玩时长">
 												{Times.formatDuration(gameStats.playtime/20)}
 											</MetricItem>
-											<MetricItem title="连续登录">
+											<MetricItem title="最长连续登录">
 												{gameStats.join_streak} 天
 											</MetricItem>
 											<MetricItem title="最近在线">

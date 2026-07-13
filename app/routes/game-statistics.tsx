@@ -4,6 +4,7 @@ import { AlertTriangleIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-rea
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_GAME_STATISTICS } from '~/consts/page-names';
 import { getGameStats, getSortedAdvancements } from '~/utils/requests/game';
+import type { GameStats } from '~/utils/requests/game';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Times } from '~/utils/times';
 import { CardLabel } from '~/components/card-label';
@@ -49,6 +50,18 @@ export const gameStatisticsLoader = createLoader(async args => {
 
 	return result;
 });
+
+function getTotalMoveDistance(stats: GameStats['stats']): number {
+	const custom = stats?.['minecraft:custom'];
+	if (!custom) return 0;
+	let total = 0;
+	for (const key of Object.keys(custom)) {
+		if (key.endsWith('_cm')) {
+			total += custom[key];
+		}
+	}
+	return total;
+}
 
 function Info() {
 	return (
@@ -112,7 +125,6 @@ export default function GameStatistics() {
 										<div className="text-2xl border-b border-b-neutral-200">
 											{gameStats.player_name}
 										</div>
-										{/* Playtime metrics */}
 										<div className="grid grid-cols-3 gap-3">
 											<MetricItem title="游玩时长">
 												{gameStats.playtime > 0
@@ -130,11 +142,10 @@ export default function GameStatistics() {
 											<MetricItem title="成就进度">
 												{advProgress?.completed}/{advProgress?.total}
 											</MetricItem>
-											<MetricItem title="跑图">
-												{(getStat('custom', 'walk_one_cm') / 100).toFixed(
-													0
-												)}{' '}
-												格
+											<MetricItem title="移动距离">
+												{gameStats.stats
+													? `${(getTotalMoveDistance(gameStats.stats) / 100).toFixed(0)} 格`
+													: '—'}
 											</MetricItem>
 										</div>
 										<OnlineStatusSection onlineDates={gameStats.online_dates} />

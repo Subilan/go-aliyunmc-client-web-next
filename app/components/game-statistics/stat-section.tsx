@@ -62,8 +62,16 @@ function formatHearts(value: number): string {
 	return hearts.toFixed(1);
 }
 
+function formatPlaytimeHours(v: number, realTime: boolean): string {
+	if (realTime) {
+		const hours = v / 20 / 3600;
+		return `${hours.toFixed(1)}h`;
+	}
+	return Times.formatDuration(v);
+}
+
 function transformStat(k: string, v: number, realTime: boolean): string | number {
-	if (TIME_STATS.has(k)) return Times.formatDuration(realTime ? v / 20 : v);
+	if (TIME_STATS.has(k)) return formatPlaytimeHours(v, realTime);
 	if (DISTANCE_STATS.has(k)) return formatDistanceCm(v);
 	return v;
 }

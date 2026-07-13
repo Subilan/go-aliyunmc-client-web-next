@@ -28,7 +28,10 @@ const METRICS: Record<string, { label: string; unit: string; decimals: number; d
 		distance: { label: '移动距离', unit: 'km', decimals: 2, divisor: 1 },
 		mob_kills: { label: '生物击杀', unit: '个', decimals: 0, divisor: 1 },
 		blocks_mined: { label: '挖掘方块', unit: '个', decimals: 0, divisor: 1 },
-		avg_move_distance: { label: '平均移速', unit: 'km/h', decimals: 2, divisor: 1 }
+		avg_move_distance: { label: '平均移速', unit: 'km/h', decimals: 2, divisor: 1 },
+		walk_distance: { label: '跑图距离', unit: 'km', decimals: 2, divisor: 1 },
+		login_days: { label: '登录天数', unit: '天', decimals: 0, divisor: 1 },
+		join_streak: { label: '连续登录', unit: '天', decimals: 0, divisor: 1 }
 	};
 
 const PODIUM_COLORS = [
@@ -101,6 +104,9 @@ function LeaderboardInfo() {
 				<li>
 					平均移速：总移动距离除以总游戏时长得到的一个理论上的平均移动速度，该指标的大小近乎对应了玩家在游戏过程中静止或移动时间占游戏时长的比例，但其描述的准确性取决于游戏时长大小。若游戏时长过短，此项不准确。
 				</li>
+				<li>跑图距离：玩家在游戏中走路移动的累计距离。</li>
+				<li>登录天数：玩家进入过服务器的不同日期总数。</li>
+				<li>连续登录：玩家在整个游戏历史中最长连续登录（每天至少上线过一次）的天数。</li>
 			</ul>
 		</>
 	);

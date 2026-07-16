@@ -1,17 +1,20 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import type { Route } from './+types/home';
+import type { MetaArgs } from 'react-router';
+import PageHeader from '~/components/page-header';
 import { UserContext } from '~/contexts/user';
 import { PermissionsContext } from '~/contexts/permissions';
+import { Alert, AlertDescription } from '~/components/ui/alert';
+import { Button } from '~/components/ui/button';
 import {
-	Alert,
-	Button,
 	Dialog,
-	DialogActions,
 	DialogContent,
-	DialogContentText,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
 	DialogTitle
-} from '@mui/material';
+} from '~/components/ui/dialog';
+import { InfoIcon } from 'lucide-react';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
 import type { Instance } from '~/types/Instance';
@@ -39,7 +42,7 @@ import { useServerOnlineTransition } from '~/routes/home/useServerOnlineTransiti
 import { useTaskPipeline } from '~/routes/home/useTaskPipeline';
 import { buildServerActions, buildInstanceActions } from '~/routes/home/actions';
 
-export function meta({}: Route.MetaArgs) {
+export function meta({}: MetaArgs) {
 	return [{ title: '控制台 - Seatide' }, { name: 'description', content: 'Seatide 玩家控制台' }];
 }
 
@@ -333,38 +336,31 @@ export default function Home() {
 
 	return (
 		<>
-			<div className="flex items-center mb-6">
-				<h1 className="text-3xl">Hi, {user?.username}</h1>
-			</div>
+			<PageHeader>Hi, {user?.username}</PageHeader>
 
 			{pipeline.archiving && (
-				<Alert severity="warning" className="mb-4">
-					当前实例正在归档中，请勿与实例进行交互。
+				<Alert variant="default" className="mb-4 border-amber-200 bg-amber-50 text-amber-800">
+					<InfoIcon />
+					<AlertDescription>
+						当前实例正在归档中，请勿与实例进行交互。
+					</AlertDescription>
 				</Alert>
 			)}
 
 			{user && !user.whitelist_uuid && (
-				<Alert
-					severity="info"
-					className="mb-4"
-					action={
-						<div className="md:flex gap-2 hidden">
-							<Button
-								size="small"
-								color="inherit"
-								component="a"
-								href="#"
-								target="_blank"
-							>
-								申请白名单
-							</Button>
-							<Button size="small" color="inherit" component={Link} to="/profile">
-								立即绑定
-							</Button>
-						</div>
-					}
-				>
-					你还没有绑定白名单。绑定后即可体验完整功能。
+				<Alert variant="default" className="mb-4">
+					<InfoIcon />
+					<AlertDescription>
+						你还没有绑定白名单。绑定后即可体验完整功能。
+					</AlertDescription>
+					<div className="md:flex gap-2 hidden absolute top-2.5 right-3">
+						<Button size="sm" variant="outline" asChild>
+							<a href="#" target="_blank" rel="noreferrer">申请白名单</a>
+						</Button>
+						<Button size="sm" variant="outline" asChild>
+							<Link to="/profile">立即绑定</Link>
+						</Button>
+					</div>
 				</Alert>
 			)}
 
@@ -407,26 +403,23 @@ export default function Home() {
 				/>
 			</div>
 
-			<Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} maxWidth="xs" fullWidth>
-				<DialogTitle>删除实例</DialogTitle>
+			<Dialog open={deleteOpen} onOpenChange={v => setDeleteOpen(v)}>
 				<DialogContent>
-					<DialogContentText>
-						此操作将直接删除当前实例，不进行任何检查和备份。
-					</DialogContentText>
+					<DialogHeader>
+						<DialogTitle>删除实例</DialogTitle>
+						<DialogDescription>
+							此操作将直接删除当前实例，不进行任何检查和备份。
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>
+							取消
+						</Button>
+						<Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+							{deleting ? '删除中...' : '删除'}
+						</Button>
+					</DialogFooter>
 				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => setDeleteOpen(false)} disabled={deleting}>
-						取消
-					</Button>
-					<Button
-						variant="contained"
-						color="error"
-						onClick={handleDelete}
-						disabled={deleting}
-					>
-						{deleting ? '删除中...' : '删除'}
-					</Button>
-				</DialogActions>
 			</Dialog>
 
 			<ConfirmTriggerDialog

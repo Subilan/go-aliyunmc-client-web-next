@@ -1,19 +1,23 @@
 import { useContext, useEffect } from 'react';
 import { useRevalidator } from 'react-router';
-import type { Route } from './+types/profile';
+import type { MetaArgs } from 'react-router';
+import PageHeader from '~/components/page-header';
 import { UserContext } from '~/contexts/user';
+import { Card, CardContent } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Switch } from '~/components/ui/switch';
+import { Spinner } from '~/components/ui/spinner';
+import { Alert, AlertDescription } from '~/components/ui/alert';
 import {
-	Alert,
-	Button,
-	Card,
-	CardContent,
 	Dialog,
-	DialogActions,
 	DialogContent,
-	DialogTitle,
-	Switch,
-	TextField
-} from '@mui/material';
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '~/components/ui/dialog';
+import { AlertTriangleIcon } from 'lucide-react';
 import type { Preferences } from '~/types/Preferences';
 import { CardLabel } from '~/components/card-label';
 import { useForm } from 'react-hook-form';
@@ -31,7 +35,7 @@ interface ChangePasswordPayload {
 	newPasswordConfirm: string;
 }
 
-export function meta({}: Route.MetaArgs) {
+export function meta({}: MetaArgs) {
 	return [{ title: '个人资料 - Seatide' }];
 }
 
@@ -157,16 +161,16 @@ export default function Profile() {
 	if (!user) {
 		return (
 			<div className="flex flex-col items-center gap-3 py-8">
-				<span className="text-neutral-500">无法加载用户信息</span>
+				<span className="text-muted-foreground">无法加载用户信息</span>
 			</div>
 		);
 	}
 
 	return (
 		<>
-			<h1 className="text-3xl mb-6">个人资料</h1>
+			<PageHeader>个人资料</PageHeader>
 			<div className="flex flex-col gap-3">
-				<Card variant="outlined">
+				<Card>
 					<CardContent>
 						<CardLabel>账户信息</CardLabel>
 						<div className="flex flex-col gap-3">
@@ -178,14 +182,14 @@ export default function Profile() {
 					</CardContent>
 				</Card>
 
-				<Card variant="outlined">
+				<Card>
 					<CardContent>
 						<CardLabel>偏好设置</CardLabel>
 						<div className="flex items-center justify-between">
 							<span>参与排行榜</span>
 							<Switch
 								checked={prefs.current?.leaderboard_opt_in ?? false}
-								onChange={onToggleLeaderboard}
+								onCheckedChange={onToggleLeaderboard}
 								disabled={prefs.current === null || prefsSaving.current}
 							/>
 						</div>
@@ -193,14 +197,14 @@ export default function Profile() {
 							<span>将我的游戏统计页面设为不公开</span>
 							<Switch
 								checked={prefs.current?.disallow_public_game_stats ?? false}
-								onChange={onToggleDisallowPublicGameStats}
+								onCheckedChange={onToggleDisallowPublicGameStats}
 								disabled={prefs.current === null || prefsSaving.current}
 							/>
 						</div>
 					</CardContent>
 				</Card>
 
-				<Card variant="outlined">
+				<Card>
 					<CardContent>
 						<CardLabel>修改密码</CardLabel>
 						<form className="flex flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>
@@ -235,7 +239,8 @@ export default function Profile() {
 								}}
 							/>
 							<div className="flex justify-end">
-								<Button variant="contained" type="submit" loading={loading.current}>
+								<Button type="submit" disabled={loading.current}>
+									{loading.current && <Spinner data-icon="inline-start" />}
 									确认修改
 								</Button>
 							</div>
@@ -243,7 +248,7 @@ export default function Profile() {
 					</CardContent>
 				</Card>
 
-				<Card variant="outlined">
+				<Card>
 					<CardContent>
 						<CardLabel>白名单绑定</CardLabel>
 						{user.whitelist_uuid ? (
@@ -252,8 +257,7 @@ export default function Profile() {
 								<InfoRow label="UUID" value={user.whitelist_uuid} />
 								<div className="mt-3">
 									<Button
-										variant="outlined"
-										color="error"
+										variant="outline"
 										onClick={() => unbindOpen.set(true)}
 									>
 										解绑
@@ -262,13 +266,16 @@ export default function Profile() {
 							</div>
 						) : (
 							<div className="flex flex-col gap-3">
-								<Alert severity="warning">
-									请务必填写你自己的游戏账号，否则会导致账号被封禁。
+								<Alert variant="default" className="border-amber-200 bg-amber-50 text-amber-800">
+									<AlertTriangleIcon />
+									<AlertDescription>
+										请务必填写你自己的游戏账号，否则会导致账号被封禁。
+									</AlertDescription>
 								</Alert>
 								<div className="flex gap-3 items-center">
-									<TextField
-										label="游戏名（区分大小写）"
-										size="small"
+									<Input
+										placeholder="游戏名（区分大小写）"
+										className="max-w-[240px]"
 										value={whitelistName.current}
 										onChange={e => whitelistName.set(e.target.value)}
 										onKeyDown={e => {
@@ -276,11 +283,10 @@ export default function Profile() {
 										}}
 									/>
 									<Button
-										variant="contained"
 										onClick={onBindWhitelist}
-										loading={bindLoading.current}
-										disabled={!whitelistName.current.trim()}
+										disabled={bindLoading.current || !whitelistName.current.trim()}
 									>
+										{bindLoading.current && <Spinner data-icon="inline-start" />}
 										绑定
 									</Button>
 								</div>
@@ -289,12 +295,11 @@ export default function Profile() {
 					</CardContent>
 				</Card>
 
-				<Card variant="outlined">
+				<Card>
 					<CardContent>
 						<CardLabel>危险操作</CardLabel>
 						<Button
-							variant="outlined"
-							color="error"
+							variant="destructive"
 							onClick={() => deleteOpen.set(true)}
 						>
 							删除账户
@@ -303,56 +308,52 @@ export default function Profile() {
 				</Card>
 			</div>
 
-			<Dialog
-				open={deleteOpen.current}
-				onClose={() => deleteOpen.set(false)}
-				maxWidth="xs"
-				fullWidth
-			>
-				<DialogTitle>删除账户</DialogTitle>
+			<Dialog open={deleteOpen.current} onOpenChange={v => deleteOpen.set(v)}>
 				<DialogContent>
-					<p>
-						确定要删除账户吗？此操作不可撤销，你的账号数据将被删除，且此用户名无法重复使用。
-					</p>
+					<DialogHeader>
+						<DialogTitle>删除账户</DialogTitle>
+						<DialogDescription>
+							确定要删除账户吗？此操作不可撤销，你的账号数据将被删除，且此用户名无法重复使用。
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => deleteOpen.set(false)} disabled={deleteLoading.current}>
+							取消
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={onDeleteAccount}
+							disabled={deleteLoading.current}
+						>
+							{deleteLoading.current && <Spinner data-icon="inline-start" />}
+							确认删除
+						</Button>
+					</DialogFooter>
 				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => deleteOpen.set(false)} disabled={deleteLoading.current}>
-						取消
-					</Button>
-					<Button
-						variant="contained"
-						color="error"
-						onClick={onDeleteAccount}
-						loading={deleteLoading.current}
-					>
-						确认删除
-					</Button>
-				</DialogActions>
 			</Dialog>
 
-			<Dialog
-				open={unbindOpen.current}
-				onClose={() => unbindOpen.set(false)}
-				maxWidth="xs"
-				fullWidth
-			>
-				<DialogTitle>解绑白名单</DialogTitle>
+			<Dialog open={unbindOpen.current} onOpenChange={v => unbindOpen.set(v)}>
 				<DialogContent>
-					<p>确定要解绑白名单吗？解绑后你可以重新绑定。</p>
+					<DialogHeader>
+						<DialogTitle>解绑白名单</DialogTitle>
+						<DialogDescription>
+							确定要解绑白名单吗？解绑后你可以重新绑定。
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => unbindOpen.set(false)} disabled={unbindLoading.current}>
+							取消
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={onUnbindWhitelist}
+							disabled={unbindLoading.current}
+						>
+							{unbindLoading.current && <Spinner data-icon="inline-start" />}
+							确认解绑
+						</Button>
+					</DialogFooter>
 				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => unbindOpen.set(false)} disabled={unbindLoading.current}>
-						取消
-					</Button>
-					<Button
-						variant="contained"
-						color="error"
-						onClick={onUnbindWhitelist}
-						loading={unbindLoading.current}
-					>
-						确认解绑
-					</Button>
-				</DialogActions>
 			</Dialog>
 		</>
 	);
@@ -361,7 +362,7 @@ export default function Profile() {
 function InfoRow({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex items-center gap-4">
-			<span className="text-neutral-500 w-20 shrink-0">{label}</span>
+			<span className="text-muted-foreground w-20 shrink-0">{label}</span>
 			<span>{value}</span>
 		</div>
 	);

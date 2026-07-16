@@ -1,18 +1,15 @@
 import { useState } from 'react';
+import { Card, CardContent } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import {
-	Button,
-	Card,
-	CardContent,
-	IconButton,
-	Paper,
 	Table,
 	TableBody,
 	TableCell,
-	TableContainer,
 	TableHead,
-	TableRow,
-	Tooltip
-} from '@mui/material';
+	TableHeader,
+	TableRow
+} from '~/components/ui/table';
 import { CheckIcon, CpuIcon, RefreshCwIcon } from 'lucide-react';
 import { Link } from 'react-router';
 import { CardLabel } from '~/components/card-label';
@@ -45,18 +42,26 @@ export const EcsCandidates = {
 		}
 
 		return (
-			<Card variant="outlined">
+			<Card>
 				<CardContent>
 					<CardLabel
 						icon={<CpuIcon size={14} />}
 						actions={
-							<Tooltip title="刷新">
-								<IconButton size="small" disabled={refreshing} onClick={handleRefresh}>
-									<RefreshCwIcon
-										size={16}
-										className={refreshing ? 'animate-spin' : ''}
-									/>
-								</IconButton>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="ghost"
+										size="icon-xs"
+										disabled={refreshing}
+										onClick={handleRefresh}
+									>
+										<RefreshCwIcon
+											data-icon="inline-start"
+											className={refreshing ? 'animate-spin' : ''}
+										/>
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>刷新</TooltipContent>
 							</Tooltip>
 						}
 					>
@@ -66,77 +71,51 @@ export const EcsCandidates = {
 						<LoadingEmptyState />
 					) : candidates.length === 0 ? (
 						<EmptyState
-							description={<span className="text-neutral-500">暂无可用实例</span>}
+							description={<span className="text-muted-foreground">暂无可用实例</span>}
 							className="py-8"
 						/>
 					) : (
-						<TableContainer component={Paper} variant="outlined">
-							<Table size="small" sx={{ tableLayout: { xs: 'auto', md: 'fixed' } }}>
-								<TableHead>
-									<TableRow>
-										<TableCell align="center">实例规格</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											vCPU
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead className="text-center">实例规格</TableHead>
+									<TableHead className="text-center hidden md:table-cell">vCPU</TableHead>
+									<TableHead className="text-center hidden md:table-cell">内存 (GiB)</TableHead>
+									<TableHead className="text-center hidden md:table-cell">可用区</TableHead>
+									<TableHead className="text-center">价格 (元/小时)</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{candidates.slice(0, 5).map((c, i) => (
+									<TableRow key={i}>
+										<TableCell className="text-center">
+											<div className="flex justify-center items-center gap-2">
+												{c.instanceType}
+												{i === 0 && (
+													<CheckIcon className="text-green-500 size-4" />
+												)}
+											</div>
 										</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											内存 (GiB)
+										<TableCell className="text-center hidden md:table-cell">
+											{c.cpuCoreCount}
 										</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											可用区
+										<TableCell className="text-center hidden md:table-cell">
+											{c.memory}
 										</TableCell>
-										<TableCell align="center">价格 (元/小时)</TableCell>
+										<TableCell className="text-center hidden md:table-cell">
+											{c.zoneId}
+										</TableCell>
+										<TableCell className="text-center">
+											¥{c.tradePrice.toFixed(2)}
+										</TableCell>
 									</TableRow>
-								</TableHead>
-								<TableBody>
-									{candidates.slice(0, 5).map((c, i) => (
-										<TableRow key={i} hover>
-											<TableCell align="center">
-												<div className="flex justify-center items-center gap-2">
-													{c.instanceType}
-													{i === 0 && (
-														<CheckIcon color="green" size={16} />
-													)}
-												</div>
-											</TableCell>
-											<TableCell
-												align="center"
-												sx={{ display: { xs: 'none', md: 'table-cell' } }}
-											>
-												{c.cpuCoreCount}
-											</TableCell>
-											<TableCell
-												align="center"
-												sx={{ display: { xs: 'none', md: 'table-cell' } }}
-											>
-												{c.memory}
-											</TableCell>
-											<TableCell
-												align="center"
-												sx={{ display: { xs: 'none', md: 'table-cell' } }}
-											>
-												{c.zoneId}
-											</TableCell>
-											<TableCell align="center">
-												¥{c.tradePrice.toFixed(2)}
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</TableContainer>
+								))}
+							</TableBody>
+						</Table>
 					)}
 					<div className="mt-2 text-right">
-						<Button size="small" component={Link} to="/info/ecs-candidates">
-							查看全部
+						<Button size="sm" variant="link" asChild>
+							<Link to="/info/ecs-candidates">查看全部</Link>
 						</Button>
 					</div>
 				</CardContent>

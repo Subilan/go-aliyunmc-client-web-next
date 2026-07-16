@@ -1,5 +1,12 @@
 import { useState, useMemo } from 'react';
-import { Button, Dialog, DialogContent, DialogTitle, IconButton, Tooltip } from '@mui/material';
+import { Button } from '~/components/ui/button';
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle
+} from '~/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import { XIcon } from 'lucide-react';
 
 interface OnlineStatusSectionProps {
@@ -30,9 +37,7 @@ function getLast7Days(): Date[] {
 	return days;
 }
 
-// 数据最早有记录的日期，此日期之前的数据无效
 const DATA_START_DATE = '2026-05-12';
-
 const LEGEND_CELL = 14;
 
 function ContributionGrid({ onlineDates }: { onlineDates: string[] }) {
@@ -44,11 +49,9 @@ function ContributionGrid({ onlineDates }: { onlineDates: string[] }) {
 		const start = new Date(today);
 		start.setDate(today.getDate() - 60);
 
-		// Round start back to Sunday
 		const startDay = start.getDay();
 		start.setDate(start.getDate() - startDay);
 
-		// Round end forward to Saturday
 		const end = new Date(today);
 		const endDay = end.getDay();
 		if (endDay < 6) end.setDate(end.getDate() + (6 - endDay));
@@ -64,7 +67,6 @@ function ContributionGrid({ onlineDates }: { onlineDates: string[] }) {
 			weeks.push(week);
 		}
 
-		// Map column index → month label when a new month starts
 		const monthAtCol: Record<number, string> = {};
 		weeks.forEach((week, ci) => {
 			const m = week[0].getMonth();
@@ -76,8 +78,6 @@ function ContributionGrid({ onlineDates }: { onlineDates: string[] }) {
 		return { weeks, monthAtCol };
 	}, []);
 
-	// Build flat arrays for CSS Grid: all days row-major, plus month headers
-	const flatDays = weeks.flat();
 	const colCount = weeks.length;
 
 	return (
@@ -89,31 +89,27 @@ function ContributionGrid({ onlineDates }: { onlineDates: string[] }) {
 					gridTemplateRows: `18px repeat(7, auto)`
 				}}
 			>
-				{/* Month header row: empty first cell, then month labels */}
 				<div />
 				{weeks.map((week, wi) => (
 					<div key={`mh-${wi}`} className="relative overflow-visible">
 						{monthAtCol[wi] && (
-							<span className="absolute text-xs text-neutral-500 whitespace-nowrap left-0 top-0">
+							<span className="absolute text-xs text-muted-foreground whitespace-nowrap left-0 top-0">
 								{monthAtCol[wi]}
 							</span>
 						)}
 					</div>
 				))}
 
-				{/* Day rows */}
 				{[0, 1, 2, 3, 4, 5, 6].map(row => {
 					const label = DAY_LABELS[row];
 					return (
 						<div key={`row-${row}`} className="contents">
-							{/* Day-of-week label */}
 							<div
-								className="text-neutral-400 leading-none flex items-center"
+								className="text-muted-foreground leading-none flex items-center"
 								style={{ fontSize: 11 }}
 							>
 								{row % 2 === 0 ? label : ''}
 							</div>
-							{/* Cells for each column in this row */}
 							{weeks.map((week, col) => {
 								const day = week[row];
 								const key = formatDateStr(day);
@@ -125,7 +121,7 @@ function ContributionGrid({ onlineDates }: { onlineDates: string[] }) {
 									return (
 										<div
 											key={`${col}-${row}`}
-											className="bg-neutral-100 rounded-md border border-neutral-200"
+											className="bg-muted rounded-md border"
 											style={{ aspectRatio: '1' }}
 										/>
 									);
@@ -134,15 +130,16 @@ function ContributionGrid({ onlineDates }: { onlineDates: string[] }) {
 								const displayDate = formatDateDisplay(day);
 								const status = isFuture ? '' : online ? ' 在线' : ' 不在线';
 								return (
-									<Tooltip
-										key={`${col}-${row}`}
-										title={displayDate + status}
-										arrow
-									>
-										<div
-											className={`rounded-md ${isFuture ? 'bg-transparent' : online ? 'bg-green-500' : 'bg-neutral-200'}`}
-											style={{ aspectRatio: '1' }}
-										/>
+									<Tooltip key={`${col}-${row}`}>
+										<TooltipTrigger asChild>
+											<div
+												className={`rounded-md ${isFuture ? 'bg-transparent' : online ? 'bg-green-500' : 'bg-muted'}`}
+												style={{ aspectRatio: '1' }}
+											/>
+										</TooltipTrigger>
+										<TooltipContent>
+											{displayDate + status}
+										</TooltipContent>
 									</Tooltip>
 								);
 							})}
@@ -150,15 +147,15 @@ function ContributionGrid({ onlineDates }: { onlineDates: string[] }) {
 					);
 				})}
 			</div>
-			<div className="flex items-center gap-2 mt-3 text-xs text-neutral-500 justify-end">
+			<div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground justify-end">
 				<span>无数据</span>
 				<div
-					className="bg-neutral-100 border border-neutral-200"
+					className="bg-muted border"
 					style={{ width: LEGEND_CELL, height: LEGEND_CELL, borderRadius: 3 }}
 				/>
 				<span>不在线</span>
 				<div
-					className="bg-neutral-200"
+					className="bg-muted"
 					style={{ width: LEGEND_CELL, height: LEGEND_CELL, borderRadius: 3 }}
 				/>
 				<span>在线</span>
@@ -174,7 +171,6 @@ function ContributionGrid({ onlineDates }: { onlineDates: string[] }) {
 export function OnlineStatusSection({ onlineDates }: OnlineStatusSectionProps) {
 	const [dialogOpen, setDialogOpen] = useState(false);
 
-	// 后端返回的日期可能是 "2026-06-19T00:00:00+08:00"，统一截取 YYYY-MM-DD
 	const normalizedDates = useMemo(() => onlineDates.map(d => d.slice(0, 10)), [onlineDates]);
 	const onlineSet = useMemo(() => new Set(normalizedDates), [normalizedDates]);
 	const last7Days = useMemo(() => getLast7Days(), []);
@@ -183,48 +179,43 @@ export function OnlineStatusSection({ onlineDates }: OnlineStatusSectionProps) {
 		<>
 			<div>
 				<div className="flex items-center justify-between mb-2">
-					<span className="text-xs text-neutral-400 tracking-wider">近7天在线情况</span>
+					<span className="text-xs text-muted-foreground tracking-wider">近7天在线情况</span>
 				</div>
 				<div className="flex gap-3 justify-between">
 					{last7Days.map(d => {
 						const key = formatDateStr(d);
 						const online = onlineSet.has(key);
 						const dayLabel = `${d.getMonth() + 1}/${d.getDate()}`;
-						const dayOfWeek = DAY_LABELS[d.getDay()];
 
 						return (
 							<div key={key} className="flex flex-col items-center gap-0.5">
 								{online ? (
-									<div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">
+									<div className="size-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">
 										✓
 									</div>
 								) : (
-									<div className="w-8 h-8 rounded-full border-2 border-neutral-300" />
+									<div className="size-8 rounded-full border-2" />
 								)}
-								<span className="text-xs text-neutral-500">{dayLabel}</span>
-								{/* <span className="text-xs text-neutral-400">{dayOfWeek}</span> */}
+								<span className="text-xs text-muted-foreground">{dayLabel}</span>
 							</div>
 						);
 					})}
 				</div>
 				<div className="flex justify-end mt-2">
-					<Button size="small" onClick={() => setDialogOpen(true)}>
+					<Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>
 						查看全部
 					</Button>
 				</div>
 			</div>
 
-			<Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-				<DialogTitle
-					sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-				>
-					近期在线情况
-					<IconButton size="small" onClick={() => setDialogOpen(false)}>
-						<XIcon size={18} />
-					</IconButton>
-				</DialogTitle>
-				<DialogContent>
-					<ContributionGrid onlineDates={normalizedDates} />
+			<Dialog open={dialogOpen} onOpenChange={v => setDialogOpen(v)}>
+				<DialogContent className="sm:max-w-[480px]">
+					<DialogHeader>
+						<DialogTitle>近期在线情况</DialogTitle>
+					</DialogHeader>
+					<div className="flex justify-center">
+						<ContributionGrid onlineDates={normalizedDates} />
+					</div>
 				</DialogContent>
 			</Dialog>
 		</>

@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
-import type { Route } from './+types/player-list';
+import type { MetaArgs } from 'react-router';
+import { Card } from '~/components/ui/card';
 import {
-	Card,
-	CardActionArea,
-	CardContent,
-	CardMedia,
-	FormControl,
-	MenuItem,
 	Select,
-	Tooltip
-} from '@mui/material';
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '~/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import { AlertTriangleIcon, LockIcon } from 'lucide-react';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_PLAYER_LIST } from '~/consts/page-names';
@@ -18,7 +18,7 @@ import { getPlayerList, type PlayerListEntry } from '~/utils/requests/game';
 import EmptyState from '~/components/empty-state';
 import { navigate } from '~/utils/navigate';
 
-export function meta({}: Route.MetaArgs) {
+export function meta({}: MetaArgs) {
 	return [
 		{ title: PAGE_NAME_PLAYER_LIST + ' - Seatide' },
 		{ name: 'description', content: '查看服务器所有玩家及其游戏统计信息。' }
@@ -31,35 +31,40 @@ function PlayerCard({ player }: { player: PlayerListEntry }) {
 	const isPrivate = player.disallow_public_game_stats;
 
 	const card = (
-		<Card className={isPrivate ? 'opacity-60' : ''}>
-			<CardActionArea
+		<Card className={(isPrivate ? 'opacity-60' : 'hover:bg-muted/50 transition-colors cursor-pointer') + ' pt-0 pb-1.5 gap-0'}>
+			<div
 				onClick={() =>
 					!isPrivate && navigate(`/game/statistics/${encodeURIComponent(player.uuid)}`)
 				}
-				disabled={isPrivate}
 			>
 				<div className="relative">
-					<CardMedia
-						component="img"
-						image={`https://minotar.net/helm/${player.uuid}/128.png`}
+					<img
+						src={`https://minotar.net/helm/${player.uuid}/128.png`}
 						alt={player.name}
-						className="aspect-square"
+						className="aspect-square w-full rounded-t-xl"
 					/>
 					{isPrivate && (
-						<div className="absolute inset-0 flex items-center justify-center bg-black/30">
-							<LockIcon className="w-6 h-6 text-white" />
+						<div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-t-xl">
+							<LockIcon className="size-6 text-white" />
 						</div>
 					)}
 				</div>
-				<CardContent className="text-center !py-2">
-					<div className="text-sm font-medium truncate">{player.name}</div>
-				</CardContent>
-			</CardActionArea>
+				<div className="text-center px-2 py-1.5">
+					<div className="text-base font-medium truncate">{player.name}</div>
+				</div>
+			</div>
 		</Card>
 	);
 
 	if (isPrivate) {
-		return <Tooltip title="该玩家隐藏了游戏统计信息">{card}</Tooltip>;
+		return (
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<div>{card}</div>
+				</TooltipTrigger>
+				<TooltipContent>该玩家隐藏了游戏统计信息</TooltipContent>
+			</Tooltip>
+		);
 	}
 
 	return card;
@@ -101,15 +106,17 @@ export default function GameStatisticsPlayerList() {
 		<>
 			<PageHeader
 				actions={
-					<FormControl size="small">
-						<Select
-							value={sort}
-							onChange={e => handleSortChange(e.target.value as SortOrder)}
-						>
-							<MenuItem value="asc">首字母 A-Z</MenuItem>
-							<MenuItem value="desc">首字母 Z-A</MenuItem>
-						</Select>
-					</FormControl>
+					<Select value={sort} onValueChange={v => handleSortChange(v as SortOrder)}>
+						<SelectTrigger size="sm" className="w-[130px]">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectGroup>
+								<SelectItem value="asc">首字母 A-Z</SelectItem>
+								<SelectItem value="desc">首字母 Z-A</SelectItem>
+							</SelectGroup>
+						</SelectContent>
+					</Select>
 				}
 			>
 				{PAGE_NAME_PLAYER_LIST}
@@ -117,7 +124,7 @@ export default function GameStatisticsPlayerList() {
 			{loading ? (
 				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
 					{Array.from({ length: 8 }).map((_, i) => (
-						<div key={i} className="aspect-square bg-neutral-100 rounded-xl animate-pulse" />
+						<div key={i} className="aspect-square bg-muted rounded-xl animate-pulse" />
 					))}
 				</div>
 			) : sortedPlayers.length ? (

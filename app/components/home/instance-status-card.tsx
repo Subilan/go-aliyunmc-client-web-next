@@ -1,5 +1,6 @@
-import { Button, Card, CardContent, IconButton } from '@mui/material';
-import { CopyIcon, HardDriveIcon } from 'lucide-react';
+import { Card, CardContent } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { HardDriveIcon, CopyIcon } from 'lucide-react';
 import { CardLabel } from '~/components/card-label';
 import { FuncList, type FuncListItem } from '~/components/func-list';
 import { instanceStatusColor, instanceStatusText } from '~/routes/home/utils';
@@ -43,7 +44,7 @@ export const InstanceStatus = {
 		const user = useContext(UserContext);
 
 		return (
-			<Card variant="outlined">
+			<Card>
 				<CardContent>
 					<CardLabel icon={<HardDriveIcon size={14} />}>实例状态</CardLabel>
 					{loading ? (
@@ -52,9 +53,9 @@ export const InstanceStatus = {
 						<LoadingEmptyState
 							description={
 								<div className="flex flex-col items-center gap-1">
-									<span className="text-neutral-500">{busyLabel}</span>
+									<span className="text-muted-foreground">{busyLabel}</span>
 									{latestOutput && (
-										<span className="text-xs text-neutral-400 font-mono max-w-md text-center truncate px-4">
+										<span className="text-xs text-muted-foreground/70 font-mono max-w-md text-center truncate px-4">
 											{latestOutput}
 										</span>
 									)}
@@ -65,13 +66,12 @@ export const InstanceStatus = {
 						<EmptyState
 							icon={HardDriveIcon}
 							iconSize={40}
-							iconClassName="text-neutral-300"
-							description={<span className="text-neutral-500">尚未创建实例</span>}
+							iconClassName="text-muted-foreground/30"
+							description={<span className="text-muted-foreground">尚未创建实例</span>}
 							action={
 								<Button
 									disabled={!user?.whitelist_uuid}
-									variant="contained"
-									size="small"
+									size="sm"
 									onClick={onCreateInstance}
 								>
 									创建实例
@@ -95,26 +95,28 @@ export const InstanceStatus = {
 							<div className="flex-1" />
 							<div className="md:w-1/2 flex-col gap-4 md:flex-row grow md:justify-around flex md:gap-8">
 								<div className="flex flex-col">
-									<span className="text-xs text-neutral-400 mb-1">规格</span>
+									<span className="text-xs text-muted-foreground mb-1">规格</span>
 									<span className="text-xl font-bold">{instanceType || '—'}</span>
 								</div>
 								<div className="flex flex-col">
-									<span className="text-xs text-neutral-400 mb-1">地域</span>
+									<span className="text-xs text-muted-foreground mb-1">地域</span>
 									<span className="text-xl font-bold">{zoneId || '—'}</span>
 								</div>
 								<div className="flex flex-col">
-									<span className="text-xs text-neutral-400 mb-1">IP</span>
+									<span className="text-xs text-muted-foreground mb-1">IP</span>
 									<div className="flex items-center gap-1">
 										<span className="text-xl font-bold">{ip || '—'}</span>
 										{ip && (
-											<IconButton
+											<Button
+												variant="ghost"
+												size="icon-xs"
 												onClick={() => {
 													navigator.clipboard.writeText(ip);
 													Toast.success('已复制 IP 地址到剪贴板');
 												}}
 											>
-												<CopyIcon size={16} />
-											</IconButton>
+												<CopyIcon data-icon="inline-start" />
+											</Button>
 										)}
 									</div>
 								</div>

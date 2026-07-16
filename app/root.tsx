@@ -1,35 +1,32 @@
 import { isRouteErrorResponse, Scripts, ScrollRestoration, useRouteError } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 
-import type { Route } from './+types/root';
 import './app.css';
 import toast, { Toaster } from 'react-hot-toast';
-import { createTheme, SnackbarContent, ThemeProvider } from '@mui/material';
 import { AlertCircleIcon, CheckIcon, InfoIcon } from 'lucide-react';
 import Footer from '~/footer';
 import { router } from '~/routes';
 import { createRoot } from 'react-dom/client';
 import ProgressBar from '~/components/progress-bar';
+import { TooltipProvider } from '~/components/ui/tooltip';
 
 export const Toast = {
 	run(title: string, kind: 'success' | 'error' | 'info' = 'info', timeout = 3000) {
 		toast.custom(
 			t => {
 				return (
-					<SnackbarContent
+					<div
+						className="bg-card text-card-foreground rounded-lg shadow-lg border px-4 py-2.5 text-sm flex items-center gap-2"
 						style={{
 							animation: t.visible ? 'FadeIn .2s' : 'FadeOut .2s ease forwards',
 							fontFamily: 'var(--font-sans)'
 						}}
-						message={
-							<div className="flex items-center gap-2">
-								{kind === 'error' && <AlertCircleIcon size={16} />}
-								{kind === 'success' && <CheckIcon size={16} />}
-								{kind === 'info' && <InfoIcon size={16} />}
-								{title}
-							</div>
-						}
-					/>
+					>
+						{kind === 'error' && <AlertCircleIcon size={16} className="text-destructive" />}
+						{kind === 'success' && <CheckIcon size={16} className="text-green-500" />}
+						{kind === 'info' && <InfoIcon size={16} className="text-primary" />}
+						{title}
+					</div>
 				);
 			},
 			{
@@ -51,26 +48,9 @@ export const Toast = {
 
 createRoot(document.getElementById('root')!).render(
 	<>
-		<ThemeProvider
-			theme={createTheme({
-				shape: {
-					borderRadius: 10
-				},
-				typography: {
-					fontFamily: 'var(--font-sans)'
-				},
-				palette: {
-					primary: {
-						main: '#1e88e5',
-						light: '#2979ff',
-						dark: '#1565c0',
-						contrastText: '#fff'
-					}
-				}
-			})}
-		>
+		<TooltipProvider>
 			<RouterProvider router={router} />
-		</ThemeProvider>
+		</TooltipProvider>
 		<Toaster position="top-center" />
 		<Footer />
 	</>
@@ -105,7 +85,7 @@ export function ErrorBoundary() {
 				</h1>
 				<p className="text-xl">{details}</p>
 				{jackpot && (
-					<p className="text-neutral-300">
+					<p className="text-muted-foreground">
 						（你抽到了 1% 概率的隐藏款！请联系服主领取奖励）
 					</p>
 				)}

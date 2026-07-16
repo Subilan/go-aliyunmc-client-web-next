@@ -1,5 +1,11 @@
-import type { Route } from './+types/game-statistics';
-import { Card, CardContent, Collapse, IconButton } from '@mui/material';
+import type { MetaArgs } from 'react-router';
+import { Card, CardContent } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger
+} from '~/components/ui/collapsible';
 import { AlertTriangleIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_GAME_STATISTICS } from '~/consts/page-names';
@@ -17,7 +23,7 @@ import { OnlineStatusSection } from '~/components/game-statistics/online-status-
 import EmptyState from '~/components/empty-state';
 import { createLoader } from '~/utils/createLoader';
 
-export function meta({}: Route.MetaArgs) {
+export function meta({}: MetaArgs) {
 	return [
 		{ title: PAGE_NAME_GAME_STATISTICS + ' - Seatide' },
 		{ name: 'description', content: '查看玩家在游戏中的各种进度信息。' }
@@ -106,16 +112,12 @@ export default function GameStatistics() {
 
 	const advProgress = gameStats?.advancement_progress;
 
-	function getStat(category: string, stat: string): number {
-		return gameStats?.stats?.[`minecraft:${category}`]?.[`minecraft:${stat}`] ?? 0;
-	}
-
 	return (
 		<>
 			<PageHeader info={Info()}>{PAGE_NAME_GAME_STATISTICS}</PageHeader>
 			<div className="flex flex-col gap-3">
 				{/* Player Overview */}
-				<Card variant="outlined" sx={{ overflow: 'visible' }}>
+				<Card className="overflow-visible">
 					<CardContent>
 						<CardLabel>玩家概览</CardLabel>
 						<div className="flex flex-col-reverse items-center md:flex-row gap-6">
@@ -123,7 +125,7 @@ export default function GameStatistics() {
 							<div className="flex-1 flex w-full md:w-auto flex-col gap-3">
 								{gameStats ? (
 									<>
-										<div className="text-2xl border-b border-b-neutral-200">
+										<div className="text-2xl border-b pb-2">
 											{gameStats.player_name}
 										</div>
 										<div className="grid grid-cols-3 gap-3">
@@ -152,7 +154,7 @@ export default function GameStatistics() {
 										<OnlineStatusSection onlineDates={gameStats.online_dates} />
 									</>
 								) : (
-									<div className="text-neutral-400 text-sm">暂无统计数据</div>
+									<div className="text-muted-foreground text-sm">暂无统计数据</div>
 								)}
 							</div>
 						</div>
@@ -160,11 +162,11 @@ export default function GameStatistics() {
 				</Card>
 
 				{/* Advancements */}
-				<Card variant="outlined" sx={{ overflow: 'visible' }}>
+				<Card className="overflow-visible">
 					<CardContent>
 						<CardLabel>成就</CardLabel>
 						{advancements.length === 0 ? (
-							<div className="text-neutral-400 text-sm">暂无成就数据</div>
+							<div className="text-muted-foreground text-sm">暂无成就数据</div>
 						) : (
 							<>
 								<AdvancementMetrics advProgress={advProgress} />
@@ -177,39 +179,43 @@ export default function GameStatistics() {
 
 								{uncompleted.length > 0 && (
 									<div className="mt-4">
-										<div
-											className="flex items-center gap-1 cursor-pointer select-none text-sm text-neutral-500"
-											onClick={() =>
-												showUncompleted.set(!showUncompleted.current)
-											}
+										<Collapsible
+											open={showUncompleted.current}
+											onOpenChange={v => showUncompleted.set(v)}
 										>
-											<IconButton size="small">
-												{showUncompleted.current ? (
-													<ChevronDownIcon size={16} />
-												) : (
-													<ChevronRightIcon size={16} />
-												)}
-											</IconButton>
-											未完成 ({uncompleted.length})
-										</div>
-										<Collapse in={showUncompleted.current}>
-											<div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 mt-3 overflow-visible">
-												{uncompleted.map(a => (
-													<AdvancementItem
-														key={a.resourceLocation}
-														a={a}
-														completed={false}
-													/>
-												))}
-											</div>
-										</Collapse>
+											<CollapsibleTrigger asChild>
+												<div className="flex items-center gap-1 cursor-pointer select-none text-sm text-muted-foreground">
+													<Button variant="ghost" size="icon-xs" asChild>
+														<span>
+															{showUncompleted.current ? (
+																<ChevronDownIcon data-icon="inline-start" />
+															) : (
+																<ChevronRightIcon data-icon="inline-start" />
+															)}
+														</span>
+													</Button>
+													未完成 ({uncompleted.length})
+												</div>
+											</CollapsibleTrigger>
+											<CollapsibleContent>
+												<div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 mt-3 overflow-visible">
+													{uncompleted.map(a => (
+														<AdvancementItem
+															key={a.resourceLocation}
+															a={a}
+															completed={false}
+														/>
+													))}
+												</div>
+											</CollapsibleContent>
+										</Collapsible>
 									</div>
 								)}
 							</>
 						)}
 					</CardContent>
 				</Card>
-				<Card variant="outlined">
+				<Card>
 					<CardContent>
 						<CardLabel>统计数据</CardLabel>
 						<div className="flex flex-col gap-5">

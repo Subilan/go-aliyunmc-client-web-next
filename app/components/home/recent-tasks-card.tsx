@@ -1,18 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Card, CardContent } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import {
-	Button,
-	Card,
-	CardContent,
-	IconButton,
-	Paper,
 	Table,
 	TableBody,
 	TableCell,
-	TableContainer,
 	TableHead,
-	TableRow,
-	Tooltip
-} from '@mui/material';
+	TableHeader,
+	TableRow
+} from '~/components/ui/table';
 import { ClockIcon, RefreshCwIcon } from 'lucide-react';
 import { Link } from 'react-router';
 import { CardLabel } from '~/components/card-label';
@@ -55,18 +52,26 @@ export const RecentTasks = {
 		}, [refreshKey, handleRefresh]);
 
 		return (
-			<Card variant="outlined">
+			<Card>
 				<CardContent>
 					<CardLabel
 						icon={<ClockIcon size={14} />}
 						actions={
-							<Tooltip title="刷新">
-								<IconButton size="small" disabled={refreshing} onClick={handleRefresh}>
-									<RefreshCwIcon
-										size={16}
-										className={refreshing ? 'animate-spin' : ''}
-									/>
-								</IconButton>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="ghost"
+										size="icon-xs"
+										disabled={refreshing}
+										onClick={handleRefresh}
+									>
+										<RefreshCwIcon
+											data-icon="inline-start"
+											className={refreshing ? 'animate-spin' : ''}
+										/>
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>刷新</TooltipContent>
 							</Tooltip>
 						}
 					>
@@ -76,64 +81,55 @@ export const RecentTasks = {
 						<LoadingEmptyState />
 					) : tasks.length === 0 ? (
 						<EmptyState
-							description={<span className="text-neutral-500">暂无任务</span>}
+							description={<span className="text-muted-foreground">暂无任务</span>}
 							className="py-8"
 						/>
 					) : (
-						<TableContainer component={Paper} variant="outlined">
-							<Table size="small" sx={{ tableLayout: { xs: 'auto', md: 'fixed' } }}>
-								<TableHead>
-									<TableRow>
-										<TableCell align="center">类型</TableCell>
-										<TableCell align="center">状态</TableCell>
-										<TableCell
-											align="center"
-											sx={{ display: { xs: 'none', md: 'table-cell' } }}
-										>
-											耗时
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead className="text-center">类型</TableHead>
+									<TableHead className="text-center">状态</TableHead>
+									<TableHead className="text-center hidden md:table-cell">耗时</TableHead>
+									<TableHead className="text-center">创建时间</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{tasks.slice(0, 5).map(task => (
+									<TableRow key={task.ID}>
+										<TableCell className="text-center">
+											{taskTypeLabel(task.type)}
 										</TableCell>
-										<TableCell align="center">创建时间</TableCell>
-									</TableRow>
-								</TableHead>
-								<TableBody>
-									{tasks.slice(0, 5).map(task => (
-										<TableRow key={task.ID} hover>
-											<TableCell align="center">
-												{taskTypeLabel(task.type)}
-											</TableCell>
-											<TableCell align="center">
-												{taskStatusIcon(task.status)}
-											</TableCell>
-											<TableCell
-												align="center"
-												sx={{ display: { xs: 'none', md: 'table-cell' } }}
-												className="text-neutral-500 text-sm"
-											>
-												{task.endAt && task.startAt
-													? (
-															(new Date(task.endAt).getTime() -
-																new Date(task.startAt).getTime()) /
-															1000
-														).toFixed(1) + 's'
-													: '—'}
-											</TableCell>
-											<TableCell
-												align="center"
-												className="text-neutral-500 text-sm"
-											>
-												<Tooltip title={Times.formatDate(task.CreatedAt)}>
+										<TableCell className="text-center">
+											{taskStatusIcon(task.status)}
+										</TableCell>
+										<TableCell className="text-center hidden md:table-cell text-muted-foreground text-sm">
+											{task.endAt && task.startAt
+												? (
+														(new Date(task.endAt).getTime() -
+															new Date(task.startAt).getTime()) /
+														1000
+													).toFixed(1) + 's'
+												: '—'}
+										</TableCell>
+										<TableCell className="text-center text-muted-foreground text-sm">
+											<Tooltip>
+												<TooltipTrigger>
 													<span>{Times.formatFromNow(task.CreatedAt)}</span>
-												</Tooltip>
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</TableContainer>
+												</TooltipTrigger>
+												<TooltipContent>
+													{Times.formatDate(task.CreatedAt)}
+												</TooltipContent>
+											</Tooltip>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
 					)}
 					<div className="mt-2 text-right">
-						<Button size="small" component={Link} to="/info/tasks">
-							查看全部
+						<Button size="sm" variant="link" asChild>
+							<Link to="/info/tasks">查看全部</Link>
 						</Button>
 					</div>
 				</CardContent>

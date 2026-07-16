@@ -1,8 +1,12 @@
 import type { AdvancementEntry } from '~/utils/requests/game';
-import { Dialog, useMediaQuery, useTheme } from '@mui/material';
+import {
+	Dialog,
+	DialogContent
+} from '~/components/ui/dialog';
 import { useMcTranslate } from '~/hooks/useMcTranslate';
 import { Times } from '~/utils/times';
 import useStateNamed from '~/hooks/useStateNamed';
+import { useEffect, useState } from 'react';
 
 export const gifAdvancements = new Set([
 	'minecraft:adventure/avoid_vibration',
@@ -17,13 +21,24 @@ export function advancementIconPath(resourceLocation: string): string {
 	return `/advancement_icons/${name}.${ext}`;
 }
 
+function useIsMobile() {
+	const [isMobile, setIsMobile] = useState(false);
+	useEffect(() => {
+		const mq = window.matchMedia('(max-width: 767px)');
+		setIsMobile(mq.matches);
+		const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+		mq.addEventListener('change', handler);
+		return () => mq.removeEventListener('change', handler);
+	}, []);
+	return isMobile;
+}
+
 export function AdvancementItem({ a, completed }: { a: AdvancementEntry; completed: boolean }) {
 	const grayscaleClass = completed ? '' : 'grayscale';
 	const hasProgress = Object.keys(a.criteria).length > 0;
 	const translate = useMcTranslate();
 	const dialogOpen = useStateNamed(false);
-	const theme = useTheme();
-	const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+	const isMobile = useIsMobile();
 
 	let background = '/advancement_icons/advbg-progress';
 	if (a.isChallenge) background = '/advancement_icons/advbg-challenge';
@@ -122,7 +137,6 @@ export function AdvancementItem({ a, completed }: { a: AdvancementEntry; complet
 					if (isMobile) dialogOpen.set(true);
 				}}
 			>
-				{/* Tooltip — md+ hover only */}
 				<div
 					className="hidden md:block absolute top-[15px] left-[23%] z-10
 					opacity-0 scale-95 group-hover/item:opacity-100 group-hover/item:scale-100
@@ -136,23 +150,22 @@ export function AdvancementItem({ a, completed }: { a: AdvancementEntry; complet
 				{iconElement}
 			</div>
 
-			{/* Click dialog — mobile only */}
 			{isMobile && (
 				<Dialog
 					open={dialogOpen.current}
-					onClose={() => dialogOpen.set(false)}
-					slotProps={{
-						paper: {
-							sx: { background: 'transparent', boxShadow: 'none', overflow: 'visible' }
-						}
-					}}
+					onOpenChange={v => dialogOpen.set(v)}
 				>
-					<div className="flex flex-col items-center gap-10 p-4">
-						<div className="scale-[1.5]">
-							{iconElement}
+					<DialogContent
+						showCloseButton={false}
+						className="bg-transparent shadow-none border-0 p-0 sm:max-w-none max-w-none"
+					>
+						<div className="flex flex-col items-center gap-10 p-4">
+							<div className="scale-[1.5]">
+								{iconElement}
+							</div>
+							{dialogContent}
 						</div>
-						{dialogContent}
-					</div>
+					</DialogContent>
 				</Dialog>
 			)}
 		</>

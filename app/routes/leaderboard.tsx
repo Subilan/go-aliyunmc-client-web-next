@@ -1,17 +1,22 @@
 import { useEffect } from 'react';
-import type { Route } from './+types/leaderboard';
+import type { MetaArgs } from 'react-router';
+import { Card, CardContent } from '~/components/ui/card';
 import {
-	Card,
-	CardContent,
-	MenuItem,
 	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '~/components/ui/select';
+import {
 	Table,
 	TableBody,
 	TableCell,
-	TableContainer,
 	TableHead,
+	TableHeader,
 	TableRow
-} from '@mui/material';
+} from '~/components/ui/table';
 
 import { PAGE_NAME_LEADERBOARD } from '~/consts/page-names';
 import { Req } from '~/utils/requests/Req';
@@ -55,7 +60,6 @@ function PodiumCard({
 	const isFirst = rank === 1;
 	return (
 		<Card
-			variant="outlined"
 			className={`w-full ${isFirst ? 'sm:h-52 sm:w-42' : 'sm:h-40 sm:w-36'} ${colors.border} border-l-4 sm:border-l-0 sm:border-t-4`}
 		>
 			<CardContent className="flex flex-row sm:flex-col items-center sm:justify-center sm:h-full gap-1.5 py-3 sm:py-4">
@@ -73,7 +77,7 @@ function PodiumCard({
 					>
 						{formattedValue}
 					</span>
-					<span className="text-xs text-neutral-400 sm:mt-1">{unit}</span>
+					<span className="text-xs text-muted-foreground sm:mt-1">{unit}</span>
 				</div>
 			</CardContent>
 		</Card>
@@ -90,7 +94,7 @@ function LeaderboardInfo() {
 			<p>排行榜数据更新有 5 分钟延迟，并且当服务器不在线时，不会进行同步。</p>
 			<h4>不参与排行榜</h4>
 			<p>
-				如果你不希望自己的游戏名出现在排行榜中，可以在【个人资料→偏好设置】中将“参与排行榜”一项关闭，此设置将立即生效。
+				如果你不希望自己的游戏名出现在排行榜中，可以在【个人资料→偏好设置】中将"参与排行榜"一项关闭，此设置将立即生效。
 			</p>
 			<h4>指标解释</h4>
 			<p>排行榜提供下列指标的排序：</p>
@@ -111,7 +115,7 @@ function LeaderboardInfo() {
 	);
 }
 
-export function meta({}: Route.MetaArgs) {
+export function meta({}: MetaArgs) {
 	return [
 		{ title: PAGE_NAME_LEADERBOARD + ' - Seatide' },
 		{ name: 'description', content: '浏览服务器玩家各项指标的排行榜。' }
@@ -151,17 +155,19 @@ export default function Leaderboard() {
 			<div className="flex items-center mb-6">
 				<PageHeader info={LeaderboardInfo()}>{PAGE_NAME_LEADERBOARD}</PageHeader>
 				<div className="flex-1" />
-				<Select
-					value={metric.current}
-					onChange={e => metric.set(e.target.value)}
-					size="small"
-					sx={{ minWidth: 130, '& .MuiSelect-select': { py: 0.75 } }}
-				>
-					{Object.entries(METRICS).map(([key, m]) => (
-						<MenuItem key={key} value={key}>
-							{m.label}
-						</MenuItem>
-					))}
+				<Select value={metric.current} onValueChange={v => metric.set(v)}>
+					<SelectTrigger className="w-[130px]">
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectGroup>
+							{Object.entries(METRICS).map(([key, m]) => (
+								<SelectItem key={key} value={key}>
+									{m.label}
+								</SelectItem>
+							))}
+						</SelectGroup>
+					</SelectContent>
 				</Select>
 			</div>
 			<div className="flex flex-col gap-4">
@@ -207,46 +213,40 @@ export default function Leaderboard() {
 						</div>
 
 						{rest.length > 0 && (
-							<Card variant="outlined">
-								<TableContainer>
-									<Table>
-										<TableHead>
-											<TableRow>
-												<TableCell sx={{ fontWeight: 600, width: 80 }}>
-													排名
+							<Card className="py-0">
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead className="w-20 font-semibold">排名</TableHead>
+											<TableHead className="font-semibold">玩家</TableHead>
+											<TableHead className="font-semibold text-right">
+												{metricInfo.label}
+											</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{rest.map((entry, i) => (
+											<TableRow key={entry.uuid}>
+												<TableCell>
+													<span className="text-muted-foreground">
+														#{i + 4}
+													</span>
 												</TableCell>
-												<TableCell sx={{ fontWeight: 600 }}>玩家</TableCell>
-												<TableCell
-													sx={{ fontWeight: 600, textAlign: 'right' }}
-												>
-													{metricInfo.label}
+												<TableCell className="text-base">
+													{entry.player_name}
+												</TableCell>
+												<TableCell align="right" className="text-base">
+													<span className="font-bold">
+														{formatValue(entry.value)}
+													</span>
+													<span className="text-muted-foreground text-sm ml-1">
+														{metricInfo.unit}
+													</span>
 												</TableCell>
 											</TableRow>
-										</TableHead>
-										<TableBody>
-											{rest.map((entry, i) => (
-												<TableRow key={entry.uuid}>
-													<TableCell>
-														<span className="text-neutral-400">
-															#{i + 4}
-														</span>
-													</TableCell>
-													<TableCell className="text-base">
-														{entry.player_name}
-													</TableCell>
-													<TableCell align="right" className="text-base">
-														<span className="font-bold">
-															{formatValue(entry.value)}
-														</span>
-														<span className="text-neutral-400 text-sm ml-1">
-															{metricInfo.unit}
-														</span>
-													</TableCell>
-												</TableRow>
-											))}
-										</TableBody>
-									</Table>
-								</TableContainer>
+										))}
+									</TableBody>
+								</Table>
 							</Card>
 						)}
 					</>

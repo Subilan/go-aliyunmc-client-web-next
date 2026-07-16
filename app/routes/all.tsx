@@ -1,9 +1,8 @@
-import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
+import { Card } from '~/components/ui/card';
 import {
 	AlignEndHorizontalIcon,
 	CpuIcon,
 	DollarSignIcon,
-	LayoutDashboardIcon,
 	ListTodoIcon,
 	LogsIcon,
 	MessagesSquareIcon,
@@ -11,7 +10,8 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Link } from 'react-router';
-import type { Route } from './+types/all';
+import type { MetaArgs } from 'react-router';
+import PageHeader from '~/components/page-header';
 import { PAGE_CATEGORY_GAME, PAGE_CATEGORY_INFORMATION, PAGE_CATEGORY_MISC } from "~/consts/page-categories";
 import { PAGE_NAME_ECONOMY, PAGE_NAME_ECS_CANDIDATES, PAGE_NAME_LEADERBOARD, PAGE_NAME_PLAYER_LIST, PAGE_NAME_TASK_LIST, PAGE_NAME_UPDATES, PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
 
@@ -28,18 +28,6 @@ interface FeatureGroup {
 }
 
 export const groups: FeatureGroup[] = [
-	{
-		title: '控制台',
-		cards: [
-			{
-				title: '控制台',
-				description:
-					'查看服务器状态、实例信息、ECS 候选列表及最近任务，执行实例与服务器管理操作。',
-				to: '/',
-				icon: LayoutDashboardIcon
-			}
-		]
-	},
 	{
 		title: PAGE_CATEGORY_INFORMATION,
 		cards: [
@@ -103,36 +91,32 @@ export const groups: FeatureGroup[] = [
 
 
 
-export function meta({}: Route.MetaArgs) {
+export function meta({}: MetaArgs) {
 	return [{ title: '所有功能 - Seatide' }];
 }
 
 export default function AllFeatures() {
 	return (
 		<>
-			<h1 className="text-3xl mb-8">所有功能</h1>
+			<PageHeader>所有功能</PageHeader>
 			{groups.map(group => (
 				<section key={group.title} className="mb-8">
-					<h2 className="text-lg font-bold mb-4 text-neutral-500">{group.title}</h2>
+					<h2 className="text-lg mb-4 text-neutral-500">{group.title}</h2>
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 						{group.cards.map(card => {
 							const Icon = card.icon;
 							return (
-								<Card key={card.to} variant="outlined">
-									<CardActionArea component={Link} to={card.to}>
-										<CardContent>
-											<div className="flex items-center gap-3 mb-2">
-												<Icon size={24} className="text-blue-500" />
-												<Typography variant="h6" component="div">
-													{card.title}
-												</Typography>
-											</div>
-											<Typography variant="body2" color="text.secondary">
-												{card.description}
-											</Typography>
-										</CardContent>
-									</CardActionArea>
+								<Link to={card.to} key={card.to}>
+								<Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full px-(--card-spacing) py-(--card-spacing)">
+									<div>
+										<div className="flex items-center gap-3 font-heading text-base leading-normal font-medium">
+											<Icon size={24} className="text-primary shrink-0" />
+											{card.title}
+										</div>
+										<div className="mt-3 text-sm text-muted-foreground">{card.description}</div>
+									</div>
 								</Card>
+								</Link>
 							);
 						})}
 					</div>

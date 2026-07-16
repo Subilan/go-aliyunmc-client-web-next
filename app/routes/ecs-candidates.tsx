@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-	Paper,
 	Table,
 	TableBody,
 	TableCell,
-	TableContainer,
 	TableHead,
+	TableHeader,
 	TableRow
-} from '@mui/material';
+} from '~/components/ui/table';
 import { CheckCircleIcon, CheckIcon, ClockIcon, ServerIcon } from 'lucide-react';
 import type { EcsCandidate } from '~/types/EcsCandidate';
 import { getCandidates } from '~/utils/requests/instance';
@@ -103,59 +102,57 @@ export default function EcsCandidatesPage() {
 					]}
 				/>
 
-				<Paper variant="outlined">
-					<TableContainer>
-						<Table size="small">
-							<TableHead>
-								<TableRow>
-									{columns.map(col => (
-										<TableCell key={col.id} align="center">
-											{col.label}
-										</TableCell>
-									))}
-								</TableRow>
-							</TableHead>
-							<TableBody>
-								{loading ? (
-									Array.from({ length: 5 }).map((_, i) => (
-										<TableRow key={`skel-${i}`}>
-											<TableCell colSpan={columns.length}>
-												<div className="h-4 bg-neutral-100 rounded animate-pulse" />
-											</TableCell>
-										</TableRow>
-									))
-								) : candidates.current.length === 0 ? (
-									<TableRow>
-										<TableCell colSpan={columns.length} align="center">
-											<span className="text-neutral-500 py-8 block">
-												暂无可用实例
-											</span>
+				<div className="border rounded-lg bg-card">
+					<Table>
+						<TableHeader>
+							<TableRow>
+								{columns.map(col => (
+									<TableHead key={col.id} className="text-center">
+										{col.label}
+									</TableHead>
+								))}
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{loading ? (
+								Array.from({ length: 5 }).map((_, i) => (
+									<TableRow key={`skel-${i}`}>
+										<TableCell colSpan={columns.length}>
+											<div className="h-4 bg-muted rounded animate-pulse" />
 										</TableCell>
 									</TableRow>
-								) : (
-									candidates.current.map((c, i) => (
-										<TableRow key={i} hover>
-											<TableCell align="center">
-												<div className="flex justify-center items-center gap-2">
-													{c.instanceType}{' '}
-													{i === 0 && (
-														<CheckIcon size={16} color="green" />
-													)}
-												</div>
-											</TableCell>
-											<TableCell align="center">{c.cpuCoreCount}</TableCell>
-											<TableCell align="center">{c.memory}</TableCell>
-											<TableCell align="center">{c.zoneId}</TableCell>
-											<TableCell align="center">
-												¥{c.tradePrice.toFixed(2)}
-											</TableCell>
-										</TableRow>
-									))
-								)}
-							</TableBody>
-						</Table>
-					</TableContainer>
-				</Paper>
+								))
+							) : candidates.current.length === 0 ? (
+								<TableRow>
+									<TableCell colSpan={columns.length} className="text-center">
+										<span className="text-muted-foreground py-8 block">
+											暂无可用实例
+										</span>
+									</TableCell>
+								</TableRow>
+							) : (
+								candidates.current.map((c, i) => (
+									<TableRow key={i}>
+										<TableCell className="text-center">
+											<div className="flex justify-center items-center gap-2">
+												{c.instanceType}{' '}
+												{i === 0 && (
+													<CheckIcon className="text-green-500 size-4" />
+												)}
+											</div>
+										</TableCell>
+										<TableCell className="text-center">{c.cpuCoreCount}</TableCell>
+										<TableCell className="text-center">{c.memory}</TableCell>
+										<TableCell className="text-center">{c.zoneId}</TableCell>
+										<TableCell className="text-center">
+											¥{c.tradePrice.toFixed(2)}
+										</TableCell>
+									</TableRow>
+								))
+							)}
+						</TableBody>
+					</Table>
+				</div>
 			</div>
 		</>
 	);

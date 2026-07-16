@@ -1,16 +1,18 @@
 import {
-	Button,
 	Card,
-	CardContent,
-	Checkbox,
+	CardContent
+} from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { Checkbox } from '~/components/ui/checkbox';
+import { Spinner } from '~/components/ui/spinner';
+import {
 	Dialog,
-	DialogActions,
 	DialogContent,
-	DialogTitle,
-	FormControlLabel,
-	IconButton,
-	Tooltip
-} from '@mui/material';
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '~/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import {
 	ChartBarBigIcon,
 	CogIcon,
@@ -76,23 +78,29 @@ function LoginForm({ setRegister }: { setRegister: () => void }) {
 					name="remember"
 					control={control}
 					render={({ field }) => (
-						<FormControlLabel
-							control={<Checkbox {...field} />}
-							label="7 天内保持登录状态"
-						></FormControlLabel>
+						<div className="flex items-center gap-2">
+							<Checkbox
+								id="remember"
+								checked={field.value}
+								onCheckedChange={field.onChange}
+							/>
+							<label htmlFor="remember" className="text-sm cursor-pointer select-none">
+								7 天内保持登录状态
+							</label>
+						</div>
 					)}
 				/>
 			</form>
 			<div className="flex gap-3 items-center">
 				<Button
-					variant="contained"
 					type="submit"
 					form="loginForm"
-					loading={loading.current}
+					disabled={loading.current}
 				>
+					{loading.current && <Spinner data-icon="inline-start" />}
 					登录
 				</Button>
-				<Button variant="text" onClick={setRegister}>
+				<Button variant="ghost" onClick={setRegister}>
 					注册
 				</Button>
 			</div>
@@ -155,14 +163,14 @@ function RegisterForm({ setLogin }: { setLogin: () => void }) {
 			</form>
 			<div className="flex gap-3 items-center">
 				<Button
-					loading={loading.current}
+					disabled={loading.current}
 					type="submit"
-					variant="contained"
 					form="registerForm"
 				>
+					{loading.current && <Spinner data-icon="inline-start" />}
 					注册
 				</Button>
-				<Button variant="text" onClick={setLogin}>
+				<Button variant="ghost" onClick={setLogin}>
 					登录
 				</Button>
 			</div>
@@ -189,19 +197,23 @@ export default function Lor() {
 					<CardContent>
 						<div className="flex flex-col gap-7 w-[320px]">
 							<div className="flex flex-col gap-1">
-								<div className="flex">
+								<div className="flex items-center">
 									<h1 className="text-2xl">
 										Player {type === 'register' ? 'Register' : 'Login'}
 									</h1>
 									<div className="flex-1" />
 									{type === 'register' && (
-										<Tooltip title="了解更多">
-											<IconButton
-												onClick={() => registerHelpModal.set(true)}
-												className="absolute top-3 right-3"
-											>
-												<HelpCircleIcon size={16} />
-											</IconButton>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<Button
+													variant="ghost"
+													size="icon-sm"
+													onClick={() => registerHelpModal.set(true)}
+												>
+													<HelpCircleIcon data-icon="inline-start" />
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent>了解更多</TooltipContent>
 										</Tooltip>
 									)}
 								</div>
@@ -216,10 +228,12 @@ export default function Lor() {
 					</CardContent>
 				</Card>
 			</div>
-			<Dialog open={registerHelpModal.current} onClose={() => registerHelpModal.set(false)}>
-				<DialogTitle>关于控制台账号</DialogTitle>
-				<DialogContent>
-					<div className="prose">
+			<Dialog open={registerHelpModal.current} onOpenChange={v => registerHelpModal.set(v)}>
+				<DialogContent className="sm:max-w-lg">
+					<DialogHeader>
+						<DialogTitle>关于控制台账号</DialogTitle>
+					</DialogHeader>
+					<div className="prose text-sm text-muted-foreground max-h-[60vh] overflow-y-auto">
 						<p>
 							在注册控制台账号之前，如果你有任何疑问，可以参考下面的内容。阅读完后，如仍有不清楚的地方，欢迎发送邮件到{' '}
 							<a href="mailto:support@seatide.net">support@seatide.net</a> 咨询。
@@ -275,10 +289,10 @@ export default function Lor() {
 							<li>密码：长度为 8~20 个字符，必须包含英文字母、数字。</li>
 						</ul>
 					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => registerHelpModal.set(false)}>关闭</Button>
+					</DialogFooter>
 				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => registerHelpModal.set(false)}>关闭</Button>
-				</DialogActions>
 			</Dialog>
 		</>
 	);

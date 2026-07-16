@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { LinearProgress } from '@mui/material';
+import { Progress } from '~/components/ui/progress';
 import { SkinViewer } from 'skinview3d';
 import useStateNamed from '~/hooks/useStateNamed';
 
@@ -71,7 +71,9 @@ export function SkinModel(props: { uuid: string }) {
 		>
 			{loading.current && (
 				<div className="absolute inset-0 flex items-center justify-center">
-					<LinearProgress className="w-full" />
+					<div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+						<div className="h-full bg-primary animate-pulse rounded-full" style={{ width: '60%' }} />
+					</div>
 				</div>
 			)}
 			<canvas ref={canvasRef} className="rounded-lg" />

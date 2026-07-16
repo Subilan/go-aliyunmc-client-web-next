@@ -1,11 +1,12 @@
 import {
-	Button,
 	Dialog,
-	DialogActions,
 	DialogContent,
-	DialogContentText,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
 	DialogTitle
-} from '@mui/material';
+} from '~/components/ui/dialog';
+import { Button } from '~/components/ui/button';
 
 interface ConfirmTriggerDialogProps {
 	open: boolean;
@@ -25,19 +26,21 @@ export default function ConfirmTriggerDialog({
 	loading
 }: ConfirmTriggerDialogProps) {
 	return (
-		<Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-			<DialogTitle>{title}</DialogTitle>
+		<Dialog open={open} onOpenChange={v => !v && onClose()}>
 			<DialogContent>
-				<DialogContentText>{description}</DialogContentText>
+				<DialogHeader>
+					<DialogTitle>{title}</DialogTitle>
+					<DialogDescription>{description}</DialogDescription>
+				</DialogHeader>
+				<DialogFooter>
+					<Button variant="outline" onClick={onClose} disabled={loading}>
+						取消
+					</Button>
+					<Button onClick={onConfirm} disabled={loading}>
+						{loading ? '触发中...' : '确认'}
+					</Button>
+				</DialogFooter>
 			</DialogContent>
-			<DialogActions>
-				<Button onClick={onClose} disabled={loading}>
-					取消
-				</Button>
-				<Button variant="contained" onClick={onConfirm} disabled={loading}>
-					{loading ? '触发中...' : '确认'}
-				</Button>
-			</DialogActions>
 		</Dialog>
 	);
 }

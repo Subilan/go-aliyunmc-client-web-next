@@ -1,24 +1,23 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { Card, CardContent } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { Badge } from '~/components/ui/badge';
+import { Spinner } from '~/components/ui/spinner';
+import { Input } from '~/components/ui/input';
+import { Textarea } from '~/components/ui/textarea';
+import { Label } from '~/components/ui/label';
+import { ToggleGroup, ToggleGroupItem } from '~/components/ui/toggle-group';
 import {
-	Button,
-	Card,
-	CardActionArea,
-	CardContent,
-	Chip,
-	CircularProgress,
 	Dialog,
-	DialogActions,
 	DialogContent,
-	DialogContentText,
-	DialogTitle,
-	IconButton,
-	TextField,
-	ToggleButton,
-	ToggleButtonGroup
-} from '@mui/material';
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '~/components/ui/dialog';
 import { HeartIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
-import { Remark, useRemark } from 'react-remark';
+import { Remark } from 'react-remark';
 import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
 import PageHeader from '~/components/page-header';
 import { UserContext } from '~/contexts/user';
@@ -185,13 +184,12 @@ export default function Updates() {
 				actions={
 					canEdit && (
 						<Button
-							variant="contained"
-							startIcon={<PlusIcon size={16} />}
 							onClick={() => {
 								createForm.reset({ title: '', body: '', category: 'platform' });
 								setCreating(true);
 							}}
 						>
+							<PlusIcon data-icon="inline-start" />
 							发布
 						</Button>
 					)
@@ -207,7 +205,7 @@ export default function Updates() {
 					className="py-20"
 					description={<span className="text-sm">{error}</span>}
 					action={
-						<Button variant="outlined" onClick={() => fetchPage(1)}>
+						<Button variant="outline" onClick={() => fetchPage(1)}>
 							重试
 						</Button>
 					}
@@ -224,98 +222,97 @@ export default function Updates() {
 							<h2 className="text-2xl font-bold mb-5">{month}</h2>
 							<div className="flex flex-col gap-3">
 								{updates.map(update => (
-									<Card key={update.id} variant="outlined">
-										<CardActionArea
-											component="div"
-											onClick={() => setSelected(update)}
-										>
-											<CardContent>
-												<div className="flex items-start justify-between gap-4 mb-2">
-													<h3 className="text-xl font-medium leading-relaxed">
-														{update.title}
-													</h3>
-													<Chip
-														label={categoryText(update.category)}
-														size="small"
-														variant="outlined"
-														className="shrink-0"
-													/>
-												</div>
-												<div className="text-neutral-500 text-sm mb-4 leading-relaxed line-clamp-3">
-													<Remark>{update.body}</Remark>
-												</div>
-												<div className="flex items-center justify-between">
-													<span className="text-neutral-500 text-sm">
-														{Times.formatDate(
-															update.created_at,
-															'M 月 D 日'
-														)}
-													</span>
-													<div className="flex items-center gap-1">
-														<Button
-															color="error"
-															onMouseDown={e => e.stopPropagation()}
-															onClick={e => {
-																e.stopPropagation();
-																handleLike(update.id);
-															}}
-															className={
+									<Card
+										key={update.id}
+										className="cursor-pointer hover:bg-muted/50 transition-colors"
+										onClick={() => setSelected(update)}
+									>
+										<CardContent>
+											<div className="flex items-start justify-between gap-4 mb-2">
+												<h3 className="text-xl font-medium leading-relaxed">
+													{update.title}
+												</h3>
+												<Badge variant="outline" className="shrink-0">
+													{categoryText(update.category)}
+												</Badge>
+											</div>
+											<div className="text-muted-foreground text-sm mb-4 leading-relaxed line-clamp-3">
+												<Remark>{update.body}</Remark>
+											</div>
+											<div className="flex items-center justify-between">
+												<span className="text-muted-foreground text-sm">
+													{Times.formatDate(
+														update.created_at,
+														'M 月 D 日'
+													)}
+												</span>
+												<div className="flex items-center gap-1">
+													<Button
+														variant="ghost"
+														size="sm"
+														className={
+															update.liked
+																? 'text-red-600'
+																: 'text-muted-foreground'
+														}
+														onMouseDown={e => e.stopPropagation()}
+														onClick={e => {
+															e.stopPropagation();
+															handleLike(update.id);
+														}}
+													>
+														<HeartIcon
+															data-icon="inline-start"
+															fill={
 																update.liked
-																	? 'text-red-600!'
-																	: 'text-neutral-400!'
+																	? 'currentColor'
+																	: 'none'
 															}
-															startIcon={
-																<HeartIcon
-																	size={16}
-																	fill={
-																		update.liked
-																			? 'currentColor'
-																			: 'none'
-																	}
-																/>
-															}
-														>
-															{update.like_count}
-														</Button>
+														/>
+														{update.like_count}
+													</Button>
 
-														{canEdit && (
-															<>
-																<IconButton
-																	className="text-neutral-400 hover:text-neutral-600 ml-2"
-																	onMouseDown={e =>
-																		e.stopPropagation()
-																	}
-																	onClick={e => {
-																		e.stopPropagation();
-																		editForm.reset({
-																			title: update.title,
-																			body: update.body,
-																			category:
-																				update.category
-																		});
-																		setEditing(update);
-																	}}
-																>
-																	<PencilIcon size={14} />
-																</IconButton>
-																<IconButton
-																	className="text-neutral-400 hover:text-red-500"
-																	onMouseDown={e =>
-																		e.stopPropagation()
-																	}
-																	onClick={e => {
-																		e.stopPropagation();
-																		setDeleting(update);
-																	}}
-																>
-																	<Trash2Icon size={14} />
-																</IconButton>
-															</>
-														)}
-													</div>
+													{canEdit && (
+														<>
+															<Button
+																variant="ghost"
+																size="icon-xs"
+																className="text-muted-foreground hover:text-foreground ml-2"
+																onMouseDown={e =>
+																	e.stopPropagation()
+																}
+																onClick={e => {
+																	e.stopPropagation();
+																	editForm.reset({
+																		title: update.title,
+																		body: update.body,
+																		category:
+																			update.category
+																	});
+																	setEditing(update);
+																}}
+															>
+																<PencilIcon data-icon="inline-start" />
+															</Button>
+															<Button
+																variant="ghost"
+																size="icon-xs"
+																className="text-muted-foreground hover:text-red-500"
+																onMouseDown={e =>
+																	e.stopPropagation()
+																}
+																onClick={e => {
+																	e.stopPropagation();
+																	setDeleting(update);
+																}}
+															>
+																<Trash2Icon data-icon="inline-start" />
+															</Button>
+														</>
+													)}
 												</div>
-											</CardContent>
-										</CardActionArea>
+											</div>
+										</CardContent>
 									</Card>
 								))}
 							</div>
@@ -325,10 +322,11 @@ export default function Updates() {
 					{hasMore && (
 						<div className="flex justify-center mt-6">
 							<Button
-								variant="outlined"
+								variant="outline"
 								onClick={() => fetchPage(page + 1)}
 								disabled={loadingMore}
 							>
+								{loadingMore && <Spinner data-icon="inline-start" />}
 								{loadingMore ? '加载中...' : '加载更多'}
 							</Button>
 						</div>
@@ -337,205 +335,205 @@ export default function Updates() {
 			)}
 
 			{/* Detail dialog */}
-			<Dialog
-				open={selected !== null}
-				onClose={() => setSelected(null)}
-				maxWidth="sm"
-				fullWidth
-			>
+			<Dialog open={selected !== null} onOpenChange={v => !v && setSelected(null)}>
 				{selected && (
-					<>
-						<DialogTitle className="flex items-center justify-between gap-4">
-							<span>{selected.title}</span>
-							<Chip
-								label={categoryText(selected.category)}
-								size="small"
-								variant="outlined"
-								className="shrink-0"
-							/>
-						</DialogTitle>
-						<DialogContent className="prose">
+					<DialogContent className="sm:max-w-lg">
+						<DialogHeader>
+							<div className="flex items-center justify-between gap-4">
+								<DialogTitle>{selected.title}</DialogTitle>
+								<Badge variant="outline" className="shrink-0">
+									{categoryText(selected.category)}
+								</Badge>
+							</div>
+						</DialogHeader>
+						<div className="prose text-sm text-muted-foreground max-h-[60vh] overflow-y-auto">
 							<Remark>{selected.body}</Remark>
-						</DialogContent>
-						<DialogActions className="justify-between px-6">
+						</div>
+						<DialogFooter>
 							<div className="flex items-center gap-0.5">
 								<Button
-									size="small"
-									color="error"
-									startIcon={
-										<HeartIcon
-											size={16}
-											fill={selected.liked ? 'currentColor' : 'none'}
-										/>
+									size="sm"
+									variant="ghost"
+									className={
+										selected.liked ? 'text-red-600' : 'text-muted-foreground'
 									}
 									onClick={() => handleLike(selected.id)}
-									className={
-										selected.liked ? 'text-red-600!' : 'text-neutral-400!'
-									}
 								>
+									<HeartIcon
+										data-icon="inline-start"
+										fill={selected.liked ? 'currentColor' : 'none'}
+									/>
 									{selected.like_count}
 								</Button>
 							</div>
-							<Button onClick={() => setSelected(null)}>关闭</Button>
-						</DialogActions>
-					</>
+							<Button variant="outline" onClick={() => setSelected(null)}>关闭</Button>
+						</DialogFooter>
+					</DialogContent>
 				)}
 			</Dialog>
 
 			{/* Create dialog */}
-			<Dialog open={creating} onClose={() => setCreating(false)} maxWidth="sm" fullWidth>
+			<Dialog open={creating} onOpenChange={v => setCreating(v)}>
 				<form onSubmit={createForm.handleSubmit(handleCreate)}>
-					<DialogTitle>新增更新日志</DialogTitle>
-					<DialogContent>
-						<Controller
-							name="title"
-							control={createForm.control}
-							rules={{ required: '标题不能为空' }}
-							render={({ field, fieldState }) => (
-								<TextField
-									{...field}
-									label="标题"
-									error={!!fieldState.error}
-									helperText={fieldState.error?.message}
-									fullWidth
-									margin="normal"
-								/>
-							)}
-						/>
-						<Controller
-							name="body"
-							control={createForm.control}
-							rules={{ required: '正文不能为空' }}
-							render={({ field, fieldState }) => (
-								<TextField
-									{...field}
-									label="正文"
-									multiline
-									minRows={5}
-									error={!!fieldState.error}
-									helperText={fieldState.error?.message}
-									fullWidth
-									margin="normal"
-								/>
-							)}
-						/>
-						<Controller
-							name="category"
-							control={createForm.control}
-							render={({ field }) => (
-								<ToggleButtonGroup
-									value={field.value}
-									onChange={(_, v) => v && field.onChange(v)}
-									exclusive
-									fullWidth
-									className="mt-2"
-								>
-									<ToggleButton value="platform">控制台更新</ToggleButton>
-									<ToggleButton value="server">服务器更新</ToggleButton>
-								</ToggleButtonGroup>
-							)}
-						/>
+					<DialogContent className="sm:max-w-lg">
+						<DialogHeader>
+							<DialogTitle>新增更新日志</DialogTitle>
+						</DialogHeader>
+						<div className="flex flex-col gap-4">
+							<Controller
+								name="title"
+								control={createForm.control}
+								rules={{ required: '标题不能为空' }}
+								render={({ field, fieldState }) => (
+									<div className="flex flex-col gap-1.5">
+										<Label htmlFor="create-title">标题</Label>
+										<Input
+											id="create-title"
+											{...field}
+											aria-invalid={!!fieldState.error}
+										/>
+										{fieldState.error?.message && (
+											<p className="text-xs text-destructive">{fieldState.error.message}</p>
+										)}
+									</div>
+								)}
+							/>
+							<Controller
+								name="body"
+								control={createForm.control}
+								rules={{ required: '正文不能为空' }}
+								render={({ field, fieldState }) => (
+									<div className="flex flex-col gap-1.5">
+										<Label htmlFor="create-body">正文</Label>
+										<Textarea
+											id="create-body"
+											{...field}
+											rows={5}
+											aria-invalid={!!fieldState.error}
+										/>
+										{fieldState.error?.message && (
+											<p className="text-xs text-destructive">{fieldState.error.message}</p>
+										)}
+									</div>
+								)}
+							/>
+							<Controller
+								name="category"
+								control={createForm.control}
+								render={({ field }) => (
+									<ToggleGroup
+										type="single"
+										value={field.value}
+										onValueChange={v => v && field.onChange(v)}
+										className="w-full"
+									>
+										<ToggleGroupItem value="platform" className="flex-1">控制台更新</ToggleGroupItem>
+										<ToggleGroupItem value="server" className="flex-1">服务器更新</ToggleGroupItem>
+									</ToggleGroup>
+								)}
+							/>
+						</div>
+						<DialogFooter>
+							<Button variant="outline" onClick={() => setCreating(false)} disabled={submitting}>
+								取消
+							</Button>
+							<Button type="submit" disabled={submitting}>
+								{submitting && <Spinner data-icon="inline-start" />}
+								{submitting ? '创建中...' : '创建'}
+							</Button>
+						</DialogFooter>
 					</DialogContent>
-					<DialogActions>
-						<Button onClick={() => setCreating(false)} disabled={submitting}>
-							取消
-						</Button>
-						<Button type="submit" variant="contained" disabled={submitting}>
-							{submitting ? '创建中...' : '创建'}
-						</Button>
-					</DialogActions>
 				</form>
 			</Dialog>
 
 			{/* Edit dialog */}
-			<Dialog
-				open={editing !== null}
-				onClose={() => setEditing(null)}
-				maxWidth="sm"
-				fullWidth
-			>
+			<Dialog open={editing !== null} onOpenChange={v => !v && setEditing(null)}>
 				<form onSubmit={editForm.handleSubmit(handleUpdate)}>
-					<DialogTitle>编辑更新日志</DialogTitle>
-					<DialogContent>
-						<Controller
-							name="title"
-							control={editForm.control}
-							rules={{ required: '标题不能为空' }}
-							render={({ field, fieldState }) => (
-								<TextField
-									{...field}
-									label="标题"
-									error={!!fieldState.error}
-									helperText={fieldState.error?.message}
-									fullWidth
-									margin="normal"
-								/>
-							)}
-						/>
-						<Controller
-							name="body"
-							control={editForm.control}
-							rules={{ required: '正文不能为空' }}
-							render={({ field, fieldState }) => (
-								<TextField
-									{...field}
-									label="正文"
-									multiline
-									minRows={5}
-									error={!!fieldState.error}
-									helperText={fieldState.error?.message}
-									fullWidth
-									margin="normal"
-								/>
-							)}
-						/>
-						<Controller
-							name="category"
-							control={editForm.control}
-							render={({ field }) => (
-								<ToggleButtonGroup
-									value={field.value}
-									onChange={(_, v) => v && field.onChange(v)}
-									exclusive
-									fullWidth
-									className="mt-2"
-								>
-									<ToggleButton value="platform">控制台</ToggleButton>
-									<ToggleButton value="server">服务器</ToggleButton>
-								</ToggleButtonGroup>
-							)}
-						/>
+					<DialogContent className="sm:max-w-lg">
+						<DialogHeader>
+							<DialogTitle>编辑更新日志</DialogTitle>
+						</DialogHeader>
+						<div className="flex flex-col gap-4">
+							<Controller
+								name="title"
+								control={editForm.control}
+								rules={{ required: '标题不能为空' }}
+								render={({ field, fieldState }) => (
+									<div className="flex flex-col gap-1.5">
+										<Label htmlFor="edit-title">标题</Label>
+										<Input
+											id="edit-title"
+											{...field}
+											aria-invalid={!!fieldState.error}
+										/>
+										{fieldState.error?.message && (
+											<p className="text-xs text-destructive">{fieldState.error.message}</p>
+										)}
+									</div>
+								)}
+							/>
+							<Controller
+								name="body"
+								control={editForm.control}
+								rules={{ required: '正文不能为空' }}
+								render={({ field, fieldState }) => (
+									<div className="flex flex-col gap-1.5">
+										<Label htmlFor="edit-body">正文</Label>
+										<Textarea
+											id="edit-body"
+											{...field}
+											rows={5}
+											aria-invalid={!!fieldState.error}
+										/>
+										{fieldState.error?.message && (
+											<p className="text-xs text-destructive">{fieldState.error.message}</p>
+										)}
+									</div>
+								)}
+							/>
+							<Controller
+								name="category"
+								control={editForm.control}
+								render={({ field }) => (
+									<ToggleGroup
+										type="single"
+										value={field.value}
+										onValueChange={v => v && field.onChange(v)}
+										className="w-full"
+									>
+										<ToggleGroupItem value="platform" className="flex-1">控制台</ToggleGroupItem>
+										<ToggleGroupItem value="server" className="flex-1">服务器</ToggleGroupItem>
+									</ToggleGroup>
+								)}
+							/>
+						</div>
+						<DialogFooter>
+							<Button variant="outline" onClick={() => setEditing(null)} disabled={submitting}>
+								取消
+							</Button>
+							<Button type="submit" disabled={submitting}>
+								{submitting && <Spinner data-icon="inline-start" />}
+								{submitting ? '保存中...' : '保存'}
+							</Button>
+						</DialogFooter>
 					</DialogContent>
-					<DialogActions>
-						<Button onClick={() => setEditing(null)} disabled={submitting}>
-							取消
-						</Button>
-						<Button type="submit" variant="contained" disabled={submitting}>
-							{submitting ? '保存中...' : '保存'}
-						</Button>
-					</DialogActions>
 				</form>
 			</Dialog>
 
 			{/* Delete confirmation dialog */}
-			<Dialog
-				open={deleting !== null}
-				onClose={() => setDeleting(null)}
-				maxWidth="xs"
-				fullWidth
-			>
-				<DialogTitle>确认删除</DialogTitle>
+			<Dialog open={deleting !== null} onOpenChange={v => !v && setDeleting(null)}>
 				<DialogContent>
-					<DialogContentText>
-						确定要删除更新日志“{deleting?.title}”吗？此操作不可撤销。
-					</DialogContentText>
+					<DialogHeader>
+						<DialogTitle>确认删除</DialogTitle>
+						<DialogDescription>
+							确定要删除更新日志"{deleting?.title}"吗？此操作不可撤销。
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setDeleting(null)}>取消</Button>
+						<Button variant="destructive" onClick={handleDelete}>删除</Button>
+					</DialogFooter>
 				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => setDeleting(null)}>取消</Button>
-					<Button variant="contained" color="error" onClick={handleDelete}>
-						删除
-					</Button>
-				</DialogActions>
 			</Dialog>
 		</>
 	);

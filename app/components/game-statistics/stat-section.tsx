@@ -1,4 +1,10 @@
-import { Collapse, IconButton, Checkbox, FormControlLabel } from '@mui/material';
+import { Checkbox } from '~/components/ui/checkbox';
+import { Button } from '~/components/ui/button';
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger
+} from '~/components/ui/collapsible';
 import { ChevronRightIcon, ChevronUpIcon } from 'lucide-react';
 import type { GameStats } from '~/utils/requests/game';
 import useStateNamed from '~/hooks/useStateNamed';
@@ -36,8 +42,6 @@ function formatDistanceCm(cm: number): string {
 	return `${(m / 1000).toFixed(1)}km`;
 }
 
-// Damage stats store values in tenths of a half-heart (10 = 0.5 full hearts = 1 HP).
-// Divide by 20 to get full hearts.
 const DAMAGE_STATS = new Set([
 	'minecraft:damage_dealt',
 	'minecraft:damage_taken',
@@ -91,7 +95,7 @@ function StatValue({
 }) {
 	return (
 		<div className="flex">
-			<div data-key-name={k} className="text-neutral-500">
+			<div data-key-name={k} className="text-muted-foreground">
 				{translate(k)}
 			</div>
 			<div className="flex-1" />
@@ -110,7 +114,7 @@ function StatValue({
 				<div>
 					{transformStat(k, v, realTime)}{' '}
 					{GAME_TIME_STATS.has(k) && !realTime && (
-						<span className="text-neutral-500">(Minecraft)</span>
+						<span className="text-muted-foreground">(Minecraft)</span>
 					)}
 				</div>
 			)}
@@ -150,18 +154,21 @@ export function StatSection(props: {
 					<h3 className="text-lg font-bold mb-1">
 						{props.label} ({items.length} 项)
 					</h3>
-					{props.description && <p className="text-neutral-500">{props.description}</p>}
+					{props.description && <p className="text-muted-foreground">{props.description}</p>}
 					{props.showRealTimeToggle && (
-						<FormControlLabel
-							control={
-								<Checkbox
-									size="small"
-									checked={realTime.current}
-									onChange={(_, checked) => realTime.set(checked)}
-								/>
-							}
-							label="显示现实时间"
-						/>
+						<div className="flex items-center gap-2 mt-1">
+							<Checkbox
+								id="realtime-toggle"
+								checked={realTime.current}
+								onCheckedChange={checked => realTime.set(!!checked)}
+							/>
+							<label
+								htmlFor="realtime-toggle"
+								className="text-sm cursor-pointer select-none"
+							>
+								显示现实时间
+							</label>
+						</div>
 					)}
 				</div>
 				<div className={`grid gap-3 ${colsClass}`}>
@@ -174,28 +181,31 @@ export function StatSection(props: {
 					)}
 				</div>
 			</div>
-			<Collapse in={expanded.current}>
-				<div className={`grid gap-3 ${colsClass}`}>
-					{remainder.map(([k, v]) => (
-						<StatValue key={k} k={k} v={v} translate={translate} realTime={realTime.current} />
-					))}
-				</div>
-			</Collapse>
-			{hasMore && (
-				<div
-					className="flex items-center gap-1 cursor-pointer select-none text-sm text-neutral-500"
-					onClick={() => expanded.set(!expanded.current)}
-				>
-					<IconButton size="small">
-						{expanded.current ? (
-							<ChevronUpIcon size={16} />
-						) : (
-							<ChevronRightIcon size={16} />
-						)}
-					</IconButton>
-					{expanded.current ? '收起' : `展开剩余 ${remainder.length} 项`}
-				</div>
-			)}
+			<Collapsible open={expanded.current} onOpenChange={v => expanded.set(v)}>
+				<CollapsibleContent>
+					<div className={`grid gap-3 ${colsClass}`}>
+						{remainder.map(([k, v]) => (
+							<StatValue key={k} k={k} v={v} translate={translate} realTime={realTime.current} />
+						))}
+					</div>
+				</CollapsibleContent>
+				{hasMore && (
+					<CollapsibleTrigger asChild>
+						<div className="flex items-center gap-1 cursor-pointer select-none text-sm text-muted-foreground">
+							<Button variant="ghost" size="icon-xs" asChild>
+								<span>
+									{expanded.current ? (
+										<ChevronUpIcon data-icon="inline-start" />
+									) : (
+										<ChevronRightIcon data-icon="inline-start" />
+									)}
+								</span>
+							</Button>
+							{expanded.current ? '收起' : `展开剩余 ${remainder.length} 项`}
+						</div>
+					</CollapsibleTrigger>
+				)}
+			</Collapsible>
 		</div>
 	);
 }

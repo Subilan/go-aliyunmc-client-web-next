@@ -1,11 +1,12 @@
-import { FormControl, FormHelperText, Input, InputLabel } from '@mui/material';
+import { Input } from '~/components/ui/input';
+import { Label } from '~/components/ui/label';
 import { Controller, type ControllerProps } from 'react-hook-form';
 
 export default function StringInput(props: {
 	control: any;
 	maxlength?: number;
 	minlength?: number;
-	required?: boolean,
+	required?: boolean;
 	type?: 'text' | 'password';
 	label: string;
 	name: string;
@@ -32,11 +33,20 @@ export default function StringInput(props: {
 			}}
 			defaultValue={''}
 			render={({ field, fieldState }) => (
-				<FormControl error={!!fieldState.error}>
-					<InputLabel>{props.label}</InputLabel>
-					<Input autoComplete="off" type={props.type ?? 'text'} required {...field} />
-					<FormHelperText>{fieldState.error?.message}</FormHelperText>
-				</FormControl>
+				<div className="flex flex-col gap-1.5">
+					<Label htmlFor={props.name}>{props.label}</Label>
+					<Input
+						id={props.name}
+						autoComplete="off"
+						type={props.type ?? 'text'}
+						required={props.required}
+						aria-invalid={!!fieldState.error}
+						{...field}
+					/>
+					{fieldState.error?.message && (
+						<p className="text-xs text-destructive">{fieldState.error.message}</p>
+					)}
+				</div>
 			)}
 		/>
 	);

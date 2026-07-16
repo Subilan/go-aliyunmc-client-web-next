@@ -2,16 +2,15 @@ import { useCallback, useEffect, useState } from 'react';
 import PaginatedTable, { type Column } from '~/components/paginated-table';
 import type { Task } from '~/types/Task';
 import { getTasks as fetchTasks, getTaskStats, type TaskStats } from '~/utils/requests/home';
+import { Button } from '~/components/ui/button';
 import {
-	Button,
 	Dialog,
-	DialogTitle,
 	DialogContent,
-	IconButton,
-	Tooltip,
-	Typography,
-	Card,
-	CardContent} from '@mui/material';
+	DialogHeader,
+	DialogTitle
+} from '~/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
+import { Card, CardContent } from '~/components/ui/card';
 import MetricCard from '~/components/metric-card';
 import {
 	CheckIcon,
@@ -23,7 +22,7 @@ import PageHeader from '~/components/page-header';
 import { PAGE_NAME_TASK_LIST } from '~/consts/page-names';
 import { Times } from '~/utils/times';
 
-const System = '系统'
+const System = '系统';
 
 function taskTypeLabel(type: string) {
 	switch (type) {
@@ -48,11 +47,11 @@ export function taskStatusIcon(status: string) {
 	function icon() {
 		switch (status) {
 			case 'success':
-				return <CheckIcon size={16} color="green" />;
+				return <CheckIcon size={16} className="text-green-500" />;
 			case 'running':
-				return <Loader2Icon size={16} color="blue" className="animate-spin" />;
+				return <Loader2Icon size={16} className="text-blue-500 animate-spin" />;
 			case 'failed':
-				return <XIcon size={16} color="red" />;
+				return <XIcon size={16} className="text-red-500" />;
 			default:
 				return <ClockIcon size={16} />;
 		}
@@ -61,10 +60,13 @@ export function taskStatusIcon(status: string) {
 }
 
 function TimeCell({ ts }: { ts?: string }) {
-	if (!ts) return <span className="text-neutral-400">—</span>;
+	if (!ts) return <span className="text-muted-foreground">—</span>;
 	return (
-		<Tooltip title={Times.formatDate(ts)}>
-			<span>{Times.formatFromNow(ts)}</span>
+		<Tooltip>
+			<TooltipTrigger>
+				<span>{Times.formatFromNow(ts)}</span>
+			</TooltipTrigger>
+			<TooltipContent>{Times.formatDate(ts)}</TooltipContent>
 		</Tooltip>
 	);
 }
@@ -74,27 +76,19 @@ function ClickableCell({ text, className }: { text: string; className?: string }
 	return (
 		<>
 			<span
-				className={`text-xs max-w-20 block truncate cursor-pointer ${className ?? 'text-neutral-500'}`}
+				className={`text-xs max-w-20 block truncate cursor-pointer ${className ?? 'text-muted-foreground'}`}
 				onClick={() => setOpen(true)}
 			>
 				{text}
 			</span>
-			<Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
-				<DialogTitle
-					sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-				>
-					详细信息
-					<IconButton size="small" onClick={() => setOpen(false)}>
-						<XIcon size={18} />
-					</IconButton>
-				</DialogTitle>
-				<DialogContent>
-					<Typography
-						component="pre"
-						sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 14 }}
-					>
+			<Dialog open={open} onOpenChange={v => setOpen(v)}>
+				<DialogContent className="sm:max-w-lg">
+					<DialogHeader>
+						<DialogTitle>详细信息</DialogTitle>
+					</DialogHeader>
+					<pre className="text-sm whitespace-pre-wrap break-all max-h-[60vh] overflow-y-auto">
 						{text}
-					</Typography>
+					</pre>
 				</DialogContent>
 			</Dialog>
 		</>
@@ -105,21 +99,16 @@ function ViewOutputBtn({ text }: { text: string }) {
 	const [open, setOpen] = useState(false);
 	return (
 		<>
-			<Button size="small" variant="text" onClick={() => setOpen(true)}>
+			<Button size="sm" variant="link" onClick={() => setOpen(true)}>
 				查看
 			</Button>
-			<Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
-				<DialogTitle
-					sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-				>
-					输出内容
-					<IconButton size="small" onClick={() => setOpen(false)}>
-						<XIcon size={18} />
-					</IconButton>
-				</DialogTitle>
-				<DialogContent>
-					<Card variant="outlined">
-						<CardContent className="overflow-y-auto">
+			<Dialog open={open} onOpenChange={v => setOpen(v)}>
+				<DialogContent className="sm:max-w-lg">
+					<DialogHeader>
+						<DialogTitle>输出内容</DialogTitle>
+					</DialogHeader>
+					<Card>
+						<CardContent className="overflow-y-auto max-h-[60vh]">
 							<pre>
 								<code>{text}</code>
 							</pre>
@@ -140,7 +129,6 @@ const columns: Column<Task>[] = [
 		align: 'center',
 		render: t => taskStatusIcon(t.status)
 	},
-	// { id: 'step', label: '步骤', render: t => t.step, align: 'center' },
 	{
 		id: 'created_at',
 		label: '创建时间',
@@ -162,7 +150,7 @@ const columns: Column<Task>[] = [
 		render: t =>
 			t.endAt && t.startAt
 				? ((new Date(t.endAt).getTime() - new Date(t.startAt).getTime()) / 1000).toFixed(1) + 's'
-				: <span className="text-neutral-400">—</span>
+				: <span className="text-muted-foreground">—</span>
 	},
 	{
 		id: 'output',
@@ -172,7 +160,7 @@ const columns: Column<Task>[] = [
 			t.output ? (
 				<ViewOutputBtn text={t.output} />
 			) : (
-				<span className="text-neutral-400">—</span>
+				<span className="text-muted-foreground">—</span>
 			)
 	},
 	{
@@ -183,7 +171,7 @@ const columns: Column<Task>[] = [
 			t.error ? (
 				<ClickableCell text={t.error} className="text-red-500" />
 			) : (
-				<span className="text-neutral-400">—</span>
+				<span className="text-muted-foreground">—</span>
 			)
 	},
 	{
@@ -202,9 +190,10 @@ export default function TasksPage() {
 	const [sort, setSort] = useState('created_at');
 	const [order, setOrder] = useState<'asc' | 'desc'>('desc');
 	const [stats, setStats] = useState<TaskStats | null>(null);
-	const [initialLoading, setInitialLoading] = useState(true);
+	const [loading, setLoading] = useState(true);
 
 	const fetch = useCallback(async () => {
+		setLoading(true);
 		const res = await fetchTasks({
 			limit: pageSize,
 			offset: page * pageSize,
@@ -215,7 +204,7 @@ export default function TasksPage() {
 			setRows(res.data!.tasks);
 			setTotal(res.data!.total);
 		}
-		setInitialLoading(false);
+		setLoading(false);
 	}, [page, pageSize, sort, order]);
 
 	useEffect(() => {
@@ -276,7 +265,7 @@ export default function TasksPage() {
 					pageSize={pageSize}
 					sort={sort}
 					order={order}
-					loading={initialLoading}
+					loading={loading}
 					onPageChange={setPage}
 					onPageSizeChange={size => {
 						setPageSize(size);

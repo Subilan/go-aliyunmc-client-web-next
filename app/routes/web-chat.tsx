@@ -1,7 +1,9 @@
 import { useCallback, useContext, useEffect, useRef } from 'react';
-import { Button, Card, CardContent, TextField } from '@mui/material';
+import { Card, CardContent } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
 import { MessagesSquareIcon, SendIcon, TriangleAlertIcon, WifiOffIcon } from 'lucide-react';
-import type { Route } from './+types/web-chat';
+import type { MetaArgs } from 'react-router';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_WEB_CHAT } from '~/consts/page-names';
 import { UserContext } from '~/contexts/user';
@@ -23,7 +25,7 @@ interface ChatMessage {
 
 type ConnectionStatus = 'connecting' | 'connected' | 'disconnected';
 
-export function meta({}: Route.MetaArgs) {
+export function meta({}: MetaArgs) {
 	return [{ title: PAGE_NAME_WEB_CHAT + ' - Seatide' }];
 }
 
@@ -96,8 +98,6 @@ export default function WebChat() {
 				status.set('disconnected');
 			}
 		};
-
-		// onclose fires automatically after error; no need to close manually
 	}, [uuid]);
 
 	const disconnect = useCallback(() => {
@@ -111,14 +111,12 @@ export default function WebChat() {
 			if (ws.readyState === WebSocket.OPEN) {
 				ws.close();
 			} else if (ws.readyState === WebSocket.CONNECTING) {
-				// Defer close until handshake completes to avoid "closed before established" error
 				ws.onopen = () => ws.close();
 			}
 		}
 		status.set('disconnected');
 	}, []);
 
-	// auto-connect on mount, handle visibility change
 	useEffect(() => {
 		if (!uuid) {
 			status.set('disconnected');
@@ -190,11 +188,9 @@ export default function WebChat() {
 	const connecting = status.current === 'connecting';
 
 	const chatInput = (
-		<div className="fixed w-full left-0 bottom-0 p-5 md:p-0 bg-white border-t border-t-neutral-200 md:border-t-0 md:bg-auto md:w-auto md:static grid grid-cols-[1fr_auto] gap-3 items-center">
-			<TextField
-				inputRef={messageInputRef}
-				fullWidth
-				size="small"
+		<div className="fixed w-full left-0 bottom-0 p-5 md:p-0 bg-background border-t md:border-t-0 md:bg-auto md:w-auto md:static grid grid-cols-[1fr_auto] gap-3 items-center">
+			<Input
+				ref={messageInputRef}
 				placeholder={
 					connected
 						? '输入消息，按 Enter 发送'
@@ -208,12 +204,10 @@ export default function WebChat() {
 				disabled={!connected}
 			/>
 			<Button
-				startIcon={<SendIcon size={16} />}
-				color="primary"
-				variant="contained"
 				onClick={sendMessage}
 				disabled={!connected || !messageText.current.trim()}
 			>
+				<SendIcon data-icon="inline-start" />
 				发送
 			</Button>
 		</div>
@@ -225,7 +219,7 @@ export default function WebChat() {
 			<div className="flex gap-3 flex-col">
 				{chatInput}
 				{uuid ? (
-					<Card variant="outlined" className="flex-1 flex flex-col min-h-0">
+					<Card className="flex-1 flex flex-col min-h-0">
 						<CardContent className="flex-1 flex flex-col min-h-0 p-4">
 							{connecting && messages.current.length === 0 && (
 								<LoadingEmptyState className="h-[50vh]" description="正在连接" />
@@ -236,7 +230,7 @@ export default function WebChat() {
 									icon={WifiOffIcon}
 									description="连接已断开"
 									action={
-										<Button size="small" variant="outlined" onClick={doConnect}>
+										<Button size="sm" variant="outline" onClick={doConnect}>
 											重新连接
 										</Button>
 									}
@@ -271,7 +265,7 @@ export default function WebChat() {
 						</CardContent>
 					</Card>
 				) : (
-					<Card variant="outlined">
+					<Card>
 						<CardContent>
 							<EmptyState
 								className="h-[50vh]"
@@ -280,10 +274,7 @@ export default function WebChat() {
 								iconClassName="text-amber-500"
 								description="需要绑定游戏账号后才能使用 Web 聊天功能"
 								action={
-									<Button
-										variant="contained"
-										onClick={() => navigate('/profile')}
-									>
+									<Button onClick={() => navigate('/profile')}>
 										立即绑定
 									</Button>
 								}

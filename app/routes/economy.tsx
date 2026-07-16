@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { Route } from './+types/economy';
-import { Card, CardContent, IconButton, Tooltip } from '@mui/material';
+import type { MetaArgs } from 'react-router';
+import { Card, CardContent } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import {
 	ClockIcon,
 	DollarSignIcon,
@@ -18,7 +20,7 @@ import { getCandidates } from '~/utils/requests/instance';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_ECONOMY } from '~/consts/page-names';
 
-export function meta({}: Route.MetaArgs) {
+export function meta({}: MetaArgs) {
 	return [
 		{ title: PAGE_NAME_ECONOMY + ' - Seatide' },
 		{ name: 'description', content: '此页展示了服务器的经济收支情况。' }
@@ -53,7 +55,6 @@ export default function Economy() {
 					amount: p.amount
 				}))
 			);
-			// compute average per-hour deduction rate (ignore increases from top-ups)
 			if (raw.length >= 2) {
 				const sorted = [...raw].sort(
 					(a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
@@ -105,7 +106,6 @@ export default function Economy() {
 		<>
 			<PageHeader>{PAGE_NAME_ECONOMY}</PageHeader>
 			<div className="flex flex-col gap-3">
-				{/* overview */}
 				<MetricCard
 					cols={3}
 					metrics={[
@@ -135,23 +135,26 @@ export default function Economy() {
 					]}
 				/>
 
-				{/* balance history chart */}
-				<Card variant="outlined">
+				<Card>
 					<CardContent>
 						<CardLabel
 							icon={<TrendingUpIcon size={14} />}
 							actions={
-								<Tooltip title="刷新">
-									<IconButton
-										size="small"
-										disabled={refreshing}
-										onClick={refresh}
-									>
-										<RefreshCwIcon
-											size={16}
-											className={refreshing ? 'animate-spin' : ''}
-										/>
-									</IconButton>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button
+											variant="ghost"
+											size="icon-xs"
+											disabled={refreshing}
+											onClick={refresh}
+										>
+											<RefreshCwIcon
+												data-icon="inline-start"
+												className={refreshing ? 'animate-spin' : ''}
+											/>
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent>刷新</TooltipContent>
 								</Tooltip>
 							}
 						>

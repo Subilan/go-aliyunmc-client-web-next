@@ -1,6 +1,5 @@
 import { createHashRouter } from 'react-router';
 import AppLayout, { appLoader } from '~/layout/app';
-import InnerAppLayout from '~/layout/inner-app';
 import RootLayout from '~/layout/root';
 import { ErrorBoundary } from '~/root';
 import AllFeatures from '~/routes/all';
@@ -45,52 +44,37 @@ export const router = createHashRouter([
 						Component: AllFeatures
 					},
 					{
-						Component: InnerAppLayout,
-						children: [
-							{
-								path: 'info',
-								children: [
-									{
-										path: 'tasks',
-										Component: TasksPage
-									},
-									{
-										path: 'ecs-candidates',
-										Component: EcsCandidatesPage
-									},
-									{
-										path: 'economy',
-										Component: Economy
-									}
-								]
-							},
-							{
-								path: 'game',
-								children: [
-									{
-										path: 'player-list',
-										Component: GameStatisticsPlayerList
-									},
-									{
-										path: 'statistics/:uuid',
-										Component: GameStatistics,
-										loader: gameStatisticsLoader.itself
-									},
-									{
-										path: 'leaderboard',
-										Component: Leaderboard
-									},
-									{
-										path: 'web-chat',
-										Component: WebChat
-									}
-								]
-							},
-							{
-								path: 'updates',
-								Component: Updates
-							}
-						]
+						path: 'info/tasks',
+						Component: TasksPage
+					},
+					{
+						path: 'info/ecs-candidates',
+						Component: EcsCandidatesPage
+					},
+					{
+						path: 'info/economy',
+						Component: Economy
+					},
+					{
+						path: 'game/player-list',
+						Component: GameStatisticsPlayerList
+					},
+					{
+						path: 'game/statistics/:uuid',
+						Component: GameStatistics,
+						loader: gameStatisticsLoader.itself
+					},
+					{
+						path: 'game/leaderboard',
+						Component: Leaderboard
+					},
+					{
+						path: 'game/web-chat',
+						Component: WebChat
+					},
+					{
+						path: 'updates',
+						Component: Updates
 					}
 				]
 			}

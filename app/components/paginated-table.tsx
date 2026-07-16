@@ -1,24 +1,31 @@
 import { useState } from 'react';
 import {
-	Box,
-	IconButton,
-	TextField,
-	Paper,
 	Table,
 	TableBody,
 	TableCell,
-	TableContainer,
 	TableHead,
-	TableRow,
-	TablePagination,
-	TableSortLabel
-} from '@mui/material';
+	TableHeader,
+	TableRow
+} from '~/components/ui/table';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '~/components/ui/select';
 import {
 	ArrowLeftIcon,
 	ArrowLeftToLineIcon,
 	ArrowRightIcon,
-	ArrowRightToLineIcon
+	ArrowRightToLineIcon,
+	ArrowUpIcon,
+	ArrowDownIcon
 } from 'lucide-react';
+import { cn } from '~/lib/utils';
 
 export interface Column<T> {
 	id: string;
@@ -26,6 +33,8 @@ export interface Column<T> {
 	render: (row: T) => React.ReactNode;
 	sortable?: boolean;
 	align?: 'left' | 'right' | 'center';
+	/** Tailwind classes for responsive hiding, e.g. "hidden md:table-cell" */
+	cellClassName?: string;
 }
 
 interface PaginatedTableProps<T> {
@@ -44,16 +53,27 @@ interface PaginatedTableProps<T> {
 	onSortChange?: (sort: string, order: 'asc' | 'desc') => void;
 }
 
+function SortIcon({ active, direction }: { active: boolean; direction: 'asc' | 'desc' }) {
+	if (!active) return null;
+	return direction === 'asc' ? (
+		<ArrowUpIcon className="inline size-3 ml-0.5" />
+	) : (
+		<ArrowDownIcon className="inline size-3 ml-0.5" />
+	);
+}
+
 function PaginationActions({
 	count,
 	page,
 	rowsPerPage,
+	disabled,
 	onPageChange
 }: {
 	count: number;
 	page: number;
 	rowsPerPage: number;
-	onPageChange: (event: React.MouseEvent<HTMLButtonElement> | null, page: number) => void;
+	disabled?: boolean;
+	onPageChange: (page: number) => void;
 }) {
 	const totalPages = Math.max(1, Math.ceil(count / rowsPerPage));
 	const [value, setValue] = useState('');
@@ -69,7 +89,7 @@ function PaginationActions({
 		}
 		setError(false);
 		setValue('');
-		onPageChange(null, num - 1);
+		onPageChange(num - 1);
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -78,55 +98,56 @@ function PaginationActions({
 
 	return (
 		<div className="flex items-center ml-3">
-			<IconButton
-				size="small"
-				disabled={page === 0}
-				onClick={e => onPageChange(e, 0)}
+			<Button
+				variant="ghost"
+				size="icon-xs"
+				disabled={disabled || page === 0}
+				onClick={() => onPageChange(0)}
 				aria-label="first page"
 			>
-				<ArrowLeftToLineIcon size={16} />
-			</IconButton>
-			<IconButton
-				size="small"
-				disabled={page === 0}
-				onClick={e => onPageChange(e, page - 1)}
+				<ArrowLeftToLineIcon data-icon="inline-start" />
+			</Button>
+			<Button
+				variant="ghost"
+				size="icon-xs"
+				disabled={disabled || page === 0}
+				onClick={() => onPageChange(page - 1)}
 				aria-label="previous page"
 			>
-				<ArrowLeftIcon size={16} />
-			</IconButton>
-			<TextField
-				className="mx-0.5"
+				<ArrowLeftIcon data-icon="inline-start" />
+			</Button>
+			<Input
+				className="mx-0.5 w-[52px] min-w-[52px] shrink-0 text-center text-xs h-7 px-1"
 				value={value}
+				disabled={disabled}
 				onChange={e => {
 					setValue(e.target.value);
 					setError(false);
 				}}
 				onKeyDown={handleKeyDown}
 				onBlur={doJump}
-				error={error}
 				placeholder={`${page + 1}/${totalPages}`}
-				sx={{ width: 52, minWidth: 52, flexShrink: 0 }}
-				slotProps={{
-					input: { sx: { textAlign: 'center', px: 1, py: 0 } },
-					htmlInput: { inputMode: 'numeric', pattern: '[0-9]*', style: { padding: 0 } }
-				}}
+				inputMode="numeric"
+				pattern="[0-9]*"
 			/>
-			<IconButton
-				size="small"
-				disabled={page >= totalPages - 1}
-				onClick={e => onPageChange(e, page + 1)}
+			<Button
+				variant="ghost"
+				size="icon-xs"
+				disabled={disabled || page >= totalPages - 1}
+				onClick={() => onPageChange(page + 1)}
 				aria-label="next page"
 			>
-				<ArrowRightIcon size={16} />
-			</IconButton>
-			<IconButton
-				size="small"
-				disabled={page >= totalPages - 1}
-				onClick={e => onPageChange(e, totalPages - 1)}
+				<ArrowRightIcon data-icon="inline-start" />
+			</Button>
+			<Button
+				variant="ghost"
+				size="icon-xs"
+				disabled={disabled || page >= totalPages - 1}
+				onClick={() => onPageChange(totalPages - 1)}
 				aria-label="last page"
 			>
-				<ArrowRightToLineIcon size={16} />
-			</IconButton>
+				<ArrowRightToLineIcon data-icon="inline-start" />
+			</Button>
 		</div>
 	);
 }
@@ -156,60 +177,107 @@ export default function PaginatedTable<T>({
 	};
 
 	return (
-		<Paper variant="outlined">
-			<TableContainer>
-				<Table size="small">
-					<TableHead>
-						<TableRow>
-							{columns.map(col => (
-								<TableCell key={col.id} align={col.align ?? 'left'}>
-									{col.sortable && onSortChange ? (
-										<TableSortLabel
+		<div className="border rounded-lg bg-card">
+			<Table>
+				<TableHeader>
+					<TableRow>
+						{columns.map(col => (
+							<TableHead
+								key={col.id}
+								className={cn(
+									col.align === 'center' && 'text-center',
+									col.align === 'right' && 'text-right',
+									col.cellClassName
+								)}
+							>
+								{col.sortable && onSortChange ? (
+									<button
+										type="button"
+										className="inline-flex items-center hover:text-foreground cursor-pointer"
+										disabled={loading}
+										onClick={() => handleSort(col.id)}
+									>
+										{col.label}
+										<SortIcon
 											active={sort === col.id}
-											direction={sort === col.id ? order : 'asc'}
-											onClick={() => handleSort(col.id)}
-										>
-											{col.label}
-										</TableSortLabel>
-									) : (
-										col.label
-									)}
-								</TableCell>
-							))}
-						</TableRow>
-					</TableHead>
-					<TableBody>
-						{loading && rows.length === 0
-							? Array.from({ length: pageSize }).map((_, i) => (
-									<TableRow key={`skel-${i}`}>
-										<TableCell colSpan={columns.length}>
-											<div className="h-4 bg-neutral-100 rounded animate-pulse" />
-										</TableCell>
-									</TableRow>
-								))
+											direction={sort === col.id ? order! : 'asc'}
+										/>
+									</button>
+								) : (
+									col.label
+								)}
+							</TableHead>
+						))}
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{loading
+						? Array.from({ length: pageSize }).map((_, i) => (
+								<TableRow key={`skel-${i}`}>
+									<TableCell colSpan={columns.length}>
+										<div className="h-4 bg-muted rounded animate-pulse" />
+									</TableCell>
+								</TableRow>
+							))
+						: rows.length === 0
+							? (
+								<TableRow>
+									<TableCell colSpan={columns.length} className="text-center">
+										<span className="text-muted-foreground py-8 block">暂无数据</span>
+									</TableCell>
+								</TableRow>
+							)
 							: rows.map((row, i) => (
-									<TableRow key={getRowKey(row, i)} hover>
-										{columns.map(col => (
-											<TableCell key={col.id} align={col.align ?? 'left'}>
-												{col.render(row)}
-											</TableCell>
-										))}
-									</TableRow>
+								<TableRow key={getRowKey(row, i)}>
+									{columns.map(col => (
+										<TableCell
+											key={col.id}
+											className={cn(
+												col.align === 'center' && 'text-center',
+												col.align === 'right' && 'text-right',
+												col.cellClassName
+											)}
+										>
+											{col.render(row)}
+										</TableCell>
+									))}
+								</TableRow>
+							))}
+				</TableBody>
+			</Table>
+			<div className="flex items-center justify-between px-2 py-1.5 border-t">
+				<div className="flex items-center gap-2 text-sm text-muted-foreground">
+					<span>每页</span>
+					<Select
+						value={String(pageSize)}
+						onValueChange={v => onPageSizeChange(Number(v))}
+						disabled={loading}
+					>
+						<SelectTrigger size="sm" className="h-7 w-[58px]">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectGroup>
+								{pageSizeOptions.map(n => (
+									<SelectItem key={n} value={String(n)}>
+										{n}
+									</SelectItem>
 								))}
-					</TableBody>
-				</Table>
-			</TableContainer>
-			<TablePagination
-				component="div"
-				count={total}
-				page={page}
-				rowsPerPage={pageSize}
-				rowsPerPageOptions={pageSizeOptions}
-				onPageChange={(_, newPage) => onPageChange(newPage)}
-				onRowsPerPageChange={e => onPageSizeChange(Number(e.target.value))}
-				labelRowsPerPage="每页"
-				ActionsComponent={PaginationActions}
-			/>
-		</Paper>
+							</SelectGroup>
+						</SelectContent>
+					</Select>
+					<span className="hidden sm:inline">
+						{total} 条
+					</span>
+				</div>
+				<PaginationActions
+					count={total}
+					page={page}
+					rowsPerPage={pageSize}
+					disabled={loading}
+					onPageChange={onPageChange}
+				/>
+			</div>
+		</div>
 	);
 }

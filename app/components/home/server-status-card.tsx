@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Card, CardContent, Chip, IconButton, Tooltip } from '@mui/material';
+import { Card, CardContent } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
+import { Badge } from '~/components/ui/badge';
 import { RefreshCwIcon, ServerIcon } from 'lucide-react';
 import { CardLabel } from '~/components/card-label';
 import { FuncList, type FuncListItem } from '~/components/func-list';
@@ -57,19 +60,27 @@ export const ServerStatus = {
 		}
 
 		return (
-			<Card variant="outlined">
+			<Card>
 				<CardContent>
 					<CardLabel
 						icon={<ServerIcon size={14} />}
 						actions={
 							!notReady ? (
-								<Tooltip title="刷新图表">
-									<IconButton size="small" disabled={refreshing} onClick={handleRefresh}>
-										<RefreshCwIcon
-											size={16}
-											className={refreshing ? 'animate-spin' : ''}
-										/>
-									</IconButton>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button
+											variant="ghost"
+											size="icon-xs"
+											disabled={refreshing}
+											onClick={handleRefresh}
+										>
+											<RefreshCwIcon
+												data-icon="inline-start"
+												className={refreshing ? 'animate-spin' : ''}
+											/>
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent>刷新图表</TooltipContent>
 								</Tooltip>
 							) : undefined
 						}
@@ -78,19 +89,19 @@ export const ServerStatus = {
 					</CardLabel>
 					{loading ? (
 						<LoadingEmptyState
-							description={<span className="text-neutral-500">加载中...</span>}
+							description={<span className="text-muted-foreground">加载中...</span>}
 						/>
 					) : notReady ? (
 						<EmptyState
 							icon={ServerIcon}
 							iconSize={40}
-							iconClassName="text-neutral-300"
-							description={<span className="text-neutral-500">请先创建并部署实例</span>}
+							iconClassName="text-muted-foreground/30"
+							description={<span className="text-muted-foreground">请先创建并部署实例</span>}
 							className="py-8"
 						/>
 					) : starting ? (
 						<LoadingEmptyState
-							description={<span className="text-neutral-500">正在启动服务器...</span>}
+							description={<span className="text-muted-foreground">正在启动服务器...</span>}
 						/>
 					) : (
 						<div className="flex flex-col md:flex-row gap-4">
@@ -105,21 +116,17 @@ export const ServerStatus = {
 									{online && <span className="text-xl">{playerCount}/20</span>}
 								</div>
 								{platform && (
-									<Chip
-										icon={
-											isPaper ? (
-												<img
-													draggable="false"
-													alt="papermc"
-													src="/paper.svg"
-													height="16px"
-													width="16px"
-												/>
-											) : undefined
-										}
-										variant="outlined"
-										label={platform}
-									/>
+									<Badge variant="outline">
+										{isPaper && (
+											<img
+												draggable="false"
+												alt="papermc"
+												src="/paper.svg"
+												className="size-4 inline mr-1"
+											/>
+										)}
+										{platform}
+									</Badge>
 								)}
 								<div className="flex-1" />
 								<FuncList items={serverActions} />

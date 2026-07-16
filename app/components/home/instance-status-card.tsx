@@ -1,12 +1,8 @@
 import { Card, CardContent } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { HardDriveIcon, CopyIcon } from 'lucide-react';
-import { CardLabel } from '~/components/card-label';
-import { FuncList, type FuncListItem } from '~/components/func-list';
 import { instanceStatusColor, instanceStatusText } from '~/routes/home/utils';
 import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
-import { useContext } from 'react';
-import { UserContext } from '~/contexts/user';
 import { Toast } from '~/root';
 import type { NamedBooleanState } from '~/hooks/useStateNamed';
 import { getActiveInstance } from '~/utils/requests/instance';
@@ -19,11 +15,10 @@ interface InstanceStatusCardProps {
 	busyLabel: string;
 	latestOutput: string | null;
 	instanceStatus: string;
+	serverOnline: boolean;
 	instanceType: string;
 	zoneId: string;
 	ip: string;
-	instanceActions: FuncListItem[];
-	onCreateInstance: () => void;
 }
 
 export const InstanceStatus = {
@@ -35,18 +30,19 @@ export const InstanceStatus = {
 			busyLabel,
 			latestOutput,
 			instanceStatus,
+			serverOnline,
 			instanceType,
 			zoneId,
-			ip,
-			instanceActions,
-			onCreateInstance
+			ip
 		} = props;
-		const user = useContext(UserContext);
+
+		const isRunning = instanceStatus === 'Running';
+		const statusText = isRunning ? (serverOnline ? '在线' : '离线') : instanceStatusText(instanceStatus);
+		const statusColor = isRunning ? (serverOnline ? 'bg-green-500' : 'bg-red-500') : instanceStatusColor(instanceStatus);
 
 		return (
 			<Card>
 				<CardContent>
-					<CardLabel icon={<HardDriveIcon size={14} />}>实例状态</CardLabel>
 					{loading ? (
 						<LoadingEmptyState />
 					) : busy ? (
@@ -68,44 +64,36 @@ export const InstanceStatus = {
 							iconSize={40}
 							iconClassName="text-muted-foreground/30"
 							description={<span className="text-muted-foreground">尚未创建实例</span>}
-							action={
-								<Button
-									disabled={!user?.whitelist_uuid}
-									size="sm"
-									onClick={onCreateInstance}
-								>
-									创建实例
-								</Button>
-							}
 							className="py-8"
 						/>
 					) : (
-						<div className="flex flex-col items-start md:flex-row gap-4">
-							<div className="flex flex-col gap-3">
-								<div className="flex items-center gap-2">
-									<div
-										className={`w-2.5 h-2.5 rounded-full ${instanceStatusColor(instanceStatus)}`}
-									/>
-									<span className="text-xl font-bold">
-										{instanceStatusText(instanceStatus)}
-									</span>
-								</div>
-								<FuncList items={instanceActions} />
+						<div className="flex flex-col">
+							<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+								实例
+							</span>
+
+							<div className="flex items-center gap-2 mb-4">
+								<div
+									className={`w-2.5 h-2.5 rounded-full ${statusColor}`}
+								/>
+								<span className="text-xl font-bold">
+									{statusText}
+								</span>
 							</div>
-							<div className="flex-1" />
-							<div className="md:w-1/2 flex-col gap-4 md:flex-row grow md:justify-around flex md:gap-8">
+
+							<div className="grid grid-cols-2 gap-3">
 								<div className="flex flex-col">
-									<span className="text-xs text-muted-foreground mb-1">规格</span>
-									<span className="text-xl font-bold">{instanceType || '—'}</span>
+									<span className="text-xs text-muted-foreground">规格</span>
+									<span className="text-sm font-medium truncate">{instanceType || '—'}</span>
 								</div>
 								<div className="flex flex-col">
-									<span className="text-xs text-muted-foreground mb-1">地域</span>
-									<span className="text-xl font-bold">{zoneId || '—'}</span>
+									<span className="text-xs text-muted-foreground">地域</span>
+									<span className="text-sm font-medium truncate">{zoneId || '—'}</span>
 								</div>
-								<div className="flex flex-col">
-									<span className="text-xs text-muted-foreground mb-1">IP</span>
+								<div className="flex flex-col col-span-2">
+									<span className="text-xs text-muted-foreground">IP 地址</span>
 									<div className="flex items-center gap-1">
-										<span className="text-xl font-bold">{ip || '—'}</span>
+										<span className="text-sm font-medium font-mono">{ip || '—'}</span>
 										{ip && (
 											<Button
 												variant="ghost"
@@ -115,7 +103,7 @@ export const InstanceStatus = {
 													Toast.success('已复制 IP 地址到剪贴板');
 												}}
 											>
-												<CopyIcon data-icon="inline-start" />
+												<CopyIcon />
 											</Button>
 										)}
 									</div>

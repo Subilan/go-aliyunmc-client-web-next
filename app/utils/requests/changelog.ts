@@ -58,9 +58,9 @@ export function toggleLike(id: number) {
 export function categoryText(category: ChangelogItem['category']) {
   switch (category) {
     case 'platform':
-      return '平台更新';
+      return '平台';
     case 'server':
-      return '服务器更新';
+      return '服务器';
     default:
       return '';
   }

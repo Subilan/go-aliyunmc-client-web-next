@@ -1,6 +1,5 @@
 import { PAGE_CATEGORY_GAME, PAGE_CATEGORY_INFORMATION, PAGE_CATEGORY_MISC } from '~/consts/page-categories';
 import {
-	PAGE_NAME_ECONOMY,
 	PAGE_NAME_ECS_CANDIDATES,
 	PAGE_NAME_GAME_STATISTICS,
 	PAGE_NAME_LEADERBOARD,
@@ -18,7 +17,6 @@ export interface PageMetaEntry {
 const pageMeta: Record<string, PageMetaEntry> = {
 	'/info/tasks':           { group: PAGE_CATEGORY_INFORMATION, label: PAGE_NAME_TASK_LIST },
 	'/info/ecs-candidates':  { group: PAGE_CATEGORY_INFORMATION, label: PAGE_NAME_ECS_CANDIDATES },
-	'/info/economy':         { group: PAGE_CATEGORY_INFORMATION, label: PAGE_NAME_ECONOMY },
 	'/game/player-list':     { group: PAGE_CATEGORY_GAME,        label: PAGE_NAME_PLAYER_LIST },
 	'/game/leaderboard':     { group: PAGE_CATEGORY_GAME,        label: PAGE_NAME_LEADERBOARD },
 	'/game/web-chat':        { group: PAGE_CATEGORY_GAME,        label: PAGE_NAME_WEB_CHAT },

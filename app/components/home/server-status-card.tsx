@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { Card, CardContent } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
-import { Badge } from '~/components/ui/badge';
-import { RefreshCwIcon, ServerIcon } from 'lucide-react';
-import { CardLabel } from '~/components/card-label';
-import { FuncList, type FuncListItem } from '~/components/func-list';
+import { RefreshCwIcon, ServerIcon, CopyIcon } from 'lucide-react';
 import PlayerCountChart, { type PlayerListChartPoint } from '~/components/player-count-chart';
 import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
+import { Toast } from '~/root';
+import { instanceStatusColor, instanceStatusText } from '~/routes/home/utils';
 import { getServerStatus } from '~/utils/requests/state';
 import { getIdleRemainingSecs, getPlayerListHistory } from '~/utils/requests/home';
 import { queryServer } from '~/utils/requests/server';
@@ -25,11 +24,12 @@ interface ServerStatusCardProps {
 	starting: boolean;
 	loading?: boolean;
 	online: boolean;
+	instanceStatus: string;
 	playerCount: number;
-	platform: string | undefined;
-	isPaper: boolean;
+	instanceType: string;
+	zoneId: string;
+	ip: string;
 	chartData: PlayerListChartPoint[];
-	serverActions: FuncListItem[];
 	onRefreshData?: (results: ServerStatusFetchResult) => void;
 }
 
@@ -40,14 +40,19 @@ export const ServerStatus = {
 			starting,
 			loading = false,
 			online,
+			instanceStatus,
 			playerCount,
-			platform,
-			isPaper,
+			instanceType,
+			zoneId,
+			ip,
 			chartData,
-			serverActions,
 			onRefreshData
 		} = props;
 		const [refreshing, setRefreshing] = useState(false);
+
+		const isRunning = instanceStatus === 'Running';
+		const statusText = isRunning ? (online ? '在线' : '离线') : instanceStatusText(instanceStatus);
+		const statusColor = isRunning ? (online ? 'bg-green-500' : 'bg-red-500') : instanceStatusColor(instanceStatus);
 
 		async function handleRefresh() {
 			setRefreshing(true);
@@ -60,12 +65,29 @@ export const ServerStatus = {
 		}
 
 		return (
-			<Card>
-				<CardContent>
-					<CardLabel
-						icon={<ServerIcon size={14} />}
-						actions={
-							!notReady ? (
+			<Card className="h-full">
+				<CardContent className="flex flex-col h-full">
+					{loading ? (
+						<LoadingEmptyState
+							className="flex-1"
+							description={<span className="text-muted-foreground">加载中...</span>}
+						/>
+					) : notReady ? (
+						<EmptyState
+							icon={ServerIcon}
+							iconSize={40}
+							iconClassName="text-muted-foreground/30"
+							description={<span className="text-muted-foreground">请先创建并部署实例</span>}
+							className="py-12 flex-1"
+						/>
+					) : starting ? (
+						<LoadingEmptyState
+							description={<span className="text-muted-foreground">正在启动服务器...</span>}
+						/>
+					) : (
+						<div className="flex flex-col h-full">
+							<div className="flex items-center justify-between mb-1">
+								<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">服务器</span>
 								<Tooltip>
 									<TooltipTrigger asChild>
 										<Button
@@ -75,65 +97,55 @@ export const ServerStatus = {
 											onClick={handleRefresh}
 										>
 											<RefreshCwIcon
-												data-icon="inline-start"
 												className={refreshing ? 'animate-spin' : ''}
 											/>
 										</Button>
 									</TooltipTrigger>
-									<TooltipContent>刷新图表</TooltipContent>
+									<TooltipContent>刷新</TooltipContent>
 								</Tooltip>
-							) : undefined
-						}
-					>
-						服务器状态
-					</CardLabel>
-					{loading ? (
-						<LoadingEmptyState
-							description={<span className="text-muted-foreground">加载中...</span>}
-						/>
-					) : notReady ? (
-						<EmptyState
-							icon={ServerIcon}
-							iconSize={40}
-							iconClassName="text-muted-foreground/30"
-							description={<span className="text-muted-foreground">请先创建并部署实例</span>}
-							className="py-8"
-						/>
-					) : starting ? (
-						<LoadingEmptyState
-							description={<span className="text-muted-foreground">正在启动服务器...</span>}
-						/>
-					) : (
-						<div className="flex flex-col md:flex-row gap-4">
-							<div className="flex flex-col items-start gap-2">
-								<div className="flex items-center gap-2">
-									<div
-										className={`w-2.5 h-2.5 rounded-full ${online ? 'bg-green-500' : 'bg-red-500'}`}
-									/>
-									<span className="text-xl font-bold">
-										{online ? '在线' : '离线'}
-									</span>
-									{online && <span className="text-xl">{playerCount}/20</span>}
-								</div>
-								{platform && (
-									<Badge variant="outline">
-										{isPaper && (
-											<img
-												draggable="false"
-												alt="papermc"
-												src="/paper.svg"
-												className="size-4 inline mr-1"
-											/>
-										)}
-										{platform}
-									</Badge>
-								)}
-								<div className="flex-1" />
-								<FuncList items={serverActions} />
 							</div>
-							<div className="flex-1" />
-							<div className="min-w-0 grow basis-[66%]">
+
+							<div className="flex items-baseline gap-3 mb-2">
+								<div className={`w-3 h-3 rounded-full shrink-0 ${statusColor}`} />
+								<span className="text-xl font-bold tracking-tight">{statusText}</span>
+								{online && (
+									<span className="text-xl font-light text-muted-foreground">
+										{playerCount}/20
+									</span>
+								)}
+							</div>
+
+							<div className="flex-1 min-h-0">
 								<PlayerCountChart data={chartData} />
+							</div>
+
+							<div className="mt-6 pt-4 border-t border-border grid grid-cols-3 gap-3 text-base">
+								<div className="flex flex-col">
+									<span className="text-xs text-muted-foreground">规格</span>
+									<span className="font-medium truncate">{instanceType || '—'}</span>
+								</div>
+								<div className="flex flex-col">
+									<span className="text-xs text-muted-foreground">地域</span>
+									<span className="font-medium truncate">{zoneId || '—'}</span>
+								</div>
+								<div className="flex flex-col">
+									<span className="text-xs text-muted-foreground">IP 地址</span>
+									<div className="flex items-center gap-1">
+										<span className="font-medium font-mono">{ip || '—'}</span>
+										{ip && (
+											<Button
+												variant="ghost"
+												size="icon-xs"
+												onClick={() => {
+													navigator.clipboard.writeText(ip);
+													Toast.success('已复制 IP 地址到剪贴板');
+												}}
+											>
+												<CopyIcon />
+											</Button>
+										)}
+									</div>
+								</div>
 							</div>
 						</div>
 					)}

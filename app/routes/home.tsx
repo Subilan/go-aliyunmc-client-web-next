@@ -14,7 +14,21 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '~/components/ui/dialog';
-import { InfoIcon } from 'lucide-react';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger
+} from '~/components/ui/dropdown-menu';
+import {
+	InfoIcon,
+	ChevronDownIcon,
+	ArchiveIcon,
+	DatabaseIcon,
+	SquareIcon,
+	Trash2Icon
+} from 'lucide-react';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
 import type { Instance } from '~/types/Instance';
@@ -27,6 +41,8 @@ import { ServerStatus } from '~/components/home/server-status-card';
 import { InstanceStatus } from '~/components/home/instance-status-card';
 import { EcsCandidates } from '~/components/home/ecs-candidates-card';
 import { RecentTasks } from '~/components/home/recent-tasks-card';
+import { UpdateLog } from '~/components/home/update-log-card';
+import { EconomyCard } from '~/components/home/economy-card';
 import type { ServerStatusFetchResult } from '~/components/home/server-status-card';
 import type { EcsCandidatesFetchResult } from '~/components/home/ecs-candidates-card';
 import type { RecentTasksFetchResult } from '~/components/home/recent-tasks-card';
@@ -40,7 +56,6 @@ import { Times } from '~/utils/times';
 import { useSSESync } from '~/routes/home/useSSESync';
 import { useServerOnlineTransition } from '~/routes/home/useServerOnlineTransition';
 import { useTaskPipeline } from '~/routes/home/useTaskPipeline';
-import { buildServerActions, buildInstanceActions } from '~/routes/home/actions';
 
 export function meta({}: MetaArgs) {
 	return [{ title: '控制台 - Seatide' }, { name: 'description', content: 'Seatide 玩家控制台' }];
@@ -74,6 +89,8 @@ export default function Home() {
 	const [deployConfirmOpen, setDeployConfirmOpen] = useState(false);
 	const [deployTriggering, setDeployTriggering] = useState(false);
 
+	const [updateLogLoading, setUpdateLogLoading] = useState(false);
+
 	const [deleteOpen, setDeleteOpen] = useState(false);
 	const [deleting, setDeleting] = useState(false);
 
@@ -86,6 +103,8 @@ export default function Home() {
 	const [stopOpen, setStopOpen] = useState(false);
 	const [starting, setStarting] = useState(false);
 	const [stopping, setStopping] = useState(false);
+
+	const [runningStatusOpen, setRunningStatusOpen] = useState(false);
 
 	const srvSSE = useStateSSE<ServerStatusType>(
 		'/state/watch/server-status',
@@ -176,45 +195,6 @@ export default function Home() {
 	useEffect(() => {
 		fetchAll();
 	}, []);
-
-	const isDeployed = instance?.isDeployed ?? false;
-
-	const canStartServer = isDeployed && !serverOnline.current;
-	const canStopServer = isDeployed && serverOnline.current;
-	const canDeploy = !isDeployed;
-	const canBackup = isDeployed;
-
-	function handleAction(name: string) {
-		if (name === '创建实例') {
-			if (!pipeline.taskRunning) {
-				pipeline.setCreateTaskId(null);
-				pipeline.setDeployTaskId(null);
-			}
-			setDialogOpen(true);
-			return;
-		}
-		if (name === '删除实例') {
-			setDeleteOpen(true);
-			return;
-		}
-		if (name === '备份') {
-			setBackupOpen(true);
-			return;
-		}
-		if (name === '归档') {
-			setArchiveOpen(true);
-			return;
-		}
-		if (name === '启动服务器') {
-			setStartOpen(true);
-			return;
-		}
-		if (name === '停止服务器') {
-			setStopOpen(true);
-			return;
-		}
-		Toast.info(`${name} — 功能开发中`);
-	}
 
 	async function handleDelete() {
 		setDeleting(true);
@@ -317,26 +297,159 @@ export default function Home() {
 		fetchAll();
 	}
 
-	const serverActions = buildServerActions({
-		canStartServer,
-		canStopServer,
-		permissions,
-		archiving: pipeline.archiving,
-		handleAction
-	});
+	// ---- 页面顶部操作区 ----
 
-	const instanceActions = buildInstanceActions({
-		canDeploy,
-		canBackup,
-		permissions,
-		archiving: pipeline.archiving,
-		setDeployConfirmOpen,
-		handleAction
-	});
+	const hasInstance = instance !== null;
+	const isDeployed = instance?.isDeployed ?? false;
+	const isOnline = serverOnline.current;
+	const isCreating = pipeline.taskRunning && pipeline.createTaskId !== null;
+	const isDeploying = pipeline.taskRunning && pipeline.deployTaskId !== null;
+	const isStarting = pipeline.serverStarting;
+
+	let primaryLabel: string;
+	let primaryAction: () => void;
+	let primaryDisabled: boolean;
+
+	if (!hasInstance) {
+		primaryLabel = '创建实例';
+		primaryAction = () => {
+			if (!pipeline.taskRunning) {
+				pipeline.setCreateTaskId(null);
+				pipeline.setDeployTaskId(null);
+			}
+			setDialogOpen(true);
+		};
+		primaryDisabled =
+			pipeline.taskRunning ||
+			!user?.whitelist_uuid ||
+			(permissions !== null && !permissions.can_trigger_task);
+	} else if (!isDeployed) {
+		if (isDeploying) {
+			primaryLabel = '部署中...';
+			primaryAction = () => {};
+			primaryDisabled = true;
+		} else {
+			primaryLabel = '部署';
+			primaryAction = () => setDeployConfirmOpen(true);
+			primaryDisabled =
+				pipeline.taskRunning ||
+				(permissions !== null && !permissions.can_trigger_task);
+		}
+	} else if (!isOnline || isStarting) {
+		if (isStarting) {
+			primaryLabel = '启动中...';
+			primaryAction = () => {};
+			primaryDisabled = true;
+		} else {
+			primaryLabel = '启动服务器';
+			primaryAction = () => setStartOpen(true);
+			primaryDisabled =
+				pipeline.taskRunning ||
+				pipeline.archiving ||
+				(permissions !== null && !permissions.can_trigger_task);
+		}
+	} else {
+		primaryLabel = '运行状态';
+		primaryAction = () => setRunningStatusOpen(true);
+		primaryDisabled = false;
+	}
+
+	interface DropdownEntry {
+		type: 'item' | 'separator';
+		label?: string;
+		icon?: React.ComponentType<{ className?: string }>;
+		action?: () => void;
+		disabled?: boolean;
+		variant?: 'default' | 'destructive';
+	}
+
+	const dropdownEntries: DropdownEntry[] = [];
+
+	if (hasInstance && isDeployed) {
+		dropdownEntries.push({
+			type: 'item',
+			label: '备份',
+			icon: DatabaseIcon,
+			action: () => setBackupOpen(true),
+			disabled:
+				pipeline.archiving ||
+				(permissions !== null && !permissions.can_run_backup)
+		});
+		dropdownEntries.push({
+			type: 'item',
+			label: '归档',
+			icon: ArchiveIcon,
+			action: () => setArchiveOpen(true),
+			disabled:
+				pipeline.archiving ||
+				(permissions !== null && !permissions.can_run_archive)
+		});
+	}
+
+	if (hasInstance && isDeployed && isOnline && permissions?.can_stop_server) {
+		dropdownEntries.push({ type: 'separator' });
+		dropdownEntries.push({
+			type: 'item',
+			label: '停止服务器',
+			icon: SquareIcon,
+			action: () => setStopOpen(true),
+			disabled: false
+		});
+	}
+
+	if (hasInstance) {
+		if (dropdownEntries.length > 0) {
+			dropdownEntries.push({ type: 'separator' });
+		}
+		dropdownEntries.push({
+			type: 'item',
+			label: '删除实例',
+			icon: Trash2Icon,
+			action: () => setDeleteOpen(true),
+			disabled: permissions !== null && !permissions.can_delete_instance,
+			variant: 'destructive'
+		});
+	}
+
+	const headerActions = (
+		<div className="flex items-center gap-1">
+			<Button onClick={primaryAction} disabled={primaryDisabled}>
+				{primaryLabel}
+			</Button>
+			{dropdownEntries.length > 0 && (
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline" size="icon-sm">
+							<ChevronDownIcon />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						{dropdownEntries.map((entry, i) => {
+							if (entry.type === 'separator') {
+								return <DropdownMenuSeparator key={`sep-${i}`} />;
+							}
+							const Icon = entry.icon;
+							return (
+								<DropdownMenuItem
+									key={entry.label}
+									onClick={entry.action}
+									disabled={entry.disabled}
+									variant={entry.variant}
+								>
+									{Icon && <Icon />}
+									{entry.label}
+								</DropdownMenuItem>
+							);
+						})}
+					</DropdownMenuContent>
+				</DropdownMenu>
+			)}
+		</div>
+	);
 
 	return (
 		<>
-			<PageHeader>Hi, {user?.username}</PageHeader>
+			<PageHeader actions={headerActions}>Hi, {user?.username}</PageHeader>
 
 			{pipeline.archiving && (
 				<Alert variant="default" className="mb-4 border-amber-200 bg-amber-50 text-amber-800">
@@ -353,9 +466,9 @@ export default function Home() {
 					<AlertDescription>
 						你还没有绑定白名单。绑定后即可体验完整功能。
 					</AlertDescription>
-					<div className="md:flex gap-2 hidden absolute top-2.5 right-3">
+					<div className="md:flex gap-2 hidden absolute top-1/2 right-3 -translate-y-1/2">
 						<Button size="sm" variant="outline" asChild>
-							<a href="#" target="_blank" rel="noreferrer">申请白名单</a>
+							<a href="https://v.wjx.cn/vm/m93QvcR.aspx#" target="_blank" rel="noreferrer">申请白名单</a>
 						</Button>
 						<Button size="sm" variant="outline" asChild>
 							<Link to="/profile">立即绑定</Link>
@@ -364,37 +477,23 @@ export default function Home() {
 				</Alert>
 			)}
 
-			<div className="flex flex-col gap-4">
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+			<div className="lg:col-span-2">
 				<ServerStatus.Card
 					notReady={instanceNotFound.current || !isDeployed}
 					starting={pipeline.serverStarting}
 					loading={serverLoading.current}
 					online={serverOnline.current}
-					playerCount={playerCount.current}
-					platform={serverQuery.current?.platform}
-					isPaper={!!serverQuery.current?.platform?.includes('Paper')}
-					chartData={chartData.current}
-					serverActions={serverActions}
-					onRefreshData={handleServerRefresh}
-				/>
-				<InstanceStatus.Card
-					notFound={instanceNotFound.current}
-					busy={pipeline.taskRunning && !pipeline.startTaskId}
-					loading={instanceLoading.current}
-					busyLabel={pipeline.deployTaskId ? '实例部署中' : '实例创建中'}
-					latestOutput={pipeline.latestOutput}
 					instanceStatus={instanceStatus.current}
+					playerCount={playerCount.current}
 					instanceType={instance?.instanceType ?? '—'}
 					zoneId={instance?.zoneId ?? '—'}
 					ip={instance?.ip ?? '—'}
-					instanceActions={instanceActions}
-					onCreateInstance={() => handleAction('创建实例')}
+					chartData={chartData.current}
+					onRefreshData={handleServerRefresh}
 				/>
-				<EcsCandidates.Card
-					candidates={candidates}
-					loading={ecsLoading.current && candidates.length === 0}
-					onRefreshData={handleCandidatesRefresh}
-				/>
+			</div>
+			<div className="lg:col-span-1 flex flex-col gap-4">
 				<RecentTasks.Card
 					tasks={tasks}
 					loading={tasksLoading.current && tasks.length === 0}
@@ -402,6 +501,11 @@ export default function Home() {
 					onRefreshData={handleTasksRefresh}
 				/>
 			</div>
+		</div>
+
+			<UpdateLog.Card loading={updateLogLoading} />
+
+			<EconomyCard.Card />
 
 			<Dialog open={deleteOpen} onOpenChange={v => setDeleteOpen(v)}>
 				<DialogContent>
@@ -474,6 +578,25 @@ export default function Home() {
 				onTriggered={handleCreateInstance}
 				loading={createLoading}
 			/>
+
+			<Dialog open={runningStatusOpen} onOpenChange={v => setRunningStatusOpen(v)}>
+				<DialogContent className="sm:max-w-lg">
+					<DialogHeader>
+						<DialogTitle>服务器运行状态</DialogTitle>
+						<DialogDescription>
+							当前 Minecraft 服务器的实时运行信息。
+						</DialogDescription>
+					</DialogHeader>
+					<div className="py-4 text-sm text-muted-foreground">
+						详细状态信息将在后续版本中提供。
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setRunningStatusOpen(false)}>
+							关闭
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</>
 	);
 }

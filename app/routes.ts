@@ -2,8 +2,6 @@ import { createHashRouter } from 'react-router';
 import AppLayout, { appLoader } from '~/layout/app';
 import RootLayout from '~/layout/root';
 import { ErrorBoundary } from '~/root';
-import AllFeatures from '~/routes/all';
-import Economy from '~/routes/economy';
 import EcsCandidatesPage from '~/routes/ecs-candidates';
 import GameStatistics, { gameStatisticsLoader } from '~/routes/game-statistics';
 import Home from '~/routes/home';
@@ -40,20 +38,12 @@ export const router = createHashRouter([
 						Component: Profile
 					},
 					{
-						path: 'all',
-						Component: AllFeatures
-					},
-					{
 						path: 'info/tasks',
 						Component: TasksPage
 					},
 					{
 						path: 'info/ecs-candidates',
 						Component: EcsCandidatesPage
-					},
-					{
-						path: 'info/economy',
-						Component: Economy
 					},
 					{
 						path: 'game/player-list',

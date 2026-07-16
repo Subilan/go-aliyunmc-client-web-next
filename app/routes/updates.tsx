@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Card, CardContent } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
@@ -19,6 +19,7 @@ import {
 import { HeartIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { Remark } from 'react-remark';
 import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
+import { useLocation } from 'react-router';
 import PageHeader from '~/components/page-header';
 import { UserContext } from '~/contexts/user';
 import { PAGE_NAME_UPDATES } from '~/consts/page-names';
@@ -71,6 +72,10 @@ export default function Updates() {
 	const [deleting, setDeleting] = useState<ChangelogItem | null>(null);
 	const [submitting, setSubmitting] = useState(false);
 
+	const location = useLocation();
+	const pendingOpenId = (location.state as { openId?: number } | null)?.openId;
+	const autoOpenedRef = useRef(false);
+
 	const createForm = useForm<ChangelogFormData>({
 		defaultValues: { title: '', body: '', category: 'platform' }
 	});
@@ -108,6 +113,16 @@ export default function Updates() {
 			if (updated) setSelected(updated);
 		}
 	}, [items, selected?.id]);
+
+	useEffect(() => {
+		if (!autoOpenedRef.current && pendingOpenId && items.length > 0) {
+			const item = items.find(i => i.id === pendingOpenId);
+			if (item) {
+				setSelected(item);
+				autoOpenedRef.current = true;
+			}
+		}
+	}, [items, pendingOpenId]);
 
 	const handleLike = async (id: number) => {
 		setItems(prev =>

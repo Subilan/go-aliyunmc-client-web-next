@@ -2,17 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '~/components/ui/table';
-import { ClockIcon, RefreshCwIcon } from 'lucide-react';
+import { ClockIcon, RefreshCwIcon, ChevronRightIcon } from 'lucide-react';
 import { Link } from 'react-router';
-import { CardLabel } from '~/components/card-label';
 import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
 import { taskStatusIcon } from '~/routes/tasks';
 import { taskTypeLabel } from '~/routes/home/utils';
@@ -52,86 +43,82 @@ export const RecentTasks = {
 		}, [refreshKey, handleRefresh]);
 
 		return (
-			<Card>
-				<CardContent>
-					<CardLabel
-						icon={<ClockIcon size={14} />}
-						actions={
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Button
-										variant="ghost"
-										size="icon-xs"
-										disabled={refreshing}
-										onClick={handleRefresh}
-									>
-										<RefreshCwIcon
-											data-icon="inline-start"
-											className={refreshing ? 'animate-spin' : ''}
-										/>
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent>刷新</TooltipContent>
-							</Tooltip>
-						}
-					>
-						最近任务
-					</CardLabel>
+			<Card className="h-full">
+				<CardContent className="flex flex-col h-full">
 					{loading ? (
-						<LoadingEmptyState />
+						<LoadingEmptyState className="flex-1" />
 					) : tasks.length === 0 ? (
 						<EmptyState
-							description={<span className="text-muted-foreground">暂无任务</span>}
-							className="py-8"
+							icon={ClockIcon}
+							iconSize={32}
+							iconClassName="text-muted-foreground/30"
+							description={<span className="text-muted-foreground text-sm">暂无活动</span>}
+							className="py-6"
 						/>
 					) : (
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead className="text-center">类型</TableHead>
-									<TableHead className="text-center">状态</TableHead>
-									<TableHead className="text-center hidden md:table-cell">耗时</TableHead>
-									<TableHead className="text-center">创建时间</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
+						<div className="flex flex-col flex-1">
+							<div className="flex items-center justify-between mb-2">
+								<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									最近活动
+								</span>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button
+											variant="ghost"
+											size="icon-xs"
+											disabled={refreshing}
+											onClick={handleRefresh}
+										>
+											<RefreshCwIcon
+												className={refreshing ? 'animate-spin' : ''}
+											/>
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent>刷新</TooltipContent>
+								</Tooltip>
+							</div>
+
+							<div className="flex flex-col gap-1">
 								{tasks.slice(0, 5).map(task => (
-									<TableRow key={task.ID}>
-										<TableCell className="text-center">
-											{taskTypeLabel(task.type)}
-										</TableCell>
-										<TableCell className="text-center">
+									<div
+										key={task.ID}
+										className="flex items-center gap-2 py-1.5"
+									>
+										<span className="text-muted-foreground shrink-0">
 											{taskStatusIcon(task.status)}
-										</TableCell>
-										<TableCell className="text-center hidden md:table-cell text-muted-foreground text-sm">
-											{task.endAt && task.startAt
-												? (
-														(new Date(task.endAt).getTime() -
-															new Date(task.startAt).getTime()) /
-														1000
-													).toFixed(1) + 's'
-												: '—'}
-										</TableCell>
-										<TableCell className="text-center text-muted-foreground text-sm">
-											<Tooltip>
-												<TooltipTrigger>
-													<span>{Times.formatFromNow(task.CreatedAt)}</span>
-												</TooltipTrigger>
-												<TooltipContent>
-													{Times.formatDate(task.CreatedAt)}
-												</TooltipContent>
-											</Tooltip>
-										</TableCell>
-									</TableRow>
+										</span>
+										<span className="text-sm flex-1 truncate">
+											{taskTypeLabel(task.type)}
+										</span>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<span className="text-xs text-muted-foreground shrink-0 tabular-nums">
+													{Times.formatFromNow(task.CreatedAt)}
+												</span>
+											</TooltipTrigger>
+											<TooltipContent>
+												{Times.formatDate(task.CreatedAt)}
+											</TooltipContent>
+										</Tooltip>
+									</div>
 								))}
-							</TableBody>
-						</Table>
+							</div>
+
+							<div className="mt-auto pt-2 border-t border-border">
+								<Button
+									size="sm"
+									variant="ghost"
+									className="w-full justify-between text-muted-foreground hover:text-foreground"
+									asChild
+								>
+									<Link to="/info/tasks">
+										查看全部
+										<ChevronRightIcon />
+									</Link>
+								</Button>
+							</div>
+						</div>
 					)}
-					<div className="mt-2 text-right">
-						<Button size="sm" variant="link" asChild>
-							<Link to="/info/tasks">查看全部</Link>
-						</Button>
-					</div>
 				</CardContent>
 			</Card>
 		);

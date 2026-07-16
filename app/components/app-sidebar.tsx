@@ -4,7 +4,6 @@ import {
 	BarChart3Icon,
 	ChevronLeftIcon,
 	CpuIcon,
-	DollarSignIcon,
 	LayoutDashboardIcon,
 	ListTodoIcon,
 	LogOutIcon,
@@ -39,18 +38,10 @@ import {
 	useSidebar,
 } from '~/components/ui/sidebar';
 
-const navItems = [
-	{
-		title: '控制台',
-		url: '/',
-		icon: LayoutDashboardIcon,
-	},
-];
-
-const infoItems = [
+const consoleItems = [
+	{ title: '首页', url: '/', icon: LayoutDashboardIcon },
 	{ title: '任务列表', url: '/info/tasks', icon: ListTodoIcon },
 	{ title: '候选实例', url: '/info/ecs-candidates', icon: CpuIcon },
-	{ title: '经济', url: '/info/economy', icon: DollarSignIcon },
 ];
 
 const gameItems = [
@@ -96,27 +87,9 @@ export default function AppSidebar() {
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
+					<SidebarGroupLabel>控制台</SidebarGroupLabel>
 					<SidebarMenu>
-						{navItems.map(item => (
-							<SidebarMenuItem key={item.url}>
-								<SidebarMenuButton
-									asChild
-									isActive={pathname === item.url}
-									tooltip={item.title}
-								>
-									<Link to={item.url}>
-										<item.icon />
-										<span>{item.title}</span>
-									</Link>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						))}
-					</SidebarMenu>
-				</SidebarGroup>
-				<SidebarGroup>
-					<SidebarGroupLabel>信息</SidebarGroupLabel>
-					<SidebarMenu>
-						{infoItems.map(item => (
+						{consoleItems.map(item => (
 							<SidebarMenuItem key={item.url}>
 								<SidebarMenuButton
 									asChild
@@ -154,11 +127,11 @@ export default function AppSidebar() {
 								<SidebarMenuButton
 									asChild
 									isActive={pathname.startsWith('/game/statistics/')}
-									tooltip="游戏统计"
+									tooltip="我的游戏统计"
 								>
 									<Link to={`/game/statistics/${user.whitelist_uuid}`}>
 										<BarChart3Icon />
-										<span>游戏统计</span>
+										<span>我的游戏统计</span>
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>

@@ -60,6 +60,10 @@ export function getLeaderboard(metric: string, order?: string) {
 	return get<LeaderboardEntry[]>('/server/leaderboard', { metric, order: order ?? 'desc' });
 }
 
+export function getStatLeaderboard(metric: string, order?: string) {
+	return get<LeaderboardEntry[]>('/server/stat-leaderboard', { metric, order: order ?? 'desc' });
+}
+
 export interface PlayerListEntry {
 	uuid: string;
 	name: string;

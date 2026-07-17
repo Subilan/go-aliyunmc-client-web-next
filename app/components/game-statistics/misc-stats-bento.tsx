@@ -96,7 +96,7 @@ function BentoCard({ def, value }: { def: BentoCardDef; value: number }) {
 	);
 }
 
-export function MiscStatsBento(props: { stats: GameStats | null }) {
+export function MiscStatsBento(props: { stats: GameStats | null; playerUuid?: string }) {
 	const custom = props.stats?.stats?.['minecraft:custom'] ?? {};
 	const visibleCards = BENTO_CARDS.filter(def => custom[def.key] !== undefined);
 
@@ -105,7 +105,7 @@ export function MiscStatsBento(props: { stats: GameStats | null }) {
 	return (
 		<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-0">
 			{visibleCards.map(def => (
-				<StatLeaderboardPopover key={def.key} metric={def.key} label={def.label} format={def.format}>
+				<StatLeaderboardPopover key={def.key} metric={def.key} label={def.label} format={def.format} playerUuid={props.playerUuid}>
 					<div>
 						<BentoCard def={def} value={custom[def.key]} />
 					</div>

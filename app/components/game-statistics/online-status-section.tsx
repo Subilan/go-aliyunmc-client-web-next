@@ -179,9 +179,9 @@ export function OnlineStatusSection({ onlineDates }: OnlineStatusSectionProps) {
 		<>
 			<div>
 				<div className="flex items-center justify-between mb-2">
-					<span className="text-xs text-muted-foreground tracking-wider">近7天在线情况</span>
+					<span className="text-xs text-neutral-400 tracking-wider">近7天在线情况</span>
 				</div>
-				<div className="flex gap-3 justify-between">
+				<div className="flex gap-3 justify-between py-2">
 					{last7Days.map(d => {
 						const key = formatDateStr(d);
 						const online = onlineSet.has(key);
@@ -196,7 +196,7 @@ export function OnlineStatusSection({ onlineDates }: OnlineStatusSectionProps) {
 								) : (
 									<div className="size-8 rounded-full border-2" />
 								)}
-								<span className="text-xs text-muted-foreground">{dayLabel}</span>
+								<span className="text-xs text-neutral-400">{dayLabel}</span>
 							</div>
 						);
 					})}

@@ -153,7 +153,7 @@ export function StatSection(props: {
 					<h3 className="text-lg font-bold">{props.label}</h3>
 					<p className="text-muted-foreground text-xs mt-0.5">{items.length} 项</p>
 				</div>
-				<div className="flex-1 overflow-y-auto max-h-48">
+				<div className="flex-1 overflow-y-auto max-h-48 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
 					<div className={`grid gap-3 ${colsClass}`}>
 						{items.length > 0 ? (
 							items.map(([k, v]) => (

@@ -31,11 +31,12 @@ function PlayerCard({ player }: { player: PlayerListEntry }) {
 	const isPrivate = player.disallow_public_game_stats;
 
 	const card = (
-		<Card className={(isPrivate ? 'opacity-60' : 'hover:bg-muted/50 transition-colors cursor-pointer') + ' pt-0 pb-1.5 gap-0'}>
+		<Card className={(isPrivate ? 'opacity-60' : 'hover:bg-muted/50 transition-colors cursor-pointer') + ' pt-0 pb-0 gap-0'}>
 			<div
 				onClick={() =>
 					!isPrivate && navigate(`/game/statistics/${encodeURIComponent(player.uuid)}`)
 				}
+				className="flex flex-col h-full"
 			>
 				<div className="relative">
 					<img
@@ -49,8 +50,8 @@ function PlayerCard({ player }: { player: PlayerListEntry }) {
 						</div>
 					)}
 				</div>
-				<div className="text-center px-2 py-1.5">
-					<div className="text-base font-medium truncate">{player.name}</div>
+				<div className="flex-1 flex items-center justify-center text-center p-2">
+					<div className="text-lg font-medium break-all leading-tight font-minecraft">{player.name}</div>
 				</div>
 			</div>
 		</Card>

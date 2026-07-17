@@ -10,8 +10,8 @@ import {
 	DialogTitle
 } from '~/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
-import { Card, CardContent } from '~/components/ui/card';
-import MetricCard from '~/components/metric-card';
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
+import TaskTimelineChart from '~/components/task-timeline-chart';
 import {
 	CheckIcon,
 	ClockIcon,
@@ -191,6 +191,8 @@ export default function TasksPage() {
 	const [order, setOrder] = useState<'asc' | 'desc'>('desc');
 	const [stats, setStats] = useState<TaskStats | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [recentTasks, setRecentTasks] = useState<Task[]>([]);
+	const [chartLoading, setChartLoading] = useState(true);
 
 	const fetch = useCallback(async () => {
 		setLoading(true);
@@ -217,6 +219,14 @@ export default function TasksPage() {
 		});
 	}, []);
 
+	useEffect(() => {
+		setChartLoading(true);
+		fetchTasks({ limit: 50, sort: 'created_at', order: 'desc' }).then(res => {
+			if (res.error === null) setRecentTasks(res.data!.tasks);
+			setChartLoading(false);
+		});
+	}, []);
+
 	const handleSortChange = useCallback((newSort: string, newOrder: 'asc' | 'desc') => {
 		setSort(newSort);
 		setOrder(newOrder);
@@ -234,28 +244,70 @@ export default function TasksPage() {
 		stats?.lastCreatedUser?.username ??
 		(stats?.lastCreatedBy ? String(stats.lastCreatedBy) : System);
 
+	function lastByType(key: string): string {
+		const ts = stats?.lastCompletedByType?.[key];
+		return ts ? Times.formatFromNow(ts) : '—';
+	}
+
+	function lastByTypeRaw(key: string): string | undefined {
+		return stats?.lastCompletedByType?.[key];
+	}
+
+	const statItems: { label: string; value: string | null; tooltip?: string }[] = [
+		{ label: '任务总数', value: stats ? String(stats.total) : null },
+		{ label: '成功率', value: stats ? successRate : null },
+		{ label: '总运行时长', value: stats ? Times.formatRuntimeHours(stats.totalRuntimeSec) : null },
+		{ label: '最近完成', value: stats ? lastCompletedAgo : null, tooltip: stats?.lastCompletedAt ? Times.formatDate(stats.lastCompletedAt) : undefined },
+		{ label: '最近启动', value: stats ? lastByType('start_server') : null, tooltip: stats ? (lastByTypeRaw('start_server') ? Times.formatDate(lastByTypeRaw('start_server')!) : undefined) : undefined },
+		{ label: '最近备份', value: stats ? lastByType('backup') : null, tooltip: stats ? (lastByTypeRaw('backup') ? Times.formatDate(lastByTypeRaw('backup')!) : undefined) : undefined },
+		{ label: '最近归档', value: stats ? lastByType('archive') : null, tooltip: stats ? (lastByTypeRaw('archive') ? Times.formatDate(lastByTypeRaw('archive')!) : undefined) : undefined },
+		{ label: '最近创建者', value: stats ? lastCreator : null }
+	];
+
 	return (
 		<>
 			<PageHeader>{PAGE_NAME_TASK_LIST}</PageHeader>
-			<div className="flex flex-col gap-3">
-				<MetricCard
-					cols={4}
-					metrics={[
-						{
-							label: '任务总数',
-							value: stats ? String(stats.total) : null
-						},
-						{ label: '成功率', value: stats ? successRate : null },
-						{
-							label: '最近完成',
-							value: stats ? lastCompletedAgo : null
-						},
-						{
-							label: '最近创建者',
-							value: stats ? lastCreator : null
-						}
-					]}
-				/>
+			<div className="flex flex-col gap-5">
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+					<div className="grid grid-cols-2 gap-5 auto-rows-fr">
+						{statItems.map((s, i) => (
+							<Card key={i} size="sm" className="h-full justify-center">
+								<CardContent className="flex flex-col gap-0.5">
+									<span className="text-xs text-muted-foreground">{s.label}</span>
+									{s.tooltip ? (
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<span className="text-2xl font-bold cursor-default">{s.value ?? '—'}</span>
+											</TooltipTrigger>
+											<TooltipContent>{s.tooltip}</TooltipContent>
+										</Tooltip>
+									) : (
+										<span className="text-2xl font-bold">{s.value ?? '—'}</span>
+									)}
+								</CardContent>
+							</Card>
+						))}
+					</div>
+					<Card>
+						<CardHeader className="pb-2">
+							<CardTitle className="tracking-wider text-sm font-normal text-muted-foreground">
+								最近任务时间轴
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<TaskTimelineChart
+								tasks={recentTasks.map(t => ({
+									id: t.ID,
+									type: t.type,
+									startAt: t.startAt ?? '',
+									endAt: t.endAt,
+									status: t.status
+								}))}
+								loading={chartLoading}
+							/>
+						</CardContent>
+					</Card>
+				</div>
 				<PaginatedTable
 					columns={columns}
 					rows={rows}

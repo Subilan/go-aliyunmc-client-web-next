@@ -133,7 +133,7 @@ export default function GameStatistics() {
 							<div className="flex-1 flex w-full md:w-auto flex-col gap-3">
 								{gameStats ? (
 									<>
-										<div className="text-2xl border-b pb-2">
+										<div className="text-3xl border-b pb-2 font-minecraft">
 											{gameStats.player_name}
 										</div>
 										<div className="grid grid-cols-3 gap-3">
@@ -330,7 +330,7 @@ export default function GameStatistics() {
 						<CardTitle>游戏统计</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<MiscStatsBento stats={gameStats} />
+						<MiscStatsBento stats={gameStats} playerUuid={effectiveUuid ?? undefined} />
 					</CardContent>
 				</Card>
 			</div>

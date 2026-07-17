@@ -227,15 +227,15 @@ export default function Leaderboard() {
 									<TableBody>
 										{rest.map((entry, i) => (
 											<TableRow key={entry.uuid}>
-												<TableCell>
+												<TableCell className="py-3">
 													<span className="text-muted-foreground">
 														#{i + 4}
 													</span>
 												</TableCell>
-												<TableCell className="text-base">
+												<TableCell className="text-base py-3">
 													{entry.player_name}
 												</TableCell>
-												<TableCell align="right" className="text-base">
+												<TableCell align="right" className="text-base py-3">
 													<span className="font-bold">
 														{formatValue(entry.value)}
 													</span>

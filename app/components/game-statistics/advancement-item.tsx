@@ -137,17 +137,19 @@ export function AdvancementItem({ a, completed }: { a: AdvancementEntry; complet
 					if (isMobile) dialogOpen.set(true);
 				}}
 			>
-				<div
-					className="hidden md:block absolute top-[15px] left-[23%] z-10
-					opacity-0 scale-95 group-hover/item:opacity-100 group-hover/item:scale-100
-					transition-all duration-200 ease-out
-					origin-top-left
-					pointer-events-none group-hover/item:pointer-events-auto"
-				>
-					{tooltipContent}
-				</div>
+				<div className="relative">
+					<div
+						className="hidden md:block absolute top-[4px] left-[-7.5px] z-10
+						opacity-0 scale-95 group-hover/item:opacity-100 group-hover/item:scale-100
+						transition-all duration-200 ease-out
+						origin-top-left
+						pointer-events-none group-hover/item:pointer-events-auto"
+					>
+						{tooltipContent}
+					</div>
 
-				{iconElement}
+					{iconElement}
+				</div>
 			</div>
 
 			{isMobile && (

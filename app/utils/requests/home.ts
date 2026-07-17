@@ -12,6 +12,8 @@ export interface TaskStats {
 	lastCompletedAt?: string;
 	lastCreatedBy?: number;
 	lastCreatedUser?: { ID: number; username: string };
+	totalRuntimeSec: number;
+	lastCompletedByType: Record<string, string>;
 }
 
 export function getTaskStats() {

@@ -16,7 +16,8 @@ export function formatDate(dateLike: Date | number | string, format = 'YYYY-MM-D
 export const Times = {
 	formatFromNow,
 	formatDuration,
-	formatDate
+	formatDate,
+	formatRuntimeHours
 };
 
 export function formatDuration(seconds: number): string {
@@ -27,4 +28,10 @@ export function formatDuration(seconds: number): string {
 	if (d > 0) return `${d}d ${h}h`;
 	if (h > 0) return `${h}h ${m}m`;
 	return `${m}m`;
+}
+
+export function formatRuntimeHours(seconds: number): string {
+	if (!seconds || seconds <= 0) return '—';
+	const hours = seconds / 3600;
+	return `${hours.toFixed(1)}h`;
 }

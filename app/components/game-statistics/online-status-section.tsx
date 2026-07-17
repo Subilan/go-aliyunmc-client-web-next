@@ -203,7 +203,7 @@ export function OnlineStatusSection({ onlineDates }: OnlineStatusSectionProps) {
 				</div>
 				<div className="flex justify-end mt-2">
 					<Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>
-						查看全部
+						查看近期
 					</Button>
 				</div>
 			</div>

@@ -1,7 +1,8 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
-@import './styles/fonts/google-sans.css';
-@import './styles/fonts/google-sans-code.css';
+@import "@fontsource/inter/index.css";
+@import "@fontsource/space-grotesk/index.css";
+@import "@fontsource/space-grotesk/700.css";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 /* ---break---*/
@@ -9,9 +10,17 @@
 
 @theme {
 	--font-sans:
-		'Google Sans', ui-sans-serif, system-ui, 'PingFang SC', '微软雅黑', 'Microsoft Yahei',
+		'Inter', ui-sans-serif, system-ui, 'PingFang SC', '微软雅黑', 'Microsoft Yahei',
 		sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-	--font-mono: 'Google Sans Code', Menlo, Consolas, monospace;
+	--font-mono:
+		ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', 'Courier New',
+		monospace;
+	--font-numeric-display:
+		'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-numeric-display {
+  font-weight: 700;
 }
 
 :root {

@@ -1,13 +1,4 @@
-import { Checkbox } from '~/components/ui/checkbox';
-import { Button } from '~/components/ui/button';
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger
-} from '~/components/ui/collapsible';
-import { ChevronRightIcon, ChevronUpIcon } from 'lucide-react';
 import type { GameStats } from '~/utils/requests/game';
-import useStateNamed from '~/hooks/useStateNamed';
 import { useMcTranslate } from '~/hooks/useMcTranslate';
 import { Times } from '~/utils/times';
 
@@ -35,7 +26,7 @@ const DISTANCE_STATS = new Set([
 	'minecraft:fly_one_cm'
 ]);
 
-function formatDistanceCm(cm: number): string {
+export function formatDistanceCm(cm: number): string {
 	if (cm < 100) return `${cm}cm`;
 	const m = cm / 100;
 	if (m < 1000) return `${Math.round(m)}m`;
@@ -60,13 +51,13 @@ const GAME_TIME_STATS = new Set([
 	'minecraft:sneak_time'
 ]);
 
-function formatHearts(value: number): string {
+export function formatHearts(value: number): string {
 	const hearts = value / 20;
 	if (hearts % 1 === 0) return hearts.toString();
 	return hearts.toFixed(1);
 }
 
-function formatPlaytimeHours(v: number, realTime: boolean): string {
+export function formatPlaytimeHours(v: number, realTime: boolean): string {
 	if (realTime) {
 		const hours = v / 20 / 3600;
 		return `${hours.toFixed(1)}h`;
@@ -80,21 +71,21 @@ function transformStat(k: string, v: number, realTime: boolean): string | number
 	return v;
 }
 
-const STAT_EXCERPT = 6;
-
 function StatValue({
 	k,
 	v,
 	translate,
-	realTime
+	realTime,
+	className
 }: {
 	k: string;
 	v: number;
 	translate: (key: string) => string;
 	realTime: boolean;
+	className?: string;
 }) {
 	return (
-		<div className="flex">
+		<div className={`flex ${className ?? ''}`}>
 			<div data-key-name={k} className="text-muted-foreground">
 				{translate(k)}
 			</div>
@@ -128,20 +119,16 @@ export function StatSection(props: {
 	label: string;
 	description?: string;
 	denseOnMobile?: boolean;
-	showRealTimeToggle?: boolean;
 }) {
 	const translate = useMcTranslate();
-	const expanded = useStateNamed(false);
-	const realTime = useStateNamed(false);
 
 	const items =
 		props.stats?.stats && props.stats.stats[props.name]
 			? Object.entries(props.stats.stats[props.name])
 			: [];
 	items.sort((a, b) => a[0].localeCompare(b[0]));
-	const hasMore = items.length > STAT_EXCERPT;
-	const excerpt = items.slice(0, STAT_EXCERPT);
-	const remainder = items.slice(STAT_EXCERPT);
+
+	const hasMany = items.length > 12;
 
 	const colsClass = props.denseOnMobile
 		? 'grid-cols-1 md:grid-cols-3'
@@ -149,63 +136,28 @@ export function StatSection(props: {
 
 	return (
 		<div>
-			<div className="flex flex-col gap-2 mb-3">
-				<div className="mb-1">
-					<h3 className="text-lg font-bold mb-1">
-						{props.label} ({items.length} 项)
-					</h3>
-					{props.description && <p className="text-muted-foreground">{props.description}</p>}
-					{props.showRealTimeToggle && (
-						<div className="flex items-center gap-2 mt-1">
-							<Checkbox
-								id="realtime-toggle"
-								checked={realTime.current}
-								onCheckedChange={checked => realTime.set(!!checked)}
-							/>
-							<label
-								htmlFor="realtime-toggle"
-								className="text-sm cursor-pointer select-none"
-							>
-								显示现实时间
-							</label>
-						</div>
-					)}
-				</div>
-				<div className={`grid gap-3 ${colsClass}`}>
-					{excerpt.length > 0 ? (
-						excerpt.map(([k, v]) => (
-							<StatValue key={k} k={k} v={v} translate={translate} realTime={realTime.current} />
-						))
-					) : (
-						<span>暂无数据</span>
-					)}
-				</div>
-			</div>
-			<Collapsible open={expanded.current} onOpenChange={v => expanded.set(v)}>
-				<CollapsibleContent>
-					<div className={`grid gap-3 ${colsClass}`}>
-						{remainder.map(([k, v]) => (
-							<StatValue key={k} k={k} v={v} translate={translate} realTime={realTime.current} />
-						))}
-					</div>
-				</CollapsibleContent>
-				{hasMore && (
-					<CollapsibleTrigger asChild>
-						<div className="flex items-center gap-1 cursor-pointer select-none text-sm text-muted-foreground">
-							<Button variant="ghost" size="icon-xs" asChild>
-								<span>
-									{expanded.current ? (
-										<ChevronUpIcon data-icon="inline-start" />
-									) : (
-										<ChevronRightIcon data-icon="inline-start" />
-									)}
-								</span>
-							</Button>
-							{expanded.current ? '收起' : `展开剩余 ${remainder.length} 项`}
-						</div>
-					</CollapsibleTrigger>
+			<div className="mb-3">
+				<h3 className="text-lg font-bold mb-1">
+					{props.label}
+					<span className="text-muted-foreground font-normal text-sm ml-1">
+						({items.length} 项)
+					</span>
+				</h3>
+				{props.description && (
+					<p className="text-muted-foreground text-sm">{props.description}</p>
 				)}
-			</Collapsible>
+			</div>
+			<div
+				className={`grid gap-3 ${colsClass} ${hasMany ? 'max-h-64 overflow-y-auto pr-1' : ''}`}
+			>
+				{items.length > 0 ? (
+					items.map(([k, v]) => (
+						<StatValue key={k} k={k} v={v} translate={translate} realTime={false} />
+					))
+				) : (
+					<span className="text-muted-foreground text-sm">暂无数据</span>
+				)}
+			</div>
 		</div>
 	);
 }

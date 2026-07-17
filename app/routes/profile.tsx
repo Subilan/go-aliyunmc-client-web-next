@@ -3,7 +3,7 @@ import { useRevalidator } from 'react-router';
 import type { MetaArgs } from 'react-router';
 import PageHeader from '~/components/page-header';
 import { UserContext } from '~/contexts/user';
-import { Card, CardContent } from '~/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Switch } from '~/components/ui/switch';
@@ -19,7 +19,7 @@ import {
 } from '~/components/ui/dialog';
 import { AlertTriangleIcon } from 'lucide-react';
 import type { Preferences } from '~/types/Preferences';
-import { CardLabel } from '~/components/card-label';
+
 import { useForm } from 'react-hook-form';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
@@ -171,8 +171,10 @@ export default function Profile() {
 			<PageHeader>个人资料</PageHeader>
 			<div className="flex flex-col gap-3">
 				<Card>
+					<CardHeader>
+						<CardTitle>账户信息</CardTitle>
+					</CardHeader>
 					<CardContent>
-						<CardLabel>账户信息</CardLabel>
 						<div className="flex flex-col gap-3">
 							<InfoRow label="用户 ID" value={String(user.ID)} />
 							<InfoRow label="用户名" value={user.username} />
@@ -183,8 +185,10 @@ export default function Profile() {
 				</Card>
 
 				<Card>
+					<CardHeader>
+						<CardTitle>偏好设置</CardTitle>
+					</CardHeader>
 					<CardContent>
-						<CardLabel>偏好设置</CardLabel>
 						<div className="flex items-center justify-between">
 							<span>参与排行榜</span>
 							<Switch
@@ -205,8 +209,10 @@ export default function Profile() {
 				</Card>
 
 				<Card>
+					<CardHeader>
+						<CardTitle>修改密码</CardTitle>
+					</CardHeader>
 					<CardContent>
-						<CardLabel>修改密码</CardLabel>
 						<form className="flex flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>
 							<Form.StringInput
 								name="oldPassword"
@@ -249,8 +255,10 @@ export default function Profile() {
 				</Card>
 
 				<Card>
+					<CardHeader>
+						<CardTitle>白名单绑定</CardTitle>
+					</CardHeader>
 					<CardContent>
-						<CardLabel>白名单绑定</CardLabel>
 						{user.whitelist_uuid ? (
 							<div className="flex flex-col gap-3">
 								<InfoRow label="绑定状态" value="已绑定" />
@@ -296,8 +304,10 @@ export default function Profile() {
 				</Card>
 
 				<Card>
+					<CardHeader>
+						<CardTitle>危险操作</CardTitle>
+					</CardHeader>
 					<CardContent>
-						<CardLabel>危险操作</CardLabel>
 						<Button
 							variant="destructive"
 							onClick={() => deleteOpen.set(true)}

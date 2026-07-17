@@ -1,24 +1,27 @@
 import type { MetaArgs } from 'react-router';
-import { Card, CardContent } from '~/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger
 } from '~/components/ui/collapsible';
-import { AlertTriangleIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
+import { AlertTriangleIcon, ChevronDownIcon, ChevronRightIcon, SearchIcon, XIcon } from 'lucide-react';
+import { Input } from '~/components/ui/input';
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_GAME_STATISTICS } from '~/consts/page-names';
 import { getGameStats, getSortedAdvancements } from '~/utils/requests/game';
 import type { GameStats } from '~/utils/requests/game';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Times } from '~/utils/times';
-import { CardLabel } from '~/components/card-label';
+
 import { MetricItem } from '~/components/metric-item';
 import { SkinModel } from '~/components/game-statistics/skin-model';
 import { AdvancementItem } from '~/components/game-statistics/advancement-item';
 import { AdvancementMetrics } from '~/components/game-statistics/advancement-metrics';
 import { StatSection } from '~/components/game-statistics/stat-section';
+import { MiscStatsBento } from '~/components/game-statistics/misc-stats-bento';
+import { SearchResults } from '~/components/game-statistics/search-results';
 import { OnlineStatusSection } from '~/components/game-statistics/online-status-section';
 import EmptyState from '~/components/empty-state';
 import { createLoader } from '~/utils/createLoader';
@@ -106,20 +109,25 @@ export default function GameStatistics() {
 
 	const { advancements, gameStats } = loaderData;
 	const showUncompleted = useStateNamed(false);
+	const searchQuery = useStateNamed('');
 
 	const completed = advancements.filter(a => a.done);
 	const uncompleted = advancements.filter(a => !a.done);
 
 	const advProgress = gameStats?.advancement_progress;
 
+	const isSearching = searchQuery.current.trim().length > 0;
+
 	return (
 		<>
 			<PageHeader info={Info()}>{PAGE_NAME_GAME_STATISTICS}</PageHeader>
-			<div className="flex flex-col gap-3">
+			<div className="flex flex-col gap-5">
 				{/* Player Overview */}
 				<Card className="overflow-visible">
+					<CardHeader>
+						<CardTitle>玩家概览</CardTitle>
+					</CardHeader>
 					<CardContent>
-						<CardLabel>玩家概览</CardLabel>
 						<div className="flex flex-col-reverse items-center md:flex-row gap-6">
 							<SkinModel uuid={effectiveUuid!} />
 							<div className="flex-1 flex w-full md:w-auto flex-col gap-3">
@@ -163,8 +171,10 @@ export default function GameStatistics() {
 
 				{/* Advancements */}
 				<Card className="overflow-visible">
+					<CardHeader>
+						<CardTitle>成就</CardTitle>
+					</CardHeader>
 					<CardContent>
-						<CardLabel>成就</CardLabel>
 						{advancements.length === 0 ? (
 							<div className="text-muted-foreground text-sm">暂无成就数据</div>
 						) : (
@@ -215,70 +225,93 @@ export default function GameStatistics() {
 						)}
 					</CardContent>
 				</Card>
+
+				{/* Game Data - with search inside the card */}
 				<Card>
-					<CardContent>
-						<CardLabel>统计数据</CardLabel>
-						<div className="flex flex-col gap-5">
-							<StatSection
-								label="使用或放置"
-								description="使用的物品或者放置方块的次数。"
-								stats={gameStats}
-								name="minecraft:used"
-							/>
-							<hr />
-							<StatSection
-								label="拾取"
-								description="从地上捡起的物品个数。"
-								stats={gameStats}
-								name="minecraft:picked_up"
-							/>
-							<hr />
-							<StatSection
-								label="挖掘"
-								description="挖掘的方块个数。"
-								stats={gameStats}
-								name="minecraft:mined"
-							/>
-							<hr />
-							<StatSection
-								label="击杀"
-								description="击杀的生物个数。"
-								stats={gameStats}
-								name="minecraft:killed"
-							/>
-							<hr />
-							<StatSection
-								label="死于"
-								description="被这些生物击杀的次数。"
-								stats={gameStats}
-								name="minecraft:killed_by"
-							/>
-							<hr />
-							<StatSection
-								label="制造"
-								description="制造的物品个数。"
-								stats={gameStats}
-								name="minecraft:crafted"
-							/>
-							<hr />
-							<StatSection
-								label="损坏"
-								description="损坏的工具个数。"
-								stats={gameStats}
-								name="minecraft:broken"
-							/>
-							<hr />
-							<StatSection
-								denseOnMobile
-								showRealTimeToggle
-								label="杂项"
-								description="一些其它的统计信息。"
-								stats={gameStats}
-								name="minecraft:custom"
-							/>
+					<CardHeader>
+						<div className="flex items-center justify-between">
+							<CardTitle>游戏数据</CardTitle>
+							<div className="relative w-56">
+								<SearchIcon
+									size={16}
+									className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+								/>
+								<Input
+									placeholder="搜索统计项"
+									value={searchQuery.current}
+									onChange={e => searchQuery.set(e.target.value)}
+									className="pl-8 h-8 text-sm"
+								/>
+								{isSearching && (
+									<button
+										onClick={() => searchQuery.set('')}
+										className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+									>
+										<XIcon size={16} />
+									</button>
+								)}
+							</div>
 						</div>
+					</CardHeader>
+					<CardContent>
+						{isSearching ? (
+							<SearchResults gameStats={gameStats} searchQuery={searchQuery.current} />
+						) : (
+							<div className="flex flex-col gap-5">
+								<StatSection
+									label="使用或放置"
+									description="使用的物品或者放置方块的次数。"
+									stats={gameStats}
+									name="minecraft:used"
+								/>
+								<hr />
+								<StatSection
+									label="拾取"
+									description="从地上捡起的物品个数。"
+									stats={gameStats}
+									name="minecraft:picked_up"
+								/>
+								<hr />
+								<StatSection
+									label="挖掘"
+									description="挖掘的方块个数。"
+									stats={gameStats}
+									name="minecraft:mined"
+								/>
+								<hr />
+								<StatSection
+									label="击杀"
+									description="击杀的生物个数。"
+									stats={gameStats}
+									name="minecraft:killed"
+								/>
+								<hr />
+								<StatSection
+									label="死于"
+									description="被这些生物击杀的次数。"
+									stats={gameStats}
+									name="minecraft:killed_by"
+								/>
+								<hr />
+								<StatSection
+									label="制造"
+									description="制造的物品个数。"
+									stats={gameStats}
+									name="minecraft:crafted"
+								/>
+								<hr />
+								<StatSection
+									label="损坏"
+									description="损坏的工具个数。"
+									stats={gameStats}
+									name="minecraft:broken"
+								/>
+							</div>
+						)}
 					</CardContent>
 				</Card>
+
+				<MiscStatsBento stats={gameStats} />
 			</div>
 		</>
 	);

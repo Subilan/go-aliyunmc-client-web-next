@@ -1,7 +1,13 @@
 import { useEffect, useRef } from 'react';
-import { Progress } from '~/components/ui/progress';
 import { SkinViewer } from 'skinview3d';
 import useStateNamed from '~/hooks/useStateNamed';
+
+const shimmerKeyframes = `
+@keyframes shimmer-slide {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+`;
 
 export function SkinModel(props: { uuid: string }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -70,11 +76,18 @@ export function SkinModel(props: { uuid: string }) {
 			}}
 		>
 			{loading.current && (
-				<div className="absolute inset-0 flex items-center justify-center">
-					<div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-						<div className="h-full bg-primary animate-pulse rounded-full" style={{ width: '60%' }} />
-					</div>
-				</div>
+				<>
+					<style>{shimmerKeyframes}</style>
+					<div
+						className="absolute inset-0 rounded-lg"
+						style={{
+							background:
+								'linear-gradient(90deg, #e5e5e5 25%, #f5f5f5 50%, #e5e5e5 75%)',
+							backgroundSize: '200% 100%',
+							animation: 'shimmer-slide 1.6s ease-in-out infinite'
+						}}
+					/>
+				</>
 			)}
 			<canvas ref={canvasRef} className="rounded-lg" />
 		</div>

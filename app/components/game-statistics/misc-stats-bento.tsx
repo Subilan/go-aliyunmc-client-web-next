@@ -4,6 +4,7 @@ import {
 	formatHearts,
 	formatPlaytimeHours
 } from '~/components/game-statistics/stat-section';
+import { StatLeaderboardPopover } from '~/components/game-statistics/stat-leaderboard-popover';
 
 interface BentoCardDef {
 	key: string;
@@ -70,7 +71,7 @@ function formatValue(def: BentoCardDef, value: number): string {
 
 function BentoCard({ def, value }: { def: BentoCardDef; value: number }) {
 	return (
-		<div className="hover:bg-neutral-50 transition-colors rounded-lg p-4">
+		<div className="hover:bg-neutral-50 transition-colors rounded-lg p-4 cursor-default">
 			<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
 				<span className="text-base">{def.icon}</span>
 				{def.label}
@@ -104,7 +105,11 @@ export function MiscStatsBento(props: { stats: GameStats | null }) {
 	return (
 		<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-0">
 			{visibleCards.map(def => (
-				<BentoCard key={def.key} def={def} value={custom[def.key]} />
+				<StatLeaderboardPopover key={def.key} metric={def.key} label={def.label} format={def.format}>
+					<div>
+						<BentoCard def={def} value={custom[def.key]} />
+					</div>
+				</StatLeaderboardPopover>
 			))}
 		</div>
 	);

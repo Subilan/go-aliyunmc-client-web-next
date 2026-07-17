@@ -1,5 +1,4 @@
 import type { GameStats } from '~/utils/requests/game';
-import { Card, CardContent } from '~/components/ui/card';
 import {
 	formatDistanceCm,
 	formatHearts,
@@ -71,30 +70,28 @@ function formatValue(def: BentoCardDef, value: number): string {
 
 function BentoCard({ def, value }: { def: BentoCardDef; value: number }) {
 	return (
-		<Card className="hover:bg-neutral-50 transition-colors">
-			<CardContent>
-				<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-					<span className="text-base">{def.icon}</span>
-					{def.label}
-				</div>
-				<div className="text-2xl font-bold text-neutral-800 tabular-nums font-numeric-display mt-1">
-					{def.format === 'hearts' ? (
-						<span className="flex items-center gap-1">
-							{formatValue(def, value)}
-							<span>×</span>
-							<img
-								src="/heart.png"
-								alt=""
-								className="w-5 h-5"
-								style={{ imageRendering: 'pixelated' }}
-							/>
-						</span>
-					) : (
-						formatValue(def, value)
-					)}
-				</div>
-			</CardContent>
-		</Card>
+		<div className="hover:bg-neutral-50 transition-colors rounded-lg p-4">
+			<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+				<span className="text-base">{def.icon}</span>
+				{def.label}
+			</div>
+			<div className="text-2xl font-bold text-neutral-800 tabular-nums font-numeric-display mt-1">
+				{def.format === 'hearts' ? (
+					<span className="flex items-center gap-1">
+						{formatValue(def, value)}
+						<span>×</span>
+						<img
+							src="/heart.png"
+							alt=""
+							className="w-5 h-5"
+							style={{ imageRendering: 'pixelated' }}
+						/>
+					</span>
+				) : (
+					formatValue(def, value)
+				)}
+			</div>
+		</div>
 	);
 }
 
@@ -105,7 +102,7 @@ export function MiscStatsBento(props: { stats: GameStats | null }) {
 	if (visibleCards.length === 0) return null;
 
 	return (
-		<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+		<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-0">
 			{visibleCards.map(def => (
 				<BentoCard key={def.key} def={def} value={custom[def.key]} />
 			))}

@@ -10,7 +10,7 @@ export const Auth = {
 		if (cachedUser !== undefined) return cachedUser;
 		if (pending) return pending;
 
-		pending = getProfile().then(result => {
+		const promise = getProfile().then(result => {
 			if (result.error) {
 				cachedUser = null;
 				return null;
@@ -18,8 +18,9 @@ export const Auth = {
 			cachedUser = result.data;
 			return cachedUser;
 		});
+		pending = promise;
 
-		const user = await pending;
+		const user = await promise;
 		pending = undefined;
 		return user;
 	},

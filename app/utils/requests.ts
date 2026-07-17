@@ -14,6 +14,10 @@ export function resetLoginRedirect() {
 	redirectingToLogin = false;
 }
 
+export function setLoginRedirecting() {
+	redirectingToLogin = true;
+}
+
 async function req<T = any>(url: string, options: RequestInit): Promise<Resp<T>> {
 	const result = await fetch(BASE_URL + url, {
 		...options,

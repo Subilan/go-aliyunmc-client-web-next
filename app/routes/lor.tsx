@@ -29,7 +29,7 @@ import { Toast } from '~/root';
 import { Auth } from '~/utils/auth';
 import { createLoader } from '~/utils/createLoader';
 import { navigate } from '~/utils/navigate';
-import { resetLoginRedirect } from '~/utils/requests';
+import { resetLoginRedirect, setLoginRedirecting } from '~/utils/requests';
 import { Req } from '~/utils/requests/Req';
 
 export interface LoginPayload {
@@ -179,7 +179,9 @@ function RegisterForm({ setLogin }: { setLogin: () => void }) {
 }
 
 export const lorLoader = createLoader(async args => {
+	setLoginRedirecting();
 	if (await Auth.isLoggedIn()) {
+		resetLoginRedirect();
 		Toast.info('你已经登录');
 		throw redirect('/');
 	}

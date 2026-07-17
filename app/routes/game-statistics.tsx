@@ -259,6 +259,8 @@ export default function GameStatistics() {
 						) : (
 							<div className="flex flex-col gap-5">
 								<StatSection
+									layout="horizontal"
+									icon="/game_icons/used.png"
 									label="使用或放置"
 									description="使用的物品或者放置方块的次数。"
 									stats={gameStats}
@@ -266,6 +268,8 @@ export default function GameStatistics() {
 								/>
 								<hr />
 								<StatSection
+									layout="horizontal"
+									icon="/game_icons/picked_up.png"
 									label="拾取"
 									description="从地上捡起的物品个数。"
 									stats={gameStats}
@@ -273,6 +277,8 @@ export default function GameStatistics() {
 								/>
 								<hr />
 								<StatSection
+									layout="horizontal"
+									icon="/game_icons/mined.png"
 									label="挖掘"
 									description="挖掘的方块个数。"
 									stats={gameStats}
@@ -280,6 +286,8 @@ export default function GameStatistics() {
 								/>
 								<hr />
 								<StatSection
+									layout="horizontal"
+									icon="/game_icons/killed.png"
 									label="击杀"
 									description="击杀的生物个数。"
 									stats={gameStats}
@@ -287,6 +295,8 @@ export default function GameStatistics() {
 								/>
 								<hr />
 								<StatSection
+									layout="horizontal"
+									icon="/game_icons/killed_by.png"
 									label="死于"
 									description="被这些生物击杀的次数。"
 									stats={gameStats}
@@ -294,6 +304,8 @@ export default function GameStatistics() {
 								/>
 								<hr />
 								<StatSection
+									layout="horizontal"
+									icon="/game_icons/crafted.png"
 									label="制造"
 									description="制造的物品个数。"
 									stats={gameStats}
@@ -301,6 +313,8 @@ export default function GameStatistics() {
 								/>
 								<hr />
 								<StatSection
+									layout="horizontal"
+									icon="/game_icons/broken.png"
 									label="损坏"
 									description="损坏的工具个数。"
 									stats={gameStats}
@@ -311,7 +325,14 @@ export default function GameStatistics() {
 					</CardContent>
 				</Card>
 
-				<MiscStatsBento stats={gameStats} />
+				<Card>
+					<CardHeader>
+						<CardTitle>游戏统计</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<MiscStatsBento stats={gameStats} />
+					</CardContent>
+				</Card>
 			</div>
 		</>
 	);

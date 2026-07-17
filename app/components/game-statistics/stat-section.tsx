@@ -119,6 +119,8 @@ export function StatSection(props: {
 	label: string;
 	description?: string;
 	denseOnMobile?: boolean;
+	icon?: string;
+	layout?: 'vertical' | 'horizontal';
 }) {
 	const translate = useMcTranslate();
 
@@ -133,6 +135,38 @@ export function StatSection(props: {
 	const colsClass = props.denseOnMobile
 		? 'grid-cols-1 md:grid-cols-3'
 		: 'grid-cols-2 md:grid-cols-3';
+
+	const isHorizontal = props.layout === 'horizontal';
+
+	if (isHorizontal) {
+		return (
+			<div className="flex gap-6 items-center">
+				<div className="w-36 shrink-0 flex flex-col items-start justify-center">
+					{props.icon && (
+						<img
+							src={props.icon}
+							alt=""
+							className="w-10 h-10 mb-1"
+							style={{ imageRendering: 'pixelated' }}
+						/>
+					)}
+					<h3 className="text-lg font-bold">{props.label}</h3>
+					<p className="text-muted-foreground text-xs mt-0.5">{items.length} 项</p>
+				</div>
+				<div className="flex-1 overflow-y-auto max-h-48">
+					<div className={`grid gap-3 ${colsClass}`}>
+						{items.length > 0 ? (
+							items.map(([k, v]) => (
+								<StatValue key={k} k={k} v={v} translate={translate} realTime={false} />
+							))
+						) : (
+							<span className="text-muted-foreground text-sm">暂无数据</span>
+						)}
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div>

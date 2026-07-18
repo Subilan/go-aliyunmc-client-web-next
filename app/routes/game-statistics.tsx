@@ -136,7 +136,7 @@ export default function GameStatistics() {
 										<div className="text-3xl border-b pb-2 font-minecraft">
 											{gameStats.player_name}
 										</div>
-										<div className="grid grid-cols-3 gap-3">
+										<div className="grid grid-cols-3 gap-5">
 											<MetricItem title="游玩时长">
 												{gameStats.playtime > 0
 													? `${(gameStats.playtime / 20 / 3600).toFixed(1)}h`
@@ -181,7 +181,7 @@ export default function GameStatistics() {
 							<>
 								<AdvancementMetrics advProgress={advProgress} />
 
-								<div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 overflow-visible">
+								<div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-5 overflow-visible">
 									{completed.map(a => (
 										<AdvancementItem key={a.resourceLocation} a={a} completed />
 									))}
@@ -208,7 +208,7 @@ export default function GameStatistics() {
 												</div>
 											</CollapsibleTrigger>
 											<CollapsibleContent>
-												<div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 mt-3 overflow-visible">
+												<div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-5 mt-3 overflow-visible">
 													{uncompleted.map(a => (
 														<AdvancementItem
 															key={a.resourceLocation}

@@ -1,13 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Card, CardContent } from '~/components/ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
-import {
-	ClockIcon,
-	RefreshCwIcon,
-	TrendingDownIcon,
-	TrendingUpIcon
-} from 'lucide-react';
+import { RefreshCwIcon } from 'lucide-react';
 import BalanceChart from '~/components/balance-chart';
 import type { BalanceChartPoint } from '~/components/balance-chart';
 import { getBalance, getAccountBalanceHistory } from '~/utils/requests/home';
@@ -85,11 +80,9 @@ export const EconomyCard = {
 
 		return (
 			<Card>
-				<CardContent>
-					<div className="flex items-center justify-between mb-3">
-						<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-							服务器经济
-						</span>
+				<CardHeader className="pb-2">
+					<CardTitle className="tracking-wider text-sm font-normal text-muted-foreground">服务器经济</CardTitle>
+					<CardAction>
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<Button
@@ -105,9 +98,10 @@ export const EconomyCard = {
 							</TooltipTrigger>
 							<TooltipContent>刷新</TooltipContent>
 						</Tooltip>
-					</div>
-
-					<div className="grid grid-cols-3 gap-4 mb-4">
+					</CardAction>
+				</CardHeader>
+				<CardContent>
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
 						<div>
 							<div className="text-xs text-muted-foreground mb-1">当前余额</div>
 							<div className="text-2xl font-bold">
@@ -115,8 +109,7 @@ export const EconomyCard = {
 							</div>
 						</div>
 						<div>
-							<div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-								<TrendingDownIcon size={12} />
+							<div className="text-xs text-muted-foreground mb-1">
 								平均降低
 							</div>
 							<div className="text-2xl font-bold">
@@ -124,8 +117,7 @@ export const EconomyCard = {
 							</div>
 						</div>
 						<div>
-							<div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-								<ClockIcon size={12} />
+							<div className="text-xs text-muted-foreground mb-1">
 								预计支撑时间
 							</div>
 							<div className="text-2xl font-bold">

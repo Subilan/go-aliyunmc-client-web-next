@@ -245,7 +245,7 @@ export default function Lor() {
 							控制台是 Seatide
 							玩家在游戏外部访问与控制服务器的专属平台，所有获取了白名单并绑定游戏账号的玩家，都可以免费使用控制台的大部分功能。
 						</p>
-						<div className="grid grid-cols-3 gap-3 not-prose">
+						<div className="grid grid-cols-3 gap-5 not-prose">
 							<HelpDialogCard
 								icon={MessagesSquareIcon}
 								iconClass="text-amber-600"

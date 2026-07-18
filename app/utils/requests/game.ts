@@ -68,6 +68,7 @@ export interface PlayerListEntry {
 	uuid: string;
 	name: string;
 	disallow_public_game_stats: boolean;
+	has_data: boolean;
 }
 
 export function getPlayerList() {

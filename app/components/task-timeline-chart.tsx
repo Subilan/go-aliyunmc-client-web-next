@@ -159,9 +159,6 @@ export default function TaskTimelineChart({
 		...validRanges.map(r => new Date(r.startAt).getTime())
 	);
 
-	const rowHeight = 24;
-	const chartHeight = yLabels.length * rowHeight + 50;
-
 	// Build visualMap pieces for both tasks and players
 	const pieces: { value: number; color: string }[] = [];
 	for (const [code, color] of Object.entries(typeColorMap)) {
@@ -187,7 +184,11 @@ export default function TaskTimelineChart({
 				return `${p.name}<br/>开始: ${startStr}<br/>结束: ${endStr}<br/>持续: ${durationMin} 分钟`;
 			}
 		},
-		grid: { top: 10, right: 24, bottom: 16, left: 110 },
+		grid: { top: 10, right: 24, bottom: 16, left: 8 },
+		dataZoom: [
+			{ type: 'inside', xAxisIndex: 0 },
+			{ type: 'inside', yAxisIndex: 0 }
+		],
 		xAxis: {
 			type: 'time',
 			min: earliestStart,
@@ -200,14 +201,9 @@ export default function TaskTimelineChart({
 		yAxis: {
 			type: 'category',
 			data: yLabels,
-			axisLabel: {
-				fontSize: 10,
-				color: '#6b7280',
-				width: 100,
-				overflow: 'truncate'
-			},
+			axisLabel: { show: false },
 			axisTick: { show: false },
-			axisLine: { lineStyle: { color: '#e5e7eb' } },
+			axisLine: { show: false },
 			inverse: true
 		},
 		visualMap: {
@@ -255,15 +251,36 @@ export default function TaskTimelineChart({
 		]
 	};
 
+	const legendItems: { label: string; color: string }[] = [
+		{ label: '部署', color: typeColorMap[0] },
+		{ label: '创建/启动', color: typeColorMap[1] },
+		{ label: '归档', color: typeColorMap[2] },
+		{ label: '备份', color: typeColorMap[3] },
+		{ label: '测试', color: typeColorMap[4] },
+		...playerNames.map((name, i) => ({
+			label: name,
+			color: playerColors[i % playerColors.length],
+		})),
+	];
+
 	return (
-		<ReactECharts
-			option={option}
-			style={{
-				height: Math.max(chartHeight, 120),
-				width: '100%',
-				...style
-			}}
-			opts={{ renderer: 'svg' }}
-		/>
+		<div style={style} className="flex flex-col min-h-0">
+			<ReactECharts
+				option={option}
+				style={{ width: '100%', flex: 1, minHeight: 0 }}
+				opts={{ renderer: 'svg' }}
+			/>
+			<div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 px-1 text-xs text-muted-foreground">
+				{legendItems.map(item => (
+					<span key={item.label} className="inline-flex items-center gap-1">
+						<span
+							className="w-2.5 h-2.5 rounded-sm shrink-0"
+							style={{ backgroundColor: item.color }}
+						/>
+						{item.label}
+					</span>
+				))}
+			</div>
+		</div>
 	);
 }

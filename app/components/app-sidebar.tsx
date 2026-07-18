@@ -73,6 +73,10 @@ export default function AppSidebar() {
 		<>
 		<Sidebar collapsible="icon">
 			<SidebarHeader>
+				<div className="flex items-center gap-2 px-2 py-1">
+					<span className="text-xl font-recursive-casual tracking-tight text-sidebar-foreground group-data-[collapsible=icon]:hidden">TiLab</span>
+					<span className="hidden text-xl font-recursive-casual tracking-tight text-sidebar-foreground group-data-[collapsible=icon]:inline">Ti</span>
+				</div>
 				<SidebarMenu>
 					<SidebarMenuItem>
 						<SidebarMenuButton
@@ -80,7 +84,7 @@ export default function AppSidebar() {
 							tooltip={state === 'expanded' ? '收起侧边栏' : '展开侧边栏'}
 						>
 							{state === 'expanded' ? <ChevronLeftIcon /> : <PanelLeftIcon />}
-							<span>Seatide</span>
+							<span>收起</span>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
 				</SidebarMenu>

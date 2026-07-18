@@ -21,6 +21,7 @@
 	font-family: 'Minecraft', sans-serif;
 	letter-spacing: -0.05em;
 }
+@import '@fontsource-variable/recursive/full.css';
 @import '@fontsource/space-grotesk/index.css';
 @import '@fontsource/space-grotesk/700.css';
 @import 'tw-animate-css';
@@ -34,11 +35,16 @@
 		'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 	--font-mono:
 		ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', 'Courier New', monospace;
-	--font-numeric-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
+	--font-grotesk: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
-.font-numeric-display {
+.font-grotesk {
 	font-weight: 700;
+}
+
+.font-recursive-casual {
+	font-family: 'Recursive Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+	font-variation-settings: 'CASL' 1, 'wght' 700, 'slnt' -8, 'MONO' 0;
 }
 
 :root {

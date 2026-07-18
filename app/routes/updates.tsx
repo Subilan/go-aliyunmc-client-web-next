@@ -354,14 +354,14 @@ export default function Updates() {
 				{selected && (
 					<DialogContent className="sm:max-w-lg">
 						<DialogHeader>
-							<div className="flex items-center justify-between gap-4">
+							<div className="flex items-center gap-3">
 								<DialogTitle>{selected.title}</DialogTitle>
 								<Badge variant="outline" className="shrink-0">
 									{categoryText(selected.category)}
 								</Badge>
 							</div>
 						</DialogHeader>
-						<div className="prose text-sm text-muted-foreground max-h-[60vh] overflow-y-auto">
+						<div className="prose text-base leading-relaxed text-muted-foreground max-h-[70vh] overflow-y-auto pe-1">
 							<Remark>{selected.body}</Remark>
 						</div>
 						<DialogFooter>
@@ -389,8 +389,8 @@ export default function Updates() {
 
 			{/* Create dialog */}
 			<Dialog open={creating} onOpenChange={v => setCreating(v)}>
-				<form onSubmit={createForm.handleSubmit(handleCreate)}>
-					<DialogContent className="sm:max-w-lg">
+				<DialogContent className="sm:max-w-lg">
+					<form onSubmit={createForm.handleSubmit(handleCreate)}>
 						<DialogHeader>
 							<DialogTitle>新增更新日志</DialogTitle>
 						</DialogHeader>
@@ -457,14 +457,14 @@ export default function Updates() {
 								{submitting ? '创建中...' : '创建'}
 							</Button>
 						</DialogFooter>
-					</DialogContent>
-				</form>
+					</form>
+				</DialogContent>
 			</Dialog>
 
 			{/* Edit dialog */}
 			<Dialog open={editing !== null} onOpenChange={v => !v && setEditing(null)}>
-				<form onSubmit={editForm.handleSubmit(handleUpdate)}>
-					<DialogContent className="sm:max-w-lg">
+				<DialogContent className="sm:max-w-lg">
+					<form onSubmit={editForm.handleSubmit(handleUpdate)}>
 						<DialogHeader>
 							<DialogTitle>编辑更新日志</DialogTitle>
 						</DialogHeader>
@@ -531,8 +531,8 @@ export default function Updates() {
 								{submitting ? '保存中...' : '保存'}
 							</Button>
 						</DialogFooter>
-					</DialogContent>
-				</form>
+					</form>
+				</DialogContent>
 			</Dialog>
 
 			{/* Delete confirmation dialog */}

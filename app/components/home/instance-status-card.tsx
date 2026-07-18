@@ -1,4 +1,4 @@
-import { Card, CardContent } from '~/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { HardDriveIcon, CopyIcon } from 'lucide-react';
 import { instanceStatusColor, instanceStatusText } from '~/routes/home/utils';
@@ -42,6 +42,9 @@ export const InstanceStatus = {
 
 		return (
 			<Card>
+				<CardHeader className="pb-2">
+					<CardTitle className="tracking-wider text-sm font-normal text-muted-foreground">实例</CardTitle>
+				</CardHeader>
 				<CardContent>
 					{loading ? (
 						<LoadingEmptyState />
@@ -68,10 +71,6 @@ export const InstanceStatus = {
 						/>
 					) : (
 						<div className="flex flex-col">
-							<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-								实例
-							</span>
-
 							<div className="flex items-center gap-2 mb-4">
 								<div
 									className={`w-2.5 h-2.5 rounded-full ${statusColor}`}

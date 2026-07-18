@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent } from '~/components/ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import { RefreshCwIcon, ServerIcon, CopyIcon } from 'lucide-react';
@@ -66,7 +66,27 @@ export const ServerStatus = {
 
 		return (
 			<Card className="h-full">
-				<CardContent className="flex flex-col h-full">
+				<CardHeader className="pb-2">
+					<CardTitle className="tracking-wider text-sm font-normal text-muted-foreground">服务器</CardTitle>
+					<CardAction>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon-xs"
+									disabled={refreshing}
+									onClick={handleRefresh}
+								>
+									<RefreshCwIcon
+										className={refreshing ? 'animate-spin' : ''}
+									/>
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>刷新</TooltipContent>
+						</Tooltip>
+					</CardAction>
+				</CardHeader>
+				<CardContent className="flex flex-col flex-1 min-h-0">
 					{loading ? (
 						<LoadingEmptyState
 							className="flex-1"
@@ -86,26 +106,7 @@ export const ServerStatus = {
 							description={<span className="text-muted-foreground">正在启动服务器...</span>}
 						/>
 					) : (
-						<div className="flex flex-col h-full">
-							<div className="flex items-center justify-between mb-1">
-								<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">服务器</span>
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<Button
-											variant="ghost"
-											size="icon-xs"
-											disabled={refreshing}
-											onClick={handleRefresh}
-										>
-											<RefreshCwIcon
-												className={refreshing ? 'animate-spin' : ''}
-											/>
-										</Button>
-									</TooltipTrigger>
-									<TooltipContent>刷新</TooltipContent>
-								</Tooltip>
-							</div>
-
+						<div className="flex flex-col flex-1">
 							<div className="flex items-baseline gap-3 mb-2">
 								<div className={`w-3 h-3 rounded-full shrink-0 ${statusColor}`} />
 								<span className="text-xl font-bold tracking-tight">{statusText}</span>
@@ -120,7 +121,7 @@ export const ServerStatus = {
 								<PlayerCountChart data={chartData} />
 							</div>
 
-							<div className="mt-6 pt-4 border-t border-border grid grid-cols-3 gap-3 text-base">
+							<div className="mt-6 pt-4 border-t border-border grid grid-cols-1 sm:grid-cols-3 gap-3 text-base">
 								<div className="flex flex-col">
 									<span className="text-xs text-muted-foreground">规格</span>
 									<span className="font-medium truncate">{instanceType || '—'}</span>

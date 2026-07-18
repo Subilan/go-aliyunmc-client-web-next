@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import PaginatedTable, { type Column } from '~/components/paginated-table';
 import type { Task } from '~/types/Task';
 import { getTasks as fetchTasks, getTaskStats, getPlayerOnlineRanges, type TaskStats, type PlayerOnlineRangeRaw } from '~/utils/requests/home';
+import { getTask } from '~/utils/requests/task';
 import { Button } from '~/components/ui/button';
 import {
 	Dialog,
@@ -77,7 +78,7 @@ function ClickableCell({ text, className }: { text: string; className?: string }
 	return (
 		<>
 			<span
-				className={`text-xs max-w-20 block truncate cursor-pointer ${className ?? 'text-muted-foreground'}`}
+				className={`text-xs max-w-20 inline-block truncate cursor-pointer text-center ${className ?? 'text-muted-foreground'}`}
 				onClick={() => setOpen(true)}
 			>
 				{text}
@@ -96,11 +97,28 @@ function ClickableCell({ text, className }: { text: string; className?: string }
 	);
 }
 
-function ViewOutputBtn({ text }: { text: string }) {
+function ViewOutputBtn({ taskId }: { taskId: number }) {
 	const [open, setOpen] = useState(false);
+	const [output, setOutput] = useState<string | null>(null);
+	const [fetching, setFetching] = useState(false);
+	const [fetchError, setFetchError] = useState<string | null>(null);
+
+	const handleOpen = useCallback(async () => {
+		setOpen(true);
+		setFetching(true);
+		setFetchError(null);
+		const res = await getTask(taskId);
+		setFetching(false);
+		if (res.error) {
+			setFetchError(res.error);
+		} else if (res.data) {
+			setOutput(res.data.output || null);
+		}
+	}, [taskId]);
+
 	return (
 		<>
-			<Button size="sm" variant="link" onClick={() => setOpen(true)}>
+			<Button size="sm" variant="link" onClick={handleOpen}>
 				查看
 			</Button>
 			<Dialog open={open} onOpenChange={v => setOpen(v)}>
@@ -108,13 +126,19 @@ function ViewOutputBtn({ text }: { text: string }) {
 					<DialogHeader>
 						<DialogTitle>输出内容</DialogTitle>
 					</DialogHeader>
-					<Card>
-						<CardContent className="overflow-y-auto max-h-[60vh]">
-							<pre>
-								<code>{text}</code>
-							</pre>
-						</CardContent>
-					</Card>
+					{fetching ? (
+						<div className="flex justify-center py-8">
+							<Loader2Icon className="animate-spin text-muted-foreground" />
+						</div>
+					) : fetchError ? (
+						<div className="text-red-500 text-sm py-4">{fetchError}</div>
+					) : output ? (
+						<pre className="text-sm whitespace-pre-wrap break-all max-h-[60vh] overflow-y-auto">
+							{output}
+						</pre>
+					) : (
+						<div className="text-muted-foreground text-sm py-4">暂无输出</div>
+					)}
 				</DialogContent>
 			</Dialog>
 		</>
@@ -157,12 +181,7 @@ const columns: Column<Task>[] = [
 		id: 'output',
 		label: '输出',
 		align: 'center',
-		render: t =>
-			t.output ? (
-				<ViewOutputBtn text={t.output} />
-			) : (
-				<span className="text-muted-foreground">—</span>
-			)
+		render: t => <ViewOutputBtn taskId={t.ID} />
 	},
 	{
 		id: 'error',
@@ -280,6 +299,8 @@ export default function TasksPage() {
 		{ value: '6', label: '6 小时' },
 		{ value: '12', label: '12 小时' },
 		{ value: '24', label: '24 小时' },
+		{ value: '48', label: '48 小时' },
+		{ value: '72', label: '72 小时' },
 	];
 
 	return (
@@ -307,15 +328,15 @@ export default function TasksPage() {
 						))}
 					</div>
 					<Card className="h-full">
-						<CardHeader className="pb-2 flex-row items-center justify-between">
+						<CardHeader className="pb-2 flex flex-row items-center justify-between gap-2">
 							<CardTitle className="tracking-wider text-sm font-normal text-muted-foreground">
-								最近任务时间轴
+								时间轴
 							</CardTitle>
 							<Select
 								value={String(timeRangeHours)}
 								onValueChange={v => setTimeRangeHours(Number(v))}
 							>
-								<SelectTrigger className="w-28 h-7 text-xs">
+								<SelectTrigger className="w-28 h-8 text-sm">
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>

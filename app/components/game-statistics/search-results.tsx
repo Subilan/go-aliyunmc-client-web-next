@@ -447,7 +447,7 @@ export function SearchResults(props: {
                         <span className="text-base">{def.icon}</span>
                         {translateKey(def.key)}
                       </div>
-                      <div className="text-2xl font-bold text-neutral-800 tabular-nums font-numeric-display">
+                      <div className="text-2xl font-bold text-neutral-800 tabular-nums font-grotesk">
                         {def.format === "hearts" ? (
                           <span className="flex items-center gap-1">
                             {formatBentoValue(def, custom[def.key])}

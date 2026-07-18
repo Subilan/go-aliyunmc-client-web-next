@@ -3,6 +3,7 @@ import * as React from 'react';
 import { motion } from 'framer-motion';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '~/components/ui/hover-card';
 import { Spinner } from '~/components/ui/spinner';
+import { Skeleton } from '~/components/ui/skeleton';
 import { ChevronDownIcon } from 'lucide-react';
 import type { LeaderboardEntry } from '~/utils/requests/game';
 import { getStatLeaderboard } from '~/utils/requests/game';
@@ -57,14 +58,27 @@ const rowVariants = {
 	},
 };
 
+function AvatarImg({ src, alt }: { src: string; alt: string }) {
+	const [loaded, setLoaded] = useState(false);
+	return (
+		<>
+			{!loaded && <Skeleton className="w-5 h-5 rounded-sm shrink-0" />}
+			<img
+				src={src}
+				alt={alt}
+				className={`w-5 h-5 rounded-sm shrink-0 ${loaded ? '' : 'hidden'}`}
+				onLoad={() => setLoaded(true)}
+			/>
+		</>
+	);
+}
+
 function LeaderboardRow({ entry, format, isSelf }: { entry: LeaderboardEntry; format: FormatType; isSelf?: boolean }) {
 	return (
 		<div className="flex items-center gap-2 py-1.5 px-3">
-			<img
+			<AvatarImg
 				src={`https://minotar.net/helm/${entry.uuid}/24`}
 				alt={entry.player_name}
-				className="w-5 h-5 rounded-sm shrink-0"
-				loading="lazy"
 			/>
 			<span className={`flex-1 text-sm truncate ${isSelf ? 'font-bold' : ''}`}>{entry.player_name}</span>
 			<span className={`text-sm tabular-nums shrink-0 ${isSelf ? 'font-bold' : 'font-medium'}`}>

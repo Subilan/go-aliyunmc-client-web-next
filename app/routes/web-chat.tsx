@@ -188,7 +188,7 @@ export default function WebChat() {
 	const connecting = status.current === 'connecting';
 
 	const chatInput = (
-		<div className="fixed w-full left-0 bottom-0 p-5 md:p-0 bg-background border-t md:border-t-0 md:bg-auto md:w-auto md:static grid grid-cols-[1fr_auto] gap-3 items-center">
+		<div className="fixed w-full left-0 bottom-0 p-5 md:p-0 bg-background border-t md:border-t-0 md:bg-auto md:w-auto md:static grid grid-cols-[1fr_auto] gap-5 items-center">
 			<Input
 				ref={messageInputRef}
 				placeholder={

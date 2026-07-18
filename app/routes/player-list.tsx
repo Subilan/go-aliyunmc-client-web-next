@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import type { MetaArgs } from 'react-router';
 import { Card } from '~/components/ui/card';
+import { Checkbox } from '~/components/ui/checkbox';
+import { Label } from '~/components/ui/label';
 import {
 	Select,
 	SelectContent,
@@ -29,6 +31,14 @@ type SortOrder = 'asc' | 'desc';
 
 function PlayerCard({ player }: { player: PlayerListEntry }) {
 	const isPrivate = player.disallow_public_game_stats;
+	const [imageLoaded, setImageLoaded] = useState(false);
+	const imgRef = useRef<HTMLImageElement>(null);
+
+	useEffect(() => {
+		if (imgRef.current?.complete) {
+			setImageLoaded(true);
+		}
+	}, []);
 
 	const card = (
 		<Card className={(isPrivate ? 'opacity-60' : 'hover:bg-muted/50 transition-colors cursor-pointer') + ' pt-0 pb-0 gap-0'}>
@@ -38,14 +48,19 @@ function PlayerCard({ player }: { player: PlayerListEntry }) {
 				}
 				className="flex flex-col h-full"
 			>
-				<div className="relative">
+				<div className="relative aspect-square w-full rounded-t-xl overflow-hidden">
 					<img
+						ref={imgRef}
 						src={`https://minotar.net/helm/${player.uuid}/128.png`}
 						alt={player.name}
-						className="aspect-square w-full rounded-t-xl"
+						className="w-full h-full object-cover"
+						onLoad={() => setImageLoaded(true)}
 					/>
+					{!imageLoaded && (
+						<div className="absolute inset-0 bg-muted animate-pulse" />
+					)}
 					{isPrivate && (
-						<div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-t-xl">
+						<div className="absolute inset-0 flex items-center justify-center bg-black/30">
 							<LockIcon className="size-6 text-white" />
 						</div>
 					)}
@@ -76,6 +91,7 @@ export default function GameStatisticsPlayerList() {
 	const [loading, setLoading] = useState(true);
 	const [searchParams] = useSearchParams();
 	const sort = (searchParams.get('sort') as SortOrder) || 'asc';
+	const hideNoData = searchParams.get('hide_no_data') === 'true';
 
 	useEffect(() => {
 		getPlayerList().then(res => {
@@ -84,53 +100,77 @@ export default function GameStatisticsPlayerList() {
 		});
 	}, []);
 
-	const sortedPlayers = useMemo(() => {
-		const sorted = [...players];
-		sorted.sort((a, b) => {
+	const filteredPlayers = useMemo(() => {
+		let result = [...players];
+		if (hideNoData) {
+			result = result.filter(p => p.has_data);
+		}
+		result.sort((a, b) => {
 			const cmp = a.name.localeCompare(b.name, 'zh-Hans');
 			return sort === 'asc' ? cmp : -cmp;
 		});
-		return sorted;
-	}, [players, sort]);
+		return result;
+	}, [players, sort, hideNoData]);
 
-	const handleSortChange = (newSort: SortOrder) => {
+	const updateSearchParam = useCallback((key: string, value: string | null) => {
 		const params = new URLSearchParams(searchParams);
-		if (newSort === 'asc') {
-			params.delete('sort');
+		if (value === null) {
+			params.delete(key);
 		} else {
-			params.set('sort', newSort);
+			params.set(key, value);
 		}
 		navigate(`?${params.toString()}`, { replace: true });
+	}, [searchParams]);
+
+	const handleSortChange = (newSort: SortOrder) => {
+		updateSearchParam('sort', newSort === 'asc' ? null : newSort);
+	};
+
+	const handleHideNoDataChange = (checked: boolean) => {
+		updateSearchParam('hide_no_data', checked ? 'true' : null);
 	};
 
 	return (
 		<>
 			<PageHeader
 				actions={
-					<Select value={sort} onValueChange={v => handleSortChange(v as SortOrder)}>
-						<SelectTrigger size="sm" className="w-[130px]">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectGroup>
-								<SelectItem value="asc">首字母 A-Z</SelectItem>
-								<SelectItem value="desc">首字母 Z-A</SelectItem>
-							</SelectGroup>
-						</SelectContent>
-					</Select>
+					<div className="flex items-center gap-3">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div className="flex items-center gap-1.5">
+									<Checkbox
+										id="hide-no-data"
+										checked={hideNoData}
+										onCheckedChange={handleHideNoDataChange}
+									/>
+									<Label htmlFor="hide-no-data" className="text-sm cursor-pointer whitespace-nowrap font-normal">
+										隐藏无数据的玩家
+									</Label>
+								</div>
+							</TooltipTrigger>
+							<TooltipContent>
+								隐藏当前无法获得游戏统计数据的玩家，这些玩家可能获得白名单后从未加入过服务器
+							</TooltipContent>
+						</Tooltip>
+						<Select value={sort} onValueChange={v => handleSortChange(v as SortOrder)}>
+							<SelectTrigger size="sm" className="w-[130px]">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectGroup>
+									<SelectItem value="asc">首字母 A-Z</SelectItem>
+									<SelectItem value="desc">首字母 Z-A</SelectItem>
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
 				}
 			>
 				{PAGE_NAME_PLAYER_LIST}
 			</PageHeader>
-			{loading ? (
-				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-					{Array.from({ length: 8 }).map((_, i) => (
-						<div key={i} className="aspect-square bg-muted rounded-xl animate-pulse" />
-					))}
-				</div>
-			) : sortedPlayers.length ? (
-				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-					{sortedPlayers.map(p => (
+			{loading ? null : filteredPlayers.length ? (
+				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-5">
+					{filteredPlayers.map(p => (
 						<PlayerCard key={p.uuid} player={p} />
 					))}
 				</div>
@@ -140,7 +180,7 @@ export default function GameStatisticsPlayerList() {
 					className="h-[30vh]"
 					icon={AlertTriangleIcon}
 					iconClassName="text-amber-500"
-					description="请先绑定游戏账号"
+					description={players.length === 0 ? '请先绑定游戏账号' : '所有玩家暂无游戏数据'}
 				/>
 			)}
 		</>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Card, CardContent } from '~/components/ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import { ClockIcon, RefreshCwIcon, ChevronRightIcon } from 'lucide-react';
@@ -44,7 +44,27 @@ export const RecentTasks = {
 
 		return (
 			<Card className="h-full">
-				<CardContent className="flex flex-col h-full">
+				<CardHeader className="pb-2">
+					<CardTitle className="tracking-wider text-sm font-normal text-muted-foreground">最近活动</CardTitle>
+					<CardAction>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon-xs"
+									disabled={refreshing}
+									onClick={handleRefresh}
+								>
+									<RefreshCwIcon
+										className={refreshing ? 'animate-spin' : ''}
+									/>
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>刷新</TooltipContent>
+						</Tooltip>
+					</CardAction>
+				</CardHeader>
+				<CardContent className="flex flex-col flex-1 min-h-0">
 					{loading ? (
 						<LoadingEmptyState className="flex-1" />
 					) : tasks.length === 0 ? (
@@ -57,27 +77,6 @@ export const RecentTasks = {
 						/>
 					) : (
 						<div className="flex flex-col flex-1">
-							<div className="flex items-center justify-between mb-2">
-								<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-									最近活动
-								</span>
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<Button
-											variant="ghost"
-											size="icon-xs"
-											disabled={refreshing}
-											onClick={handleRefresh}
-										>
-											<RefreshCwIcon
-												className={refreshing ? 'animate-spin' : ''}
-											/>
-										</Button>
-									</TooltipTrigger>
-									<TooltipContent>刷新</TooltipContent>
-								</Tooltip>
-							</div>
-
 							<div className="flex flex-col gap-1">
 								{tasks.slice(0, 5).map(task => (
 									<div

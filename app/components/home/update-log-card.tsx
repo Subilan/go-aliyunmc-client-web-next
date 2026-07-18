@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Card, CardContent } from '~/components/ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
 import { ChevronRightIcon, FileTextIcon, RefreshCwIcon } from 'lucide-react';
@@ -45,6 +45,21 @@ export const UpdateLog = {
 
 		return (
 			<Card>
+				<CardHeader className="pb-2">
+					<CardTitle className="tracking-wider text-sm font-normal text-muted-foreground">更新日志</CardTitle>
+					<CardAction>
+						<Button
+							variant="ghost"
+							size="icon-xs"
+							disabled={refreshing}
+							onClick={handleRefresh}
+						>
+							<RefreshCwIcon
+								className={refreshing ? 'animate-spin' : ''}
+							/>
+						</Button>
+					</CardAction>
+				</CardHeader>
 				<CardContent>
 					{loading ? (
 						<LoadingEmptyState className="py-8" />
@@ -58,22 +73,6 @@ export const UpdateLog = {
 						/>
 					) : (
 						<div>
-							<div className="flex items-center justify-between mb-3">
-								<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-									更新日志
-								</span>
-								<Button
-									variant="ghost"
-									size="icon-xs"
-									disabled={refreshing}
-									onClick={handleRefresh}
-								>
-									<RefreshCwIcon
-										className={refreshing ? 'animate-spin' : ''}
-									/>
-								</Button>
-							</div>
-
 							<div className="flex flex-col gap-1.5">
 								{items.slice(0, 5).map(item => (
 									<Link

@@ -169,7 +169,7 @@ export default function Profile() {
 	return (
 		<>
 			<PageHeader>个人资料</PageHeader>
-			<div className="flex flex-col gap-3">
+			<div className="flex flex-col gap-5">
 				<Card>
 					<CardHeader>
 						<CardTitle>账户信息</CardTitle>

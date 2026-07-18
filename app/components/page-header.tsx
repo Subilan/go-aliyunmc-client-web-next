@@ -40,7 +40,7 @@ export default function PageHeader(props: {
 					<DialogHeader>
 						<DialogTitle>{props.children}</DialogTitle>
 					</DialogHeader>
-					<div className="prose text-sm text-muted-foreground">{props.info}</div>
+					<div className="prose text-base leading-relaxed text-muted-foreground max-h-[70vh] overflow-y-auto pe-1">{props.info}</div>
 					<DialogFooter>
 						<Button variant="outline" onClick={() => infoOpen.set(false)}>
 							关闭

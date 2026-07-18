@@ -58,8 +58,12 @@ export default function AppSidebar() {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
 	const user = useContext(UserContext);
-	const { state, toggleSidebar } = useSidebar();
+	const { state, isMobile, setOpenMobile, toggleSidebar } = useSidebar();
 	const [logoutOpen, setLogoutOpen] = useState(false);
+
+	function handleNavClick() {
+		if (isMobile) setOpenMobile(false);
+	}
 
 	async function handleLogout() {
 		setLogoutOpen(false);
@@ -100,40 +104,40 @@ export default function AppSidebar() {
 									isActive={pathname === item.url}
 									tooltip={item.title}
 								>
-									<Link to={item.url}>
-										<item.icon />
-										<span>{item.title}</span>
-									</Link>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						))}
-					</SidebarMenu>
-				</SidebarGroup>
-				<SidebarGroup>
-					<SidebarGroupLabel>游戏</SidebarGroupLabel>
-					<SidebarMenu>
-						{gameItems.map(item => (
-							<SidebarMenuItem key={item.url}>
-								<SidebarMenuButton
-									asChild
-									isActive={pathname === item.url}
-									tooltip={item.title}
-								>
-									<Link to={item.url}>
-										<item.icon />
-										<span>{item.title}</span>
-									</Link>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
-						))}
-						{user?.whitelist_uuid && (
+							<Link to={item.url} onClick={handleNavClick}>
+								<item.icon />
+								<span>{item.title}</span>
+							</Link>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				))}
+			</SidebarMenu>
+		</SidebarGroup>
+		<SidebarGroup>
+			<SidebarGroupLabel>游戏</SidebarGroupLabel>
+			<SidebarMenu>
+				{gameItems.map(item => (
+					<SidebarMenuItem key={item.url}>
+						<SidebarMenuButton
+							asChild
+							isActive={pathname === item.url}
+							tooltip={item.title}
+						>
+							<Link to={item.url} onClick={handleNavClick}>
+								<item.icon />
+								<span>{item.title}</span>
+							</Link>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				))}
+				{user?.whitelist_uuid && (
 							<SidebarMenuItem>
 								<SidebarMenuButton
 									asChild
 									isActive={pathname.startsWith('/game/statistics/')}
 									tooltip="我的游戏统计"
 								>
-									<Link to={`/game/statistics/${user.whitelist_uuid}`}>
+									<Link to={`/game/statistics/${user.whitelist_uuid}`} onClick={handleNavClick}>
 										<BarChart3Icon />
 										<span>我的游戏统计</span>
 									</Link>
@@ -152,7 +156,7 @@ export default function AppSidebar() {
 									isActive={pathname === item.url}
 									tooltip={item.title}
 								>
-									<Link to={item.url}>
+									<Link to={item.url} onClick={handleNavClick}>
 										<item.icon />
 										<span>{item.title}</span>
 									</Link>
@@ -166,7 +170,7 @@ export default function AppSidebar() {
 				<SidebarMenu>
 					<SidebarMenuItem>
 						<SidebarMenuButton asChild tooltip="个人资料">
-							<Link to="/profile">
+							<Link to="/profile" onClick={handleNavClick}>
 								<UserCircle2Icon />
 								<span>{user?.username ?? '用户'}</span>
 							</Link>

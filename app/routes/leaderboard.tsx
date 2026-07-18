@@ -40,9 +40,9 @@ const METRICS: Record<string, { label: string; unit: string; decimals: number; d
 
 const PODIUM_COLORS = [
 	{ border: '', text: '' },
-	{ border: 'border-t-amber-400', text: 'text-amber-600' },
-	{ border: 'border-t-slate-300', text: 'text-slate-500' },
-	{ border: 'border-t-orange-400', text: 'text-orange-600' }
+	{ border: 'border-amber-400', text: 'text-amber-600' },
+	{ border: 'border-slate-300', text: 'text-slate-500' },
+	{ border: 'border-orange-400', text: 'text-orange-600' }
 ];
 
 function PodiumCard({
@@ -62,22 +62,24 @@ function PodiumCard({
 		<Card
 			className={`w-full ${isFirst ? 'sm:h-52 sm:w-42' : 'sm:h-40 sm:w-36'} ${colors.border} border-l-4 sm:border-l-0 sm:border-t-4`}
 		>
-			<CardContent className="flex flex-row sm:flex-col items-center sm:justify-center sm:h-full gap-1.5 py-3 sm:py-4">
-				<div className={`sm:text-lg font-bold tracking-wider shrink-0 ${colors.text}`}>
-					#{rank}
+			<CardContent className="flex flex-row sm:flex-col items-center sm:items-center sm:justify-center sm:h-full gap-3 sm:gap-1.5 py-0">
+				<div className="flex flex-col min-w-0 overflow-hidden sm:items-center">
+					<div className={`text-lg font-bold tracking-wider ${colors.text}`}>
+						#{rank}
+					</div>
+					<div
+						className={`text-lg ${isFirst ? 'text-xl' : ''} font-medium truncate`}
+					>
+						{entry.player_name}
+					</div>
 				</div>
-				<div
-					className={`flex-1 sm:flex-none min-w-0 sm:text-lg ${isFirst ? 'sm:text-xl' : ''} font-medium truncate`}
-				>
-					{entry.player_name}
-				</div>
-				<div className="flex flex-row sm:flex-col items-baseline sm:items-center gap-1 sm:gap-0 shrink-0">
+				<div className="flex flex-col items-end sm:items-center shrink-0 ml-auto sm:ml-0">
 					<span
 						className={`text-xl ${isFirst ? 'sm:text-3xl' : 'sm:text-2xl'} font-bold leading-none`}
 					>
 						{formattedValue}
 					</span>
-					<span className="text-xs text-muted-foreground sm:mt-1">{unit}</span>
+					<span className="text-xs text-muted-foreground mt-1">{unit}</span>
 				</div>
 			</CardContent>
 		</Card>

@@ -81,9 +81,9 @@ function ContributionGrid({ onlineDates }: { onlineDates: string[] }) {
 	const colCount = weeks.length;
 
 	return (
-		<div className="w-[400px]">
+		<div className="w-full max-w-[400px]">
 			<div
-				className="grid gap-[10px]"
+				className="grid gap-[10px] min-w-[400px]"
 				style={{
 					gridTemplateColumns: `20px repeat(${colCount}, 1fr)`,
 					gridTemplateRows: `18px repeat(7, auto)`
@@ -213,7 +213,7 @@ export function OnlineStatusSection({ onlineDates }: OnlineStatusSectionProps) {
 					<DialogHeader>
 						<DialogTitle>近期在线情况</DialogTitle>
 					</DialogHeader>
-					<div className="flex justify-center">
+					<div className="flex justify-center overflow-x-auto">
 						<ContributionGrid onlineDates={normalizedDates} />
 					</div>
 				</DialogContent>

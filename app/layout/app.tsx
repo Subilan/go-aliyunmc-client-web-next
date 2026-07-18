@@ -7,7 +7,7 @@ import { McTranslationContext } from '~/contexts/mctranslations';
 import { getPermissions } from '~/utils/requests/permissions';
 import { getMcTranslations } from '~/utils/requests/mc-translation';
 import { createLoader } from '~/utils/createLoader';
-import { SidebarInset, SidebarProvider } from '~/components/ui/sidebar';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '~/components/ui/sidebar';
 import AppSidebar from '~/components/app-sidebar';
 import type { UserPermissions } from '~/types/UserPermissions';
 import type { McTranslation } from '~/types/McTranslations';
@@ -40,6 +40,9 @@ export default function AppLayout() {
 						<AppSidebar />
 						<SidebarInset>
 							<div className="flex flex-1 flex-col gap-5 p-5 pt-10 md:pt-10">
+								<div className="flex items-center gap-2 md:hidden">
+									<SidebarTrigger />
+								</div>
 								<Outlet />
 							</div>
 						</SidebarInset>

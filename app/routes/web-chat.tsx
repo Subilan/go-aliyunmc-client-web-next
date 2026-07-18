@@ -216,7 +216,7 @@ export default function WebChat() {
 	return (
 		<>
 			<PageHeader info={WebChatInfo()}>{PAGE_NAME_WEB_CHAT}</PageHeader>
-			<div className="flex gap-3 flex-col">
+			<div className="flex gap-5 flex-col">
 				{chatInput}
 				{uuid ? (
 					<Card className="flex-1 flex flex-col min-h-0">

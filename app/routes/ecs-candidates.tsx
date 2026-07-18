@@ -162,10 +162,10 @@ export default function EcsCandidatesPage() {
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 				{loading ? (
 					<>
-						<SkeletonCard isOptimal className="md:col-span-2" />
-						<SkeletonCard />
-						<SkeletonCard />
-						<SkeletonCard />
+						<SkeletonCard key="skel-0" isOptimal className="md:col-span-2" />
+						<SkeletonCard key="skel-1" />
+						<SkeletonCard key="skel-2" />
+						<SkeletonCard key="skel-3" />
 					</>
 				) : candidates.current.length === 0 ? (
 					<div className="col-span-full">
@@ -178,7 +178,7 @@ export default function EcsCandidatesPage() {
 				) : (
 					candidates.current.map((c, i) => (
 						<CandidateCard
-							key={c.instanceType}
+							key={c.instanceType + '-' + c.zoneId}
 							candidate={c}
 							isOptimal={i === 0}
 							className={i === 0 ? 'md:col-span-2' : ''}

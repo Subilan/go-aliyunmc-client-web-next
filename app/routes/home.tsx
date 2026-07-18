@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import type { MetaArgs } from 'react-router';
 import PageHeader from '~/components/page-header';
@@ -171,9 +171,9 @@ export default function Home() {
 		if (result.error === null) setCandidates(result.data!);
 	}
 
-	function handleTasksRefresh(result: RecentTasksFetchResult) {
+	const handleTasksRefresh = useCallback((result: RecentTasksFetchResult) => {
 		if (result.error === null) setTasks(result.data!.tasks);
-	}
+	}, []);
 
 	useSSESync({
 		srvValue: srvSSE.value,

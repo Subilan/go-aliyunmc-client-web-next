@@ -59,3 +59,16 @@ export function getIdleRemainingSecs() {
 export function getAccountBalanceHistory() {
 	return get<BalanceChartPointRaw[]>('/samples/account-balance-history');
 }
+
+export interface PlayerOnlineRangeRaw {
+	playerName: string;
+	startAt: string;
+	endAt: string;
+}
+
+export function getPlayerOnlineRanges(from?: string, to?: string) {
+	const params: Record<string, string> = {};
+	if (from) params.from = from;
+	if (to) params.to = to;
+	return get<PlayerOnlineRangeRaw[]>('/samples/player-online-ranges', params);
+}

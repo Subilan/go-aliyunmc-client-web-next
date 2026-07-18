@@ -6,13 +6,16 @@ import {
 	DialogTitle
 } from '~/components/ui/dialog';
 import { Button } from '~/components/ui/button';
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableRow
-} from '~/components/ui/table';
 import type { EcsCandidate } from '~/types/EcsCandidate';
+
+function SpecItem({ label, value }: { label: string; value: string | number }) {
+	return (
+		<div>
+			<span className="text-xs text-muted-foreground">{label}</span>
+			<p className="font-medium">{value}</p>
+		</div>
+	);
+}
 
 export default function CreateInstanceDialog({
 	open,
@@ -34,37 +37,16 @@ export default function CreateInstanceDialog({
 					<DialogTitle>创建实例</DialogTitle>
 				</DialogHeader>
 				{bestCandidate && (
-					<div className="mb-4">
-						<Table>
-							<TableBody>
-								<TableRow>
-									<TableCell className="text-muted-foreground">规格</TableCell>
-									<TableCell>
-										<code className="text-xs bg-muted px-1 py-0.5 rounded">
-											{bestCandidate.instanceType}
-										</code>
-									</TableCell>
-								</TableRow>
-								<TableRow>
-									<TableCell className="text-muted-foreground">可用区</TableCell>
-									<TableCell>{bestCandidate.zoneId}</TableCell>
-								</TableRow>
-								<TableRow>
-									<TableCell className="text-muted-foreground">vCPU</TableCell>
-									<TableCell>{bestCandidate.cpuCoreCount}</TableCell>
-								</TableRow>
-								<TableRow>
-									<TableCell className="text-muted-foreground">内存</TableCell>
-									<TableCell>{bestCandidate.memory} GiB</TableCell>
-								</TableRow>
-								<TableRow>
-									<TableCell className="text-muted-foreground">价格</TableCell>
-									<TableCell>
-										¥{bestCandidate.tradePrice.toFixed(2)} /小时
-									</TableCell>
-								</TableRow>
-							</TableBody>
-						</Table>
+					<div className="space-y-3">
+						<p className="font-mono text-base font-heading font-medium">
+							{bestCandidate.instanceType}
+						</p>
+						<div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+							<SpecItem label="vCPU" value={bestCandidate.cpuCoreCount} />
+							<SpecItem label="内存" value={`${bestCandidate.memory} GiB`} />
+							<SpecItem label="可用区" value={bestCandidate.zoneId} />
+							<SpecItem label="价格" value={`¥${bestCandidate.tradePrice.toFixed(2)}/小时`} />
+						</div>
 					</div>
 				)}
 				<DialogFooter>

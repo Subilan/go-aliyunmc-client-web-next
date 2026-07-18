@@ -20,7 +20,7 @@ export default function PageHeader(props: {
 
 	return (
 		<>
-			<div className="flex items-center mb-6">
+			<div className="flex items-center mb-4">
 				<h1 className="text-3xl mr-2">{props.children}</h1>
 				{props.info && (
 					<Button

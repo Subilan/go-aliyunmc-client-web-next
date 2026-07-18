@@ -77,11 +77,12 @@ export const ServerStatus = {
 							icon={ServerIcon}
 							iconSize={40}
 							iconClassName="text-muted-foreground/30"
-							description={<span className="text-muted-foreground">请先创建并部署实例</span>}
+							description={<span className="text-muted-foreground">暂无可用实例</span>}
 							className="py-12 flex-1"
 						/>
 					) : starting ? (
 						<LoadingEmptyState
+							className="flex-1"
 							description={<span className="text-muted-foreground">正在启动服务器...</span>}
 						/>
 					) : (

@@ -135,6 +135,7 @@ export default function Home() {
 					instanceNotFound.set(false);
 					instanceDeletedRef.current = false;
 				} else {
+					setInstance(null);
 					instanceNotFound.set(true);
 				}
 				if (instStatusRes.error === null) instanceStatus.set(instStatusRes.data!.Value);

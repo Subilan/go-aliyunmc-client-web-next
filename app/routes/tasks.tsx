@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import PaginatedTable, { type Column } from '~/components/paginated-table';
 import type { Task } from '~/types/Task';
-import { getTasks as fetchTasks, getTaskStats, type TaskStats } from '~/utils/requests/home';
+import { getTasks as fetchTasks, getTaskStats, getPlayerOnlineRanges, type TaskStats, type PlayerOnlineRangeRaw } from '~/utils/requests/home';
 import { Button } from '~/components/ui/button';
 import {
 	Dialog,
@@ -11,6 +11,7 @@ import {
 } from '~/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import TaskTimelineChart from '~/components/task-timeline-chart';
 import {
 	CheckIcon,
@@ -193,6 +194,8 @@ export default function TasksPage() {
 	const [loading, setLoading] = useState(true);
 	const [recentTasks, setRecentTasks] = useState<Task[]>([]);
 	const [chartLoading, setChartLoading] = useState(true);
+	const [onlineRanges, setOnlineRanges] = useState<PlayerOnlineRangeRaw[]>([]);
+	const [timeRangeHours, setTimeRangeHours] = useState(6);
 
 	const fetch = useCallback(async () => {
 		setLoading(true);
@@ -221,11 +224,19 @@ export default function TasksPage() {
 
 	useEffect(() => {
 		setChartLoading(true);
-		fetchTasks({ limit: 50, sort: 'created_at', order: 'desc' }).then(res => {
-			if (res.error === null) setRecentTasks(res.data!.tasks);
-			setChartLoading(false);
-		});
-	}, []);
+
+		const to = new Date().toISOString();
+		const from = new Date(Date.now() - timeRangeHours * 3600 * 1000).toISOString();
+
+		Promise.all([
+			fetchTasks({ limit: 50, sort: 'created_at', order: 'desc' }).then(res => {
+				if (res.error === null) setRecentTasks(res.data!.tasks);
+			}),
+			getPlayerOnlineRanges(from, to).then(res => {
+				if (res.error === null) setOnlineRanges(res.data!);
+			})
+		]).finally(() => setChartLoading(false));
+	}, [timeRangeHours]);
 
 	const handleSortChange = useCallback((newSort: string, newOrder: 'asc' | 'desc') => {
 		setSort(newSort);
@@ -264,6 +275,13 @@ export default function TasksPage() {
 		{ label: '最近创建者', value: stats ? lastCreator : null }
 	];
 
+	const timeRangeOptions = [
+		{ value: '1', label: '1 小时' },
+		{ value: '6', label: '6 小时' },
+		{ value: '12', label: '12 小时' },
+		{ value: '24', label: '24 小时' },
+	];
+
 	return (
 		<>
 			<PageHeader>{PAGE_NAME_TASK_LIST}</PageHeader>
@@ -288,13 +306,28 @@ export default function TasksPage() {
 							</Card>
 						))}
 					</div>
-					<Card>
-						<CardHeader className="pb-2">
+					<Card className="h-full">
+						<CardHeader className="pb-2 flex-row items-center justify-between">
 							<CardTitle className="tracking-wider text-sm font-normal text-muted-foreground">
 								最近任务时间轴
 							</CardTitle>
+							<Select
+								value={String(timeRangeHours)}
+								onValueChange={v => setTimeRangeHours(Number(v))}
+							>
+								<SelectTrigger className="w-28 h-7 text-xs">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{timeRangeOptions.map(opt => (
+										<SelectItem key={opt.value} value={opt.value}>
+											{opt.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 						</CardHeader>
-						<CardContent>
+						<CardContent className="flex-1 min-h-0">
 							<TaskTimelineChart
 								tasks={recentTasks.map(t => ({
 									id: t.ID,
@@ -303,7 +336,10 @@ export default function TasksPage() {
 									endAt: t.endAt,
 									status: t.status
 								}))}
+								playerRanges={onlineRanges}
 								loading={chartLoading}
+								timeRangeHours={timeRangeHours}
+								style={{ height: '100%' }}
 							/>
 						</CardContent>
 					</Card>

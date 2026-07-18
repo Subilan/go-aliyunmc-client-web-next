@@ -105,6 +105,60 @@
 	}
 }
 
+@keyframes overlay-bg-in {
+	0% {
+		opacity: 0;
+	}
+
+	100% {
+		opacity: 1;
+	}
+}
+
+@keyframes overlay-bg-out {
+	0% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+	}
+}
+
+@keyframes card-fade-in {
+	0% {
+		opacity: 0;
+	}
+
+	100% {
+		opacity: 1;
+	}
+}
+
+@keyframes overlay-zoom-in {
+	0% {
+		opacity: 0;
+		transform: scale(1.12);
+	}
+
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes overlay-zoom-out {
+	0% {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	100% {
+		opacity: 0;
+		transform: scale(1.12);
+	}
+}
+
 footer a {
 	text-decoration: underline;
 	@apply text-neutral-300 hover:text-neutral-50;

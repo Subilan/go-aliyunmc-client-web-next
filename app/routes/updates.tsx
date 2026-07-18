@@ -390,7 +390,7 @@ export default function Updates() {
 			{/* Create dialog */}
 			<Dialog open={creating} onOpenChange={v => setCreating(v)}>
 				<DialogContent className="sm:max-w-lg">
-					<form onSubmit={createForm.handleSubmit(handleCreate)}>
+					<form onSubmit={createForm.handleSubmit(handleCreate)} className="flex flex-col gap-6">
 						<DialogHeader>
 							<DialogTitle>新增更新日志</DialogTitle>
 						</DialogHeader>
@@ -464,7 +464,7 @@ export default function Updates() {
 			{/* Edit dialog */}
 			<Dialog open={editing !== null} onOpenChange={v => !v && setEditing(null)}>
 				<DialogContent className="sm:max-w-lg">
-					<form onSubmit={editForm.handleSubmit(handleUpdate)}>
+					<form onSubmit={editForm.handleSubmit(handleUpdate)} className="flex flex-col gap-6">
 						<DialogHeader>
 							<DialogTitle>编辑更新日志</DialogTitle>
 						</DialogHeader>

@@ -1,6 +1,7 @@
 import type { GameStats } from '~/utils/requests/game';
 import { useMcTranslate } from '~/hooks/useMcTranslate';
 import { Times } from '~/utils/times';
+import { StatIconOverlay } from '~/components/game-statistics/stat-icon-overlay';
 
 const TIME_STATS = new Set([
 	'minecraft:time_since_rest',
@@ -143,11 +144,12 @@ export function StatSection(props: {
 			<div className="flex gap-6 items-center">
 				<div className="w-36 shrink-0 flex flex-col items-start justify-center">
 					{props.icon && (
-						<img
-							src={props.icon}
-							alt=""
-							className="w-10 h-10 mb-1"
-							style={{ imageRendering: 'pixelated' }}
+						<StatIconOverlay
+							icon={props.icon}
+							title={props.label}
+							description={props.description ?? ''}
+							items={items}
+							translate={translate}
 						/>
 					)}
 					<h3 className="text-lg font-bold">{props.label}</h3>

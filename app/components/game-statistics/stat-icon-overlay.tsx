@@ -1,5 +1,6 @@
-import { useCallback, useRef, useEffect, type CSSProperties } from 'react';
+import { useCallback, useRef, useEffect, useState, type CSSProperties } from 'react';
 import useStateNamed from '~/hooks/useStateNamed';
+import { XIcon } from 'lucide-react';
 
 interface MetricCardProps {
 	label: string;
@@ -70,10 +71,23 @@ function staggerDelay(base: number, gap: number, index: number, skip: boolean): 
 	return { animation: 'card-fade-in 0.3s ease-out both', animationDelay: `${base + index * gap}ms` };
 }
 
+function useIsMobile() {
+	const [isMobile, setIsMobile] = useState(false);
+	useEffect(() => {
+		const mq = window.matchMedia('(max-width: 767px)');
+		setIsMobile(mq.matches);
+		const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+		mq.addEventListener('change', handler);
+		return () => mq.removeEventListener('change', handler);
+	}, []);
+	return isMobile;
+}
+
 export function StatIconOverlay({ icon, title, description, items, translate }: StatIconOverlayProps) {
 	const phase = useStateNamed<Phase>('hidden');
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const showCount = useRef(0);
+	const isMobile = useIsMobile();
 
 	useEffect(() => {
 		return () => {
@@ -82,7 +96,6 @@ export function StatIconOverlay({ icon, title, description, items, translate }: 
 	}, []);
 
 	const show = useCallback(() => {
-		if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) return;
 		if (timerRef.current) {
 			clearTimeout(timerRef.current);
 			timerRef.current = null;
@@ -120,19 +133,29 @@ export function StatIconOverlay({ icon, title, description, items, translate }: 
 			<img
 				src={icon}
 				alt=""
-				className="w-10 h-10"
+				className="w-10 h-10 cursor-pointer"
 				style={{ imageRendering: 'pixelated' }}
 				onMouseEnter={show}
 				onMouseLeave={hide}
+				onClick={() => {
+					if (isMobile) {
+						if (isVisible) {
+							hide();
+						} else {
+							show();
+						}
+					}
+				}}
 			/>
 
 			{isVisible && (
 				<div
 					className="fixed inset-0 z-50 flex items-center justify-center"
-					style={{ pointerEvents: 'none' }}
+					style={{ pointerEvents: isMobile ? 'auto' : 'none' }}
 				>
 					<div
 						className="absolute inset-0"
+						onClick={isMobile ? hide : undefined}
 						style={{
 							backgroundColor: 'rgba(0, 0, 0, 0.7)',
 							backdropFilter: 'blur(8px)',
@@ -140,6 +163,14 @@ export function StatIconOverlay({ icon, title, description, items, translate }: 
 							animation: bgAnim
 						}}
 					/>
+					{isMobile && (
+						<button
+							onClick={hide}
+							className="absolute top-4 right-4 z-10 text-white/80 hover:text-white transition-colors"
+						>
+							<XIcon size={24} />
+						</button>
+					)}
 					<div
 						className="relative flex flex-col items-center gap-6 px-6 py-10 w-full max-w-xl"
 						style={{ animation: anim }}

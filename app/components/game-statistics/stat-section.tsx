@@ -141,8 +141,8 @@ export function StatSection(props: {
 
 	if (isHorizontal) {
 		return (
-			<div className="flex gap-6 items-center">
-				<div className="w-36 shrink-0 flex flex-col items-start justify-center">
+			<div className="flex flex-col md:flex-row gap-6 md:items-center">
+				<div className="w-auto md:w-36 shrink-0 flex flex-col items-start justify-center">
 					{props.icon && (
 						<StatIconOverlay
 							icon={props.icon}

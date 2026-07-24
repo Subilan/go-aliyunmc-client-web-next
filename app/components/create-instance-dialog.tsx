@@ -36,6 +36,7 @@ export default function CreateInstanceDialog({
 				<DialogHeader>
 					<DialogTitle>创建实例</DialogTitle>
 				</DialogHeader>
+				<p className="text-sm text-red-800 font-medium">请不要切换页面，否则可能需要中途手动触发部署</p>
 				{bestCandidate && (
 					<div className="space-y-3">
 						<p className="font-mono text-base font-heading font-medium">

@@ -173,7 +173,30 @@ export function OnlineStatusSection({ onlineDates }: OnlineStatusSectionProps) {
 
 	const normalizedDates = useMemo(() => onlineDates.map(d => d.slice(0, 10)), [onlineDates]);
 	const onlineSet = useMemo(() => new Set(normalizedDates), [normalizedDates]);
-	const last7Days = useMemo(() => getLast7Days(), []);
+		const last7Days = useMemo(() => getLast7Days(), []);
+
+	const dayElements = useMemo(
+		() =>
+			last7Days.map(d => {
+				const key = formatDateStr(d);
+				const online = onlineSet.has(key);
+				const dayLabel = `${d.getMonth() + 1}/${d.getDate()}`;
+
+				return (
+					<div key={key} className="flex flex-col items-center gap-0.5">
+						{online ? (
+							<div className="size-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">
+								✓
+							</div>
+						) : (
+							<div className="size-8 rounded-full border-2" />
+						)}
+						<span className="text-xs text-neutral-400">{dayLabel}</span>
+					</div>
+				);
+			}),
+		[last7Days, onlineSet]
+	);
 
 	return (
 		<>
@@ -181,25 +204,16 @@ export function OnlineStatusSection({ onlineDates }: OnlineStatusSectionProps) {
 				<div className="flex items-center justify-between mb-2">
 					<span className="text-xs text-neutral-400 tracking-wider">近7天在线情况</span>
 				</div>
-				<div className="flex gap-3 justify-between py-2">
-					{last7Days.map(d => {
-						const key = formatDateStr(d);
-						const online = onlineSet.has(key);
-						const dayLabel = `${d.getMonth() + 1}/${d.getDate()}`;
-
-						return (
-							<div key={key} className="flex flex-col items-center gap-0.5">
-								{online ? (
-									<div className="size-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-bold">
-										✓
-									</div>
-								) : (
-									<div className="size-8 rounded-full border-2" />
-								)}
-								<span className="text-xs text-neutral-400">{dayLabel}</span>
-							</div>
-						);
-					})}
+				<div className="flex flex-col gap-3 md:hidden py-2">
+			<div className="flex justify-center gap-10">
+					{dayElements.slice(0, 4)}
+				</div>
+				<div className="flex justify-center gap-10">
+					{dayElements.slice(4)}
+				</div>
+				</div>
+				<div className="hidden md:flex md:gap-3 md:justify-between py-2">
+					{dayElements}
 				</div>
 				<div className="flex justify-end mt-2">
 					<Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}>

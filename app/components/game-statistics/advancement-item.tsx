@@ -139,7 +139,7 @@ export function AdvancementItem({ a, completed }: { a: AdvancementEntry; complet
 			>
 				<div className="relative">
 					<div
-						className="hidden md:block absolute top-[4px] left-[-7.5px] z-10
+						className="hidden md:block absolute top-[6px] left-[-7.5px] z-10
 						opacity-0 scale-95 group-hover/item:opacity-100 group-hover/item:scale-100
 						transition-all duration-200 ease-out
 						origin-top-left
@@ -159,7 +159,7 @@ export function AdvancementItem({ a, completed }: { a: AdvancementEntry; complet
 				>
 					<DialogContent
 						showCloseButton={false}
-						className="bg-transparent shadow-none border-0 p-0 sm:max-w-none max-w-none"
+						className="bg-transparent shadow-none border-0 ring-0 rounded-none gap-0 p-0 sm:max-w-none max-w-none"
 					>
 						<div className="flex flex-col items-center gap-10 p-4">
 							<div className="scale-[1.5]">

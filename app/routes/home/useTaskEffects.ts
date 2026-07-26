@@ -53,6 +53,7 @@ export function useTaskEffects({
 			Toast.error('创建实例失败: ' + createSSE.error);
 			setCreateTaskId(null);
 			setTaskRunning(false);
+			fetchAll();
 			return;
 		}
 		Toast.success('实例创建成功');
@@ -75,6 +76,7 @@ export function useTaskEffects({
 			Toast.error('部署失败: ' + deploySSE.error);
 			setDeployTaskId(null);
 			setTaskRunning(false);
+			fetchAll();
 			return;
 		}
 		Toast.success('部署成功');

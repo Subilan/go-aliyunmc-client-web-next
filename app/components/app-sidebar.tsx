@@ -147,7 +147,7 @@ export default function AppSidebar() {
 						)}
 					</SidebarMenu>
 				</SidebarGroup>
-				{user?.role !== '' && (
+				{user?.role === 'operator' && (
 					<SidebarGroup>
 						<SidebarGroupLabel>管理</SidebarGroupLabel>
 						<SidebarMenu>

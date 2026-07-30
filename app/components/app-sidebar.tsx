@@ -10,6 +10,7 @@ import {
 	LogsIcon,
 	MessagesSquareIcon,
 	PanelLeftIcon,
+	ShieldBanIcon,
 	UsersIcon,
 	UserCircle2Icon
 } from 'lucide-react';
@@ -146,6 +147,26 @@ export default function AppSidebar() {
 						)}
 					</SidebarMenu>
 				</SidebarGroup>
+				{user?.role !== '' && (
+					<SidebarGroup>
+						<SidebarGroupLabel>管理</SidebarGroupLabel>
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									asChild
+									isActive={pathname === '/admin/ban'}
+									tooltip="封禁管理"
+								>
+									<Link to="/admin/ban" onClick={handleNavClick}>
+										<ShieldBanIcon />
+										<span>封禁管理</span>
+									</Link>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						</SidebarMenu>
+					</SidebarGroup>
+				)}
+
 				<SidebarGroup>
 					<SidebarGroupLabel>杂项</SidebarGroupLabel>
 					<SidebarMenu>

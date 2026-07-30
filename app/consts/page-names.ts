@@ -5,3 +5,4 @@ export const PAGE_NAME_GAME_STATISTICS = '游戏统计';
 export const PAGE_NAME_LEADERBOARD = '排行榜';
 export const PAGE_NAME_WEB_CHAT = 'Web 聊天';
 export const PAGE_NAME_UPDATES = '更新日志';
+export const PAGE_NAME_BAN = '封禁管理';

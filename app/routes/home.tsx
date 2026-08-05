@@ -46,7 +46,7 @@ import { EconomyCard } from '~/components/home/economy-card';
 import type { ServerStatusFetchResult } from '~/components/home/server-status-card';
 import type { EcsCandidatesFetchResult } from '~/components/home/ecs-candidates-card';
 import type { RecentTasksFetchResult } from '~/components/home/recent-tasks-card';
-import { deleteActiveInstance } from '~/utils/requests/instance';
+import { deleteActiveInstance, getActiveInstance } from '~/utils/requests/instance';
 import { triggerTask } from '~/utils/requests/task';
 import { get } from '~/utils/requests';
 import { useStateSSE } from '~/hooks/useStateSSE';
@@ -176,13 +176,27 @@ export default function Home() {
 		if (result.error === null) setTasks(result.data!.tasks);
 	}, []);
 
+	const verifyInstanceSeqRef = useRef(0);
+	const verifyInstance = useCallback(async () => {
+		const seq = ++verifyInstanceSeqRef.current;
+		const res = await getActiveInstance().catch(() => null);
+		if (res === null || seq !== verifyInstanceSeqRef.current) return;
+		if (res.error === null) {
+			setInstance(res.data);
+			instanceNotFound.set(false);
+		} else {
+			setInstance(null);
+			instanceNotFound.set(true);
+		}
+	}, []);
+
 	useSSESync({
 		srvValue: srvSSE.value,
 		instValue: instSSE.value,
 		setServerOnline: serverOnline.set,
 		setPlayerCount: playerCount.set,
 		setInstanceStatus: instanceStatus.set,
-		setInstanceNotFound: instanceNotFound.set
+		verifyInstance
 	});
 
 	useServerOnlineTransition({
@@ -215,6 +229,7 @@ export default function Home() {
 		const { error } = await triggerTask('backup', {});
 		if (error) {
 			Toast.error(typeof error === 'string' ? error : '任务触发失败');
+			verifyInstance();
 		} else {
 			Toast.success('备份任务已触发');
 			fetchAll();
@@ -228,6 +243,7 @@ export default function Home() {
 		const { error } = await triggerTask('archive', {});
 		if (error) {
 			Toast.error(typeof error === 'string' ? error : '任务触发失败');
+			verifyInstance();
 		} else {
 			Toast.success('归档任务已触发');
 			fetchAll();
@@ -241,6 +257,7 @@ export default function Home() {
 		const { error } = await triggerTask('start_server', {});
 		if (error) {
 			Toast.error(typeof error === 'string' ? error : '任务触发失败');
+			verifyInstance();
 		} else {
 			Toast.success('启动服务器任务已触发');
 			pipeline.startServerTriggeredRef.current = true;
@@ -269,6 +286,7 @@ export default function Home() {
 		const { data, error } = await triggerTask('deploy', {});
 		if (error) {
 			Toast.error(typeof error === 'string' ? error : '部署任务触发失败');
+			verifyInstance();
 			setDeployTriggering(false);
 			return;
 		}
@@ -287,6 +305,7 @@ export default function Home() {
 		});
 		if (error) {
 			Toast.error(typeof error === 'string' ? error : '触发创建失败');
+			verifyInstance();
 			setCreateLoading(false);
 			return;
 		}

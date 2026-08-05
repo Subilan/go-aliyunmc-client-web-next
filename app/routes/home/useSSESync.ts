@@ -8,7 +8,7 @@ interface SSESyncDeps {
 	setServerOnline: (v: boolean) => void;
 	setPlayerCount: (v: number) => void;
 	setInstanceStatus: (v: string) => void;
-	setInstanceNotFound: (v: boolean) => void;
+	verifyInstance: () => void | Promise<void>;
 }
 
 export function useSSESync({
@@ -17,7 +17,7 @@ export function useSSESync({
 	setServerOnline,
 	setPlayerCount,
 	setInstanceStatus,
-	setInstanceNotFound
+	verifyInstance
 }: SSESyncDeps) {
 	useEffect(() => {
 		if (srvValue) {
@@ -34,10 +34,10 @@ export function useSSESync({
 	useEffect(() => {
 		if (instValue) {
 			if (instValue.Error) {
-				setInstanceNotFound(true);
+				verifyInstance();
 			} else {
 				setInstanceStatus(instValue.Value);
 			}
 		}
-	}, [instValue]);
+	}, [instValue, verifyInstance]);
 }

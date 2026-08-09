@@ -13,6 +13,7 @@ import Profile from '~/routes/profile';
 import TasksPage from '~/routes/tasks';
 import Updates from '~/routes/updates';
 import WebChat from '~/routes/web-chat';
+import About from '~/routes/about';
 
 export const router = createHashRouter([
 	{
@@ -70,6 +71,10 @@ export const router = createHashRouter([
 					{
 						path: 'updates',
 						Component: Updates
+					},
+					{
+						path: 'about',
+						Component: About
 					}
 				]
 			}

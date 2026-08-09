@@ -12,7 +12,8 @@ import {
 	PanelLeftIcon,
 	ShieldBanIcon,
 	UsersIcon,
-	UserCircle2Icon
+	UserCircle2Icon,
+	InfoIcon
 } from 'lucide-react';
 import { useContext, useState } from 'react';
 import { UserContext } from '~/contexts/user';
@@ -51,7 +52,10 @@ const gameItems = [
 	{ title: 'Web 聊天', url: '/game/web-chat', icon: MessagesSquareIcon }
 ];
 
-const miscItems = [{ title: '更新日志', url: '/updates', icon: LogsIcon }];
+const miscItems = [
+	{ title: '更新日志', url: '/updates', icon: LogsIcon },
+	{ title: '关于', url: '/about', icon: InfoIcon }
+];
 
 export default function AppSidebar() {
 	const { pathname } = useLocation();

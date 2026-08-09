@@ -15,6 +15,7 @@ import { getAdvancements, getGameStats, getLeaderboard } from "~/utils/requests/
 import getChatToken from "~/utils/requests/chat-token";
 import { getChangelogs, createChangelog, updateChangelog, deleteChangelog, toggleLike } from "~/utils/requests/changelog";
 import { listUsers, banUser, unbanUser } from "~/utils/requests/ban";
+import { getSystemInfo } from "~/utils/requests/system-info";
 
 export const Req = {
     login,
@@ -51,5 +52,6 @@ export const Req = {
     toggleLike,
     listUsers,
     banUser,
-    unbanUser
+    unbanUser,
+    getSystemInfo
 }

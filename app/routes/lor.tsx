@@ -235,7 +235,7 @@ export default function Lor() {
 					<DialogHeader>
 						<DialogTitle>关于控制台账号</DialogTitle>
 					</DialogHeader>
-					<div className="prose text-sm text-muted-foreground max-h-[60vh] overflow-y-auto">
+					<div className="prose max-w-none text-sm text-muted-foreground max-h-[60vh] overflow-y-auto">
 						<p>
 							在注册控制台账号之前，如果你有任何疑问，可以参考下面的内容。
 						</p>

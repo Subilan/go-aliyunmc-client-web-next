@@ -27,7 +27,9 @@ import {
 	ArchiveIcon,
 	DatabaseIcon,
 	SquareIcon,
-	Trash2Icon
+	Trash2Icon,
+	PowerIcon,
+	AlertTriangleIcon
 } from 'lucide-react';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
@@ -46,12 +48,13 @@ import { EconomyCard } from '~/components/home/economy-card';
 import type { ServerStatusFetchResult } from '~/components/home/server-status-card';
 import type { EcsCandidatesFetchResult } from '~/components/home/ecs-candidates-card';
 import type { RecentTasksFetchResult } from '~/components/home/recent-tasks-card';
-import { deleteActiveInstance, getActiveInstance } from '~/utils/requests/instance';
+import { deleteActiveInstance, getActiveInstance, startInstance } from '~/utils/requests/instance';
 import { triggerTask } from '~/utils/requests/task';
 import { get } from '~/utils/requests';
 import { useStateSSE } from '~/hooks/useStateSSE';
 import type { ServerStatus as ServerStatusType } from '~/types/ServerStatus';
 import type { ServerQuery } from '~/types/ServerQuery';
+import type { SpotInterruptionState } from '~/types/SpotInterruption';
 import { Times } from '~/utils/times';
 import { useSSESync } from '~/routes/home/useSSESync';
 import { useServerOnlineTransition } from '~/routes/home/useServerOnlineTransition';
@@ -104,6 +107,9 @@ export default function Home() {
 	const [starting, setStarting] = useState(false);
 	const [stopping, setStopping] = useState(false);
 
+	const [startInstanceOpen, setStartInstanceOpen] = useState(false);
+	const [startingInstance, setStartingInstance] = useState(false);
+
 	const [runningStatusOpen, setRunningStatusOpen] = useState(false);
 
 	const srvSSE = useStateSSE<ServerStatusType>(
@@ -116,6 +122,11 @@ export default function Home() {
 		'instance_status_snapshot',
 		'instance_status_update'
 	);
+	const spotSSE = useStateSSE<SpotInterruptionState>(
+		'/state/watch/spot-interruption',
+		'spot_interruption_snapshot',
+		'spot_interruption_update'
+	);
 	const instanceDeletedRef = useRef(false);
 	const serverQuery = useRef<ServerQuery>(undefined);
 
@@ -125,10 +136,12 @@ export default function Home() {
 	async function fetchAll() {
 		let srvOnline = false;
 		await Promise.all([
-			ServerStatus.fetchData(serverLoading).then(([srvRes, chartRes, idleRes, querySrvRes]) => {
-				handleServerRefresh([srvRes, chartRes, idleRes, querySrvRes]);
-				if (srvRes.error === null) srvOnline = srvRes.data!.Value.online;
-			}),
+			ServerStatus.fetchData(serverLoading).then(
+				([srvRes, chartRes, idleRes, querySrvRes]) => {
+					handleServerRefresh([srvRes, chartRes, idleRes, querySrvRes]);
+					if (srvRes.error === null) srvOnline = srvRes.data!.Value.online;
+				}
+			),
 			InstanceStatus.fetchData(instanceLoading).then(([instRes, instStatusRes]) => {
 				if (instRes.error === null) {
 					setInstance(instRes.data);
@@ -151,7 +164,12 @@ export default function Home() {
 	}
 	fetchAllRef.current = fetchAll;
 
-	function handleServerRefresh([srvRes, chartRes, idleRes, querySrvRes]: ServerStatusFetchResult) {
+	function handleServerRefresh([
+		srvRes,
+		chartRes,
+		idleRes,
+		querySrvRes
+	]: ServerStatusFetchResult) {
 		if (querySrvRes.error === null) serverQuery.current = querySrvRes.data;
 		if (srvRes.error === null) {
 			serverOnline.set(srvRes.data!.Value.online);
@@ -281,6 +299,20 @@ export default function Home() {
 		setStopOpen(false);
 	}
 
+	async function handleStartInstance() {
+		setStartingInstance(true);
+		const { error } = await startInstance();
+		if (error) {
+			Toast.error(typeof error === 'string' ? error : '开启实例失败');
+			verifyInstance();
+		} else {
+			Toast.success('实例开启请求已发送，实例启动中');
+			fetchAll();
+		}
+		setStartingInstance(false);
+		setStartInstanceOpen(false);
+	}
+
 	async function handleDeploy() {
 		setDeployTriggering(true);
 		const { data, error } = await triggerTask('deploy', {});
@@ -325,6 +357,7 @@ export default function Home() {
 	const isCreating = pipeline.taskRunning && pipeline.createTaskId !== null;
 	const isDeploying = pipeline.taskRunning && pipeline.deployTaskId !== null;
 	const isStarting = pipeline.serverStarting;
+	const isOperator = user?.role === 'operator' || user?.role === 'superuser';
 
 	let primaryLabel: string;
 	let primaryAction: () => void;
@@ -352,8 +385,7 @@ export default function Home() {
 			primaryLabel = '部署';
 			primaryAction = () => setDeployConfirmOpen(true);
 			primaryDisabled =
-				pipeline.taskRunning ||
-				(permissions !== null && !permissions.can_trigger_task);
+				pipeline.taskRunning || (permissions !== null && !permissions.can_trigger_task);
 		}
 	} else if (!isOnline || isStarting) {
 		if (isStarting) {
@@ -391,18 +423,24 @@ export default function Home() {
 			label: '备份',
 			icon: DatabaseIcon,
 			action: () => setBackupOpen(true),
-			disabled:
-				pipeline.archiving ||
-				(permissions !== null && !permissions.can_run_backup)
+			disabled: pipeline.archiving || (permissions !== null && !permissions.can_run_backup)
 		});
 		dropdownEntries.push({
 			type: 'item',
 			label: '归档',
 			icon: ArchiveIcon,
 			action: () => setArchiveOpen(true),
-			disabled:
-				pipeline.archiving ||
-				(permissions !== null && !permissions.can_run_archive)
+			disabled: pipeline.archiving || (permissions !== null && !permissions.can_run_archive)
+		});
+	}
+
+	if (hasInstance && isDeployed && isOperator && instanceStatus.current === 'Stopped') {
+		dropdownEntries.push({
+			type: 'item',
+			label: '开启实例',
+			icon: PowerIcon,
+			action: () => setStartInstanceOpen(true),
+			disabled: false
 		});
 	}
 
@@ -471,12 +509,26 @@ export default function Home() {
 		<>
 			<PageHeader actions={headerActions}>Hi, {user?.username}</PageHeader>
 
-			{pipeline.archiving && (
-				<Alert variant="default" className="mb-4 border-amber-200 bg-amber-50 text-amber-800">
-					<InfoIcon />
+			{spotSSE.value?.Value.active && (
+				<Alert variant="default" className="mb-4 border-red-200 bg-red-50 text-red-800">
+					<AlertTriangleIcon />
 					<AlertDescription>
-						当前实例正在归档中，请勿与实例进行交互。
+						抢占式实例{' '}
+						<span className="font-mono">{spotSSE.value.Value.instanceId}</span>{' '}
+						即将被回收，服务器已保护性停机以保护存档。自{' '}
+						{Times.formatDate(spotSSE.value.Value.triggeredAt)}{' '}
+						起进入回收保护期，期间无法启动服务器，请联系管理员手动解决。
 					</AlertDescription>
+				</Alert>
+			)}
+
+			{pipeline.archiving && (
+				<Alert
+					variant="default"
+					className="mb-4 border-amber-200 bg-amber-50 text-amber-800"
+				>
+					<InfoIcon />
+					<AlertDescription>当前实例正在归档中，请勿与实例进行交互。</AlertDescription>
 				</Alert>
 			)}
 
@@ -488,7 +540,13 @@ export default function Home() {
 					</AlertDescription>
 					<div className="md:flex gap-2 hidden absolute top-1/2 right-3 -translate-y-1/2">
 						<Button size="sm" variant="outline" asChild>
-							<a href="https://v.wjx.cn/vm/m93QvcR.aspx#" target="_blank" rel="noreferrer">申请白名单</a>
+							<a
+								href="https://v.wjx.cn/vm/m93QvcR.aspx#"
+								target="_blank"
+								rel="noreferrer"
+							>
+								申请白名单
+							</a>
 						</Button>
 						<Button size="sm" variant="outline" asChild>
 							<Link to="/profile">立即绑定</Link>
@@ -498,30 +556,30 @@ export default function Home() {
 			)}
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-			<div className="lg:col-span-2">
-				<ServerStatus.Card
-					notReady={instanceNotFound.current || !isDeployed}
-					starting={pipeline.serverStarting}
-					loading={serverLoading.current}
-					online={serverOnline.current}
-					instanceStatus={instanceStatus.current}
-					playerCount={playerCount.current}
-					instanceType={instance?.instanceType ?? '—'}
-					zoneId={instance?.zoneId ?? '—'}
-					ip={instance?.ip ?? '—'}
-					chartData={chartData.current}
-					onRefreshData={handleServerRefresh}
-				/>
+				<div className="lg:col-span-2">
+					<ServerStatus.Card
+						notReady={instanceNotFound.current || !isDeployed}
+						starting={pipeline.serverStarting}
+						loading={serverLoading.current}
+						online={serverOnline.current}
+						instanceStatus={instanceStatus.current}
+						playerCount={playerCount.current}
+						instanceType={instance?.instanceType ?? '—'}
+						zoneId={instance?.zoneId ?? '—'}
+						ip={instance?.ip ?? '—'}
+						chartData={chartData.current}
+						onRefreshData={handleServerRefresh}
+					/>
+				</div>
+				<div className="lg:col-span-1 flex flex-col gap-4">
+					<RecentTasks.Card
+						tasks={tasks}
+						loading={tasksLoading.current && tasks.length === 0}
+						refreshKey={pipeline.tasksRefreshKey}
+						onRefreshData={handleTasksRefresh}
+					/>
+				</div>
 			</div>
-			<div className="lg:col-span-1 flex flex-col gap-4">
-				<RecentTasks.Card
-					tasks={tasks}
-					loading={tasksLoading.current && tasks.length === 0}
-					refreshKey={pipeline.tasksRefreshKey}
-					onRefreshData={handleTasksRefresh}
-				/>
-			</div>
-		</div>
 
 			<UpdateLog.Card loading={updateLogLoading} />
 
@@ -536,7 +594,11 @@ export default function Home() {
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>
+						<Button
+							variant="outline"
+							onClick={() => setDeleteOpen(false)}
+							disabled={deleting}
+						>
 							取消
 						</Button>
 						<Button variant="destructive" onClick={handleDelete} disabled={deleting}>
@@ -574,6 +636,15 @@ export default function Home() {
 			/>
 
 			<ConfirmTriggerDialog
+				open={startInstanceOpen}
+				onClose={() => setStartInstanceOpen(false)}
+				title="开启实例"
+				description="此操作将启动当前 ECS 实例。实例启动需要数分钟，完成后可通过「启动服务器」恢复 Minecraft 服务。"
+				onConfirm={handleStartInstance}
+				loading={startingInstance}
+			/>
+
+			<ConfirmTriggerDialog
 				open={startOpen}
 				onClose={() => setStartOpen(false)}
 				title="启动服务器"
@@ -603,9 +674,7 @@ export default function Home() {
 				<DialogContent className="sm:max-w-lg">
 					<DialogHeader>
 						<DialogTitle>服务器运行状态</DialogTitle>
-						<DialogDescription>
-							当前 Minecraft 服务器的实时运行信息。
-						</DialogDescription>
+						<DialogDescription>当前 Minecraft 服务器的实时运行信息。</DialogDescription>
 					</DialogHeader>
 					<div className="py-4 text-sm text-muted-foreground">
 						详细状态信息将在后续版本中提供。

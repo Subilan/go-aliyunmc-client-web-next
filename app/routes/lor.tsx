@@ -231,19 +231,18 @@ export default function Lor() {
 				</Card>
 			</div>
 			<Dialog open={registerHelpModal.current} onOpenChange={v => registerHelpModal.set(v)}>
-				<DialogContent className="sm:max-w-lg">
+				<DialogContent className="sm:max-w-2xl">
 					<DialogHeader>
 						<DialogTitle>关于控制台账号</DialogTitle>
 					</DialogHeader>
 					<div className="prose text-sm text-muted-foreground max-h-[60vh] overflow-y-auto">
 						<p>
-							在注册控制台账号之前，如果你有任何疑问，可以参考下面的内容。阅读完后，如仍有不清楚的地方，欢迎发送邮件到{' '}
-							<a href="mailto:support@seatide.net">support@seatide.net</a> 咨询。
+							在注册控制台账号之前，如果你有任何疑问，可以参考下面的内容。
 						</p>
 						<h4>控制台简介</h4>
 						<p>
 							控制台是 Seatide
-							玩家在游戏外部访问与控制服务器的专属平台，所有获取了白名单并绑定游戏账号的玩家，都可以免费使用控制台的大部分功能。
+							玩家在游戏外部访问与控制服务器的专属平台，所有获取了白名单并绑定游戏账号的玩家，都可以使用控制台的大部分功能。
 						</p>
 						<div className="grid grid-cols-3 gap-5 not-prose">
 							<HelpDialogCard
@@ -270,7 +269,7 @@ export default function Lor() {
 							控制台在你的全程使用过程中，<strong>不会</strong>
 							收集包括但不仅限于明文密码、IP
 							地址、设备标识符等任何个人额外信息，唯一使用的 Cookie
-							仅用于登录这一必要用途。为了你的数据安全，请确保在 HTTPS
+							仅用于登录这一必要用途。请确保在 HTTPS
 							安全连接下使用控制台。
 						</p>
 						<h4>白名单与控制台功能</h4>

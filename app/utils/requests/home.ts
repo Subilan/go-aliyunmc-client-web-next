@@ -60,6 +60,18 @@ export function getAccountBalanceHistory() {
 	return get<BalanceChartPointRaw[]>('/samples/account-balance-history');
 }
 
+export interface AccountBalanceStats {
+	rate: number | null;
+	span_hours: number;
+	sample_count: number;
+	has_enough_samples: boolean;
+	min_span_hours: number;
+}
+
+export function getAccountBalanceStats() {
+	return get<AccountBalanceStats>('/samples/account-balance-stats');
+}
+
 export interface PlayerOnlineRangeRaw {
 	playerName: string;
 	startAt: string;

@@ -4,56 +4,31 @@ import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import { RefreshCwIcon } from 'lucide-react';
 import BalanceChart from '~/components/balance-chart';
-import type { BalanceChartPoint } from '~/components/balance-chart';
-import { getBalance, getAccountBalanceHistory } from '~/utils/requests/home';
+import type { BalanceChartPoint, BalanceChartPointRaw } from '~/components/balance-chart';
+import {
+	getBalance,
+	getAccountBalanceHistory,
+	getAccountBalanceStats
+} from '~/utils/requests/home';
+import type { AccountBalanceStats } from '~/utils/requests/home';
 
 export const EconomyCard = {
 	Card() {
 		const [balance, setBalance] = useState(0);
-		const [chartData, setChartData] = useState<BalanceChartPoint[]>([]);
-		const [deductionRate, setDeductionRate] = useState<number | null>(null);
+		const [history, setHistory] = useState<BalanceChartPointRaw[]>([]);
+		const [stats, setStats] = useState<AccountBalanceStats | null>(null);
 		const [loading, setLoading] = useState(true);
 		const [refreshing, setRefreshing] = useState(false);
 
 		const fetchData = useCallback(async () => {
-			const [balRes, chartRes] = await Promise.all([
+			const [balRes, chartRes, statsRes] = await Promise.all([
 				getBalance(),
-				getAccountBalanceHistory()
+				getAccountBalanceHistory(),
+				getAccountBalanceStats()
 			]);
 			if (balRes.error === null) setBalance(balRes.data!);
-			if (chartRes.error === null) {
-				const raw = chartRes.data!;
-				setChartData(
-					raw.map(p => ({
-						time: new Date(p.time).toLocaleString('zh-CN', {
-							month: '2-digit',
-							day: '2-digit',
-							hour: '2-digit',
-							minute: '2-digit'
-						}),
-						amount: p.amount
-					}))
-				);
-				if (raw.length >= 2) {
-					const sorted = [...raw].sort(
-						(a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
-					);
-					let totalRate = 0;
-					let count = 0;
-					for (let i = 1; i < sorted.length; i++) {
-						const deltaHr =
-							(new Date(sorted[i].time).getTime() -
-								new Date(sorted[i - 1].time).getTime()) /
-							3600000;
-						const deltaAmount = sorted[i - 1].amount - sorted[i].amount;
-						if (deltaHr > 0 && deltaAmount > 0) {
-							totalRate += deltaAmount / deltaHr;
-							count++;
-						}
-					}
-					setDeductionRate(count > 0 ? totalRate / count : null);
-				}
-			}
+			if (chartRes.error === null) setHistory(chartRes.data!);
+			if (statsRes.error === null) setStats(statsRes.data);
 			setLoading(false);
 		}, []);
 
@@ -70,6 +45,22 @@ export const EconomyCard = {
 		useEffect(() => {
 			fetchData();
 		}, [fetchData]);
+
+		const chartData = useMemo<BalanceChartPoint[]>(
+			() =>
+				history.map(p => ({
+					time: new Date(p.time).toLocaleString('zh-CN', {
+						month: '2-digit',
+						day: '2-digit',
+						hour: '2-digit',
+						minute: '2-digit'
+					}),
+					amount: p.amount
+				})),
+			[history]
+		);
+
+		const deductionRate = stats?.rate ?? null;
 
 		const estimatedHours = useMemo(() => {
 			const effective = balance - 100;
@@ -113,7 +104,26 @@ export const EconomyCard = {
 								平均降低
 							</div>
 							<div className="text-2xl font-bold">
-								{loading ? '—' : deductionRate === null ? '—' : `¥${deductionRate.toFixed(2)}/h`}
+								{loading ? (
+									'—'
+								) : deductionRate === null ? (
+									stats ? (
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<span>—</span>
+											</TooltipTrigger>
+											<TooltipContent>
+												{stats.has_enough_samples
+													? '观测窗口内没有余额下降'
+													: `样本不足：当前观测跨度 ${stats.span_hours.toFixed(1)} 小时，至少需要 ${stats.min_span_hours} 小时`}
+											</TooltipContent>
+										</Tooltip>
+									) : (
+										'—'
+									)
+								) : (
+									`¥${deductionRate.toFixed(2)}/h`
+								)}
 							</div>
 						</div>
 						<div>

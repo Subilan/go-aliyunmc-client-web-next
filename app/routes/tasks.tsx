@@ -40,6 +40,8 @@ function taskTypeLabel(type: string) {
 			return '创建实例';
 		case 'start_server':
 			return '启动服务器';
+		case 'full_deploy':
+			return '一键部署';
 		default:
 			return type;
 	}
@@ -283,12 +285,30 @@ export default function TasksPage() {
 		return stats?.lastCompletedByType?.[key];
 	}
 
+	// 一键部署成功后服务器即已启动，因此“最近启动”需要同时考虑两种任务类型。
+	function latestTimestamp(keys: string[]): string | undefined {
+		let latest: string | undefined;
+		let latestMs = -Infinity;
+		for (const key of keys) {
+			const ts = stats?.lastCompletedByType?.[key];
+			if (!ts) continue;
+			const ms = new Date(ts).getTime();
+			if (ms > latestMs) {
+				latestMs = ms;
+				latest = ts;
+			}
+		}
+		return latest;
+	}
+
+	const lastStartedAt = latestTimestamp(['start_server', 'full_deploy']);
+
 	const statItems: { label: string; value: string | null; tooltip?: string }[] = [
 		{ label: '任务总数', value: stats ? String(stats.total) : null },
 		{ label: '成功率', value: stats ? successRate : null },
 		{ label: '总运行时长', value: stats ? Times.formatRuntimeHours(stats.totalRuntimeSec) : null },
 		{ label: '最近完成', value: stats ? lastCompletedAgo : null, tooltip: stats?.lastCompletedAt ? Times.formatDate(stats.lastCompletedAt) : undefined },
-		{ label: '最近启动', value: stats ? lastByType('start_server') : null, tooltip: stats ? (lastByTypeRaw('start_server') ? Times.formatDate(lastByTypeRaw('start_server')!) : undefined) : undefined },
+		{ label: '最近启动', value: stats ? (lastStartedAt ? Times.formatFromNow(lastStartedAt) : '—') : null, tooltip: lastStartedAt ? Times.formatDate(lastStartedAt) : undefined },
 		{ label: '最近备份', value: stats ? lastByType('backup') : null, tooltip: stats ? (lastByTypeRaw('backup') ? Times.formatDate(lastByTypeRaw('backup')!) : undefined) : undefined },
 		{ label: '最近归档', value: stats ? lastByType('archive') : null, tooltip: stats ? (lastByTypeRaw('archive') ? Times.formatDate(lastByTypeRaw('archive')!) : undefined) : undefined },
 		{ label: '最近创建者', value: stats ? lastCreator : null }

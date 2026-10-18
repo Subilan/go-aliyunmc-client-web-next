@@ -89,9 +89,6 @@ export default function Home() {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [createLoading, setCreateLoading] = useState(false);
 
-	const [deployConfirmOpen, setDeployConfirmOpen] = useState(false);
-	const [deployTriggering, setDeployTriggering] = useState(false);
-
 	const [updateLogLoading, setUpdateLogLoading] = useState(false);
 
 	const [deleteOpen, setDeleteOpen] = useState(false);
@@ -102,9 +99,7 @@ export default function Home() {
 	const [backupTriggering, setBackupTriggering] = useState(false);
 	const [archiveTriggering, setArchiveTriggering] = useState(false);
 
-	const [startOpen, setStartOpen] = useState(false);
 	const [stopOpen, setStopOpen] = useState(false);
-	const [starting, setStarting] = useState(false);
 	const [stopping, setStopping] = useState(false);
 
 	const [startInstanceOpen, setStartInstanceOpen] = useState(false);
@@ -270,22 +265,6 @@ export default function Home() {
 		setArchiveOpen(false);
 	}
 
-	async function handleStartServer() {
-		setStarting(true);
-		const { error } = await triggerTask('start_server', {});
-		if (error) {
-			Toast.error(typeof error === 'string' ? error : '任务触发失败');
-			verifyInstance();
-		} else {
-			Toast.success('启动服务器任务已触发');
-			pipeline.startServerTriggeredRef.current = true;
-			pipeline.setServerStarting(true);
-			fetchAll();
-		}
-		setStarting(false);
-		setStartOpen(false);
-	}
-
 	async function handleStopServer() {
 		setStopping(true);
 		const { error } = await get('/server/stop');
@@ -313,37 +292,22 @@ export default function Home() {
 		setStartInstanceOpen(false);
 	}
 
-	async function handleDeploy() {
-		setDeployTriggering(true);
-		const { data, error } = await triggerTask('deploy', {});
-		if (error) {
-			Toast.error(typeof error === 'string' ? error : '部署任务触发失败');
-			verifyInstance();
-			setDeployTriggering(false);
-			return;
-		}
-		setDeployConfirmOpen(false);
-		pipeline.setDeployTaskId(data!.ID);
-		pipeline.setTaskRunning(true);
-		setDeployTriggering(false);
-		fetchAll();
-	}
-
-	async function handleCreateInstance() {
+	async function handleFullDeploy() {
 		setCreateLoading(true);
-		const { data, error } = await triggerTask('create_instance', {
+		const { data, error } = await triggerTask('full_deploy', {
 			useDefaultVSwitch: true,
 			startWhenCreated: true
 		});
 		if (error) {
-			Toast.error(typeof error === 'string' ? error : '触发创建失败');
+			Toast.error(typeof error === 'string' ? error : '触发一键部署失败');
 			verifyInstance();
 			setCreateLoading(false);
 			return;
 		}
-		Toast.success('创建任务已触发');
-		pipeline.setCreateTaskId(data!.ID);
+		Toast.success('一键部署已触发');
+		pipeline.setFullDeployTaskId(data!.ID);
 		pipeline.setTaskRunning(true);
+		pipeline.startServerTriggeredRef.current = true;
 		setCreateLoading(false);
 		setDialogOpen(false);
 		fetchAll();
@@ -354,52 +318,34 @@ export default function Home() {
 	const hasInstance = instance !== null;
 	const isDeployed = instance?.isDeployed ?? false;
 	const isOnline = serverOnline.current;
-	const isCreating = pipeline.taskRunning && pipeline.createTaskId !== null;
-	const isDeploying = pipeline.taskRunning && pipeline.deployTaskId !== null;
-	const isStarting = pipeline.serverStarting;
+	const isFullDeploying = pipeline.taskRunning && pipeline.fullDeployTaskId !== null;
 	const isOperator = user?.role === 'operator' || user?.role === 'superuser';
 
 	let primaryLabel: string;
 	let primaryAction: () => void;
 	let primaryDisabled: boolean;
 
-	if (!hasInstance) {
-		primaryLabel = '创建实例';
+	if (isFullDeploying) {
+		primaryLabel = '一键部署中...';
+		primaryAction = () => {};
+		primaryDisabled = true;
+	} else if (pipeline.serverStarting) {
+		primaryLabel = '启动中...';
+		primaryAction = () => {};
+		primaryDisabled = true;
+	} else if (!hasInstance || !isDeployed || !isOnline) {
+		primaryLabel = '一键部署';
 		primaryAction = () => {
 			if (!pipeline.taskRunning) {
-				pipeline.setCreateTaskId(null);
-				pipeline.setDeployTaskId(null);
+				pipeline.setFullDeployTaskId(null);
 			}
 			setDialogOpen(true);
 		};
 		primaryDisabled =
 			pipeline.taskRunning ||
+			pipeline.archiving ||
 			!user?.whitelist_uuid ||
 			(permissions !== null && !permissions.can_trigger_task);
-	} else if (!isDeployed) {
-		if (isDeploying) {
-			primaryLabel = '部署中...';
-			primaryAction = () => {};
-			primaryDisabled = true;
-		} else {
-			primaryLabel = '部署';
-			primaryAction = () => setDeployConfirmOpen(true);
-			primaryDisabled =
-				pipeline.taskRunning || (permissions !== null && !permissions.can_trigger_task);
-		}
-	} else if (!isOnline || isStarting) {
-		if (isStarting) {
-			primaryLabel = '启动中...';
-			primaryAction = () => {};
-			primaryDisabled = true;
-		} else {
-			primaryLabel = '启动服务器';
-			primaryAction = () => setStartOpen(true);
-			primaryDisabled =
-				pipeline.taskRunning ||
-				pipeline.archiving ||
-				(permissions !== null && !permissions.can_trigger_task);
-		}
 	} else {
 		primaryLabel = '运行状态';
 		primaryAction = () => setRunningStatusOpen(true);
@@ -423,14 +369,20 @@ export default function Home() {
 			label: '备份',
 			icon: DatabaseIcon,
 			action: () => setBackupOpen(true),
-			disabled: pipeline.archiving || (permissions !== null && !permissions.can_run_backup)
+			disabled:
+				pipeline.taskRunning ||
+				pipeline.archiving ||
+				(permissions !== null && !permissions.can_run_backup)
 		});
 		dropdownEntries.push({
 			type: 'item',
 			label: '归档',
 			icon: ArchiveIcon,
 			action: () => setArchiveOpen(true),
-			disabled: pipeline.archiving || (permissions !== null && !permissions.can_run_archive)
+			disabled:
+				pipeline.taskRunning ||
+				pipeline.archiving ||
+				(permissions !== null && !permissions.can_run_archive)
 		});
 	}
 
@@ -440,7 +392,7 @@ export default function Home() {
 			label: '开启实例',
 			icon: PowerIcon,
 			action: () => setStartInstanceOpen(true),
-			disabled: false
+			disabled: pipeline.taskRunning
 		});
 	}
 
@@ -451,7 +403,7 @@ export default function Home() {
 			label: '停止服务器',
 			icon: SquareIcon,
 			action: () => setStopOpen(true),
-			disabled: false
+			disabled: pipeline.taskRunning
 		});
 	}
 
@@ -464,7 +416,7 @@ export default function Home() {
 			label: '删除实例',
 			icon: Trash2Icon,
 			action: () => setDeleteOpen(true),
-			disabled: permissions !== null && !permissions.can_delete_instance,
+			disabled: pipeline.taskRunning || (permissions !== null && !permissions.can_delete_instance),
 			variant: 'destructive'
 		});
 	}
@@ -559,7 +511,7 @@ export default function Home() {
 				<div className="lg:col-span-2">
 					<ServerStatus.Card
 						notReady={instanceNotFound.current || !isDeployed}
-						starting={pipeline.serverStarting}
+						starting={pipeline.serverStarting || (isFullDeploying && isDeployed)}
 						loading={serverLoading.current}
 						online={serverOnline.current}
 						instanceStatus={instanceStatus.current}
@@ -609,15 +561,6 @@ export default function Home() {
 			</Dialog>
 
 			<ConfirmTriggerDialog
-				open={deployConfirmOpen}
-				onClose={() => setDeployConfirmOpen(false)}
-				title="部署"
-				description="此操作将对当前实例执行部署。"
-				onConfirm={handleDeploy}
-				loading={deployTriggering}
-			/>
-
-			<ConfirmTriggerDialog
 				open={backupOpen}
 				onClose={() => setBackupOpen(false)}
 				title="备份"
@@ -639,18 +582,9 @@ export default function Home() {
 				open={startInstanceOpen}
 				onClose={() => setStartInstanceOpen(false)}
 				title="开启实例"
-				description="此操作将启动当前 ECS 实例。实例启动需要数分钟，完成后可通过「启动服务器」恢复 Minecraft 服务。"
+				description="此操作将启动当前 ECS 实例。实例启动需要数分钟，完成后可点击「一键部署」恢复 Minecraft 服务。"
 				onConfirm={handleStartInstance}
 				loading={startingInstance}
-			/>
-
-			<ConfirmTriggerDialog
-				open={startOpen}
-				onClose={() => setStartOpen(false)}
-				title="启动服务器"
-				description="此操作将启动当前实例上的 Minecraft 服务器。"
-				onConfirm={handleStartServer}
-				loading={starting}
 			/>
 
 			<ConfirmTriggerDialog
@@ -665,8 +599,8 @@ export default function Home() {
 			<CreateInstanceDialog
 				open={dialogOpen}
 				onClose={() => setDialogOpen(false)}
-				bestCandidate={candidates[0] ?? null}
-				onTriggered={handleCreateInstance}
+				bestCandidate={hasInstance ? null : (candidates[0] ?? null)}
+				onTriggered={handleFullDeploy}
 				loading={createLoading}
 			/>
 

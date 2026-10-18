@@ -34,9 +34,8 @@ export default function CreateInstanceDialog({
 		<Dialog open={open} onOpenChange={v => !v && onClose()}>
 			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
-					<DialogTitle>创建实例</DialogTitle>
+					<DialogTitle>一键部署</DialogTitle>
 				</DialogHeader>
-				<p className="text-sm text-red-800 font-medium">请不要切换页面，否则可能需要中途手动触发部署</p>
 				{bestCandidate && (
 					<div className="space-y-3">
 						<p className="font-mono text-base font-heading font-medium">
@@ -55,7 +54,7 @@ export default function CreateInstanceDialog({
 						取消
 					</Button>
 					<Button onClick={onTriggered} disabled={loading}>
-						{loading ? '创建中...' : '创建'}
+						{loading ? '触发中...' : '开始部署'}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

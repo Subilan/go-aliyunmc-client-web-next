@@ -15,13 +15,35 @@ interface StateSSEHandlers<T> {
 	onError: (err: any) => void;
 }
 
-export function connectTaskSSE(taskId: number, handlers: TaskSSEHandlers): () => void {
+interface TaskSSEOptions {
+	/** 初次连接携带的 Last-Event-ID；0 表示从已持久化输出开始回放。 */
+	lastEventId?: string | number;
+}
+
+export function connectTaskSSE(
+	taskId: number,
+	handlers: TaskSSEHandlers,
+	options: TaskSSEOptions = {}
+): () => void {
 	const controller = new AbortController();
+
+	// 与库内部的 last-event-id 同名，避免产生两个大小写不同的头。
+	const headers: Record<string, string> = {};
+	if (options.lastEventId !== undefined) {
+		headers['last-event-id'] = String(options.lastEventId);
+	}
 
 	fetchEventSource(`${BASE_URL}/task/${taskId}/output`, {
 		signal: controller.signal,
 		credentials: 'include',
+		headers,
 		async onopen(response) {
+			// 204 表示已消费到 task_done；必须 abort，否则库会对空 body 抛错并持续重试。
+			if (response.status === 204) {
+				controller.abort();
+				return;
+			}
+
 			if (!response.ok) {
 				handlers.onError(new Error(`SSE connection failed: ${response.status}`));
 				controller.abort();

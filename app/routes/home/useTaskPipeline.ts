@@ -4,86 +4,60 @@ import { useTaskEffects } from '~/routes/home/useTaskEffects';
 import type { Task } from '~/types/Task';
 
 export function useTaskPipeline(fetchAll: () => Promise<void>) {
-	const [createTaskId, setCreateTaskId] = useState<number | null>(null);
-	const [deployTaskId, setDeployTaskId] = useState<number | null>(null);
-	const [startTaskId, setStartTaskId] = useState<number | null>(null);
+	const [fullDeployTaskId, setFullDeployTaskId] = useState<number | null>(null);
 	const [archiveTaskId, setArchiveTaskId] = useState<number | null>(null);
 	const [taskRunning, setTaskRunning] = useState(false);
 	const [serverStarting, setServerStarting] = useState(false);
 	const [tasksRefreshKey, setTasksRefreshKey] = useState(0);
 	const startServerTriggeredRef = useRef(false);
 
-	const createSSE = useTaskSSE(createTaskId);
-	const deploySSE = useTaskSSE(deployTaskId);
-	const startSSE = useTaskSSE(startTaskId);
+	const fullDeploySSE = useTaskSSE(fullDeployTaskId);
 	const archiveSSE = useTaskSSE(archiveTaskId);
 
 	useTaskEffects({
-		createSSE,
-		deploySSE,
-		startSSE,
+		fullDeploySSE,
 		archiveSSE,
-		createTaskId,
-		deployTaskId,
-		startTaskId,
+		fullDeployTaskId,
 		archiveTaskId,
-		setCreateTaskId,
-		setDeployTaskId,
-		setStartTaskId,
+		setFullDeployTaskId,
 		setArchiveTaskId,
 		setTaskRunning,
-		setServerStarting,
 		setTasksRefreshKey,
-		startServerTriggeredRef,
 		fetchAll
 	});
 
-	const activeOutputs = startTaskId
-		? startSSE.outputs
-		: deployTaskId
-			? deploySSE.outputs
-			: createSSE.outputs;
+	const activeOutputs = fullDeployTaskId ? fullDeploySSE.outputs : [];
 	const latestOutput =
 		activeOutputs.length > 0 ? activeOutputs[activeOutputs.length - 1].output : null;
 	const archiving = archiveTaskId !== null;
 
 	function syncRunningTasks(tasks: Task[], srvOnline: boolean) {
-		const runningCreate = tasks.find(
-			t => t.type === 'create_instance' && t.status === 'running'
+		const runningFullDeploy = tasks.find(
+			t => t.type === 'full_deploy' && t.status === 'running'
 		);
-		const runningDeploy = tasks.find(
-			t => t.type === 'deploy' && t.status === 'running'
-		);
-		if (runningCreate || runningDeploy) {
-			setCreateTaskId(runningCreate?.ID ?? null);
-			setDeployTaskId(runningDeploy?.ID ?? null);
+		if (runningFullDeploy) {
+			setFullDeployTaskId(runningFullDeploy.ID);
+		}
+
+		// 其他入口触发的部署链路任务同样要禁掉一键部署。
+		const chainTypes = ['full_deploy', 'deploy', 'create_instance', 'start_server'];
+		if (tasks.some(t => chainTypes.includes(t.type) && t.status === 'running')) {
 			setTaskRunning(true);
 		}
-		const runningStart = tasks.find(
-			t => t.type === 'start_server' && t.status === 'running'
-		);
-		if (runningStart) {
-			setStartTaskId(runningStart.ID);
-			setTaskRunning(true);
-			if (!srvOnline) {
-				setServerStarting(true);
-				startServerTriggeredRef.current = true;
-			}
+
+		const runningStart = tasks.find(t => t.type === 'start_server' && t.status === 'running');
+		if (runningStart && !srvOnline) {
+			setServerStarting(true);
+			startServerTriggeredRef.current = true;
 		}
-		const runningArchive = tasks.find(
-			t => t.type === 'archive' && t.status === 'running'
-		);
+
+		const runningArchive = tasks.find(t => t.type === 'archive' && t.status === 'running');
 		if (runningArchive) setArchiveTaskId(runningArchive.ID);
 	}
 
 	return {
-		createTaskId,
-		setCreateTaskId,
-		deployTaskId,
-		setDeployTaskId,
-		startTaskId,
-		setStartTaskId,
-		archiveTaskId,
+		fullDeployTaskId,
+		setFullDeployTaskId,
 		taskRunning,
 		setTaskRunning,
 		serverStarting,

@@ -19,6 +19,7 @@ const typeCode: Record<string, number> = {
 	deploy: 0,
 	create_instance: 1,
 	start_server: 1,
+	full_deploy: 1,
 	archive: 2,
 	backup: 3,
 	test: 4
@@ -46,6 +47,7 @@ function typeLabel(type: string) {
 		case 'archive': return '归档';
 		case 'create_instance': return '创建实例';
 		case 'start_server': return '启动服务器';
+		case 'full_deploy': return '一键部署';
 		default: return type;
 	}
 }

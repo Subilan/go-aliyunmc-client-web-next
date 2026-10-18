@@ -43,8 +43,8 @@ export function taskTypeLabel(type: string) {
 			return '创建实例';
 		case 'start_server':
 			return '启动服务器';
-		case 'full_deploy':
-			return '一键部署';
+		case 'oneclick_start_game':
+			return '启动游戏';
 		default:
 			return type;
 	}

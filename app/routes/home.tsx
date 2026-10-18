@@ -45,6 +45,7 @@ import { EcsCandidates } from '~/components/home/ecs-candidates-card';
 import { RecentTasks } from '~/components/home/recent-tasks-card';
 import { UpdateLog } from '~/components/home/update-log-card';
 import { EconomyCard } from '~/components/home/economy-card';
+import DeployStatusDialog from '~/components/home/deploy-status-dialog';
 import type { ServerStatusFetchResult } from '~/components/home/server-status-card';
 import type { EcsCandidatesFetchResult } from '~/components/home/ecs-candidates-card';
 import type { RecentTasksFetchResult } from '~/components/home/recent-tasks-card';
@@ -106,6 +107,7 @@ export default function Home() {
 	const [startingInstance, setStartingInstance] = useState(false);
 
 	const [runningStatusOpen, setRunningStatusOpen] = useState(false);
+	const [deployStatusOpen, setDeployStatusOpen] = useState(false);
 
 	const srvSSE = useStateSSE<ServerStatusType>(
 		'/state/watch/server-status',
@@ -294,17 +296,17 @@ export default function Home() {
 
 	async function handleFullDeploy() {
 		setCreateLoading(true);
-		const { data, error } = await triggerTask('full_deploy', {
+		const { data, error } = await triggerTask('oneclick_start_game', {
 			useDefaultVSwitch: true,
 			startWhenCreated: true
 		});
 		if (error) {
-			Toast.error(typeof error === 'string' ? error : '触发一键部署失败');
+			Toast.error(typeof error === 'string' ? error : '触发启动游戏失败');
 			verifyInstance();
 			setCreateLoading(false);
 			return;
 		}
-		Toast.success('一键部署已触发');
+		Toast.success('启动游戏已触发');
 		pipeline.setFullDeployTaskId(data!.ID);
 		pipeline.setTaskRunning(true);
 		pipeline.startServerTriggeredRef.current = true;
@@ -318,7 +320,8 @@ export default function Home() {
 	const hasInstance = instance !== null;
 	const isDeployed = instance?.isDeployed ?? false;
 	const isOnline = serverOnline.current;
-	const isFullDeploying = pipeline.taskRunning && pipeline.fullDeployTaskId !== null;
+	const isFullDeploying =
+		pipeline.taskRunning && pipeline.fullDeployTaskId !== null && !pipeline.fullDeployDone;
 	const isOperator = user?.role === 'operator' || user?.role === 'superuser';
 
 	let primaryLabel: string;
@@ -326,15 +329,15 @@ export default function Home() {
 	let primaryDisabled: boolean;
 
 	if (isFullDeploying) {
-		primaryLabel = '一键部署中...';
-		primaryAction = () => {};
-		primaryDisabled = true;
+		primaryLabel = '启动进度';
+		primaryAction = () => setDeployStatusOpen(true);
+		primaryDisabled = false;
 	} else if (pipeline.serverStarting) {
 		primaryLabel = '启动中...';
 		primaryAction = () => {};
 		primaryDisabled = true;
 	} else if (!hasInstance || !isDeployed || !isOnline) {
-		primaryLabel = '一键部署';
+		primaryLabel = '启动游戏';
 		primaryAction = () => {
 			if (!pipeline.taskRunning) {
 				pipeline.setFullDeployTaskId(null);
@@ -582,7 +585,7 @@ export default function Home() {
 				open={startInstanceOpen}
 				onClose={() => setStartInstanceOpen(false)}
 				title="开启实例"
-				description="此操作将启动当前 ECS 实例。实例启动需要数分钟，完成后可点击「一键部署」恢复 Minecraft 服务。"
+				description="此操作将启动当前 ECS 实例。实例启动需要数分钟，完成后可点击「启动游戏」恢复 Minecraft 服务。"
 				onConfirm={handleStartInstance}
 				loading={startingInstance}
 			/>
@@ -600,8 +603,17 @@ export default function Home() {
 				open={dialogOpen}
 				onClose={() => setDialogOpen(false)}
 				bestCandidate={hasInstance ? null : (candidates[0] ?? null)}
+				hasInstance={hasInstance}
 				onTriggered={handleFullDeploy}
 				loading={createLoading}
+			/>
+
+			<DeployStatusDialog
+				open={deployStatusOpen}
+				onOpenChange={setDeployStatusOpen}
+				outputs={pipeline.fullDeployOutputs}
+				done={pipeline.fullDeployDone}
+				error={pipeline.fullDeployError}
 			/>
 
 			<Dialog open={runningStatusOpen} onOpenChange={v => setRunningStatusOpen(v)}>

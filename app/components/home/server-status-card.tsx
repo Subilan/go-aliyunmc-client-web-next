@@ -103,7 +103,7 @@ export const ServerStatus = {
 					) : starting ? (
 						<LoadingEmptyState
 							className="flex-1"
-							description={<span className="text-muted-foreground">正在启动服务器...</span>}
+							description={<span className="text-muted-foreground">服务器启动中</span>}
 						/>
 					) : (
 						<div className="flex flex-col flex-1">

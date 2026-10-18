@@ -11,7 +11,6 @@ interface TaskEffectsDeps {
 	archiveSSE: TaskSSEState;
 	fullDeployTaskId: number | null;
 	archiveTaskId: number | null;
-	setFullDeployTaskId: (v: number | null) => void;
 	setArchiveTaskId: (v: number | null) => void;
 	setTaskRunning: (v: boolean) => void;
 	setTasksRefreshKey: (updater: (k: number) => number) => void;
@@ -23,21 +22,19 @@ export function useTaskEffects({
 	archiveSSE,
 	fullDeployTaskId,
 	archiveTaskId,
-	setFullDeployTaskId,
 	setArchiveTaskId,
 	setTaskRunning,
 	setTasksRefreshKey,
 	fetchAll
 }: TaskEffectsDeps) {
-	// 一键部署收尾
+	// 部署收尾。任务 ID 保留到下一次部署，便于状态弹窗展示最终输出。
 	useEffect(() => {
 		if (!fullDeploySSE.done || !fullDeployTaskId) return;
 		if (fullDeploySSE.error) {
-			Toast.error('一键部署失败: ' + fullDeploySSE.error);
+			Toast.error('启动游戏失败: ' + fullDeploySSE.error);
 		} else {
-			Toast.success('一键部署完成');
+			Toast.success('游戏已就绪');
 		}
-		setFullDeployTaskId(null);
 		setTaskRunning(false);
 		fetchAll();
 	}, [fullDeploySSE.done]);

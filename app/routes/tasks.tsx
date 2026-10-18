@@ -40,8 +40,8 @@ function taskTypeLabel(type: string) {
 			return '创建实例';
 		case 'start_server':
 			return '启动服务器';
-		case 'full_deploy':
-			return '一键部署';
+		case 'oneclick_start_game':
+			return '启动游戏';
 		default:
 			return type;
 	}
@@ -285,7 +285,7 @@ export default function TasksPage() {
 		return stats?.lastCompletedByType?.[key];
 	}
 
-	// 一键部署成功后服务器即已启动，因此“最近启动”需要同时考虑两种任务类型。
+	// 启动游戏成功后服务器即已启动，因此“最近启动”需要同时考虑两种任务类型。
 	function latestTimestamp(keys: string[]): string | undefined {
 		let latest: string | undefined;
 		let latestMs = -Infinity;
@@ -301,7 +301,7 @@ export default function TasksPage() {
 		return latest;
 	}
 
-	const lastStartedAt = latestTimestamp(['start_server', 'full_deploy']);
+	const lastStartedAt = latestTimestamp(['start_server', 'oneclick_start_game']);
 
 	const statItems: { label: string; value: string | null; tooltip?: string }[] = [
 		{ label: '任务总数', value: stats ? String(stats.total) : null },

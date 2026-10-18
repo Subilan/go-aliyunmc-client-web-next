@@ -21,12 +21,14 @@ export default function CreateInstanceDialog({
 	open,
 	onClose,
 	bestCandidate,
+	hasInstance,
 	onTriggered,
 	loading
 }: {
 	open: boolean;
 	onClose: () => void;
 	bestCandidate: EcsCandidate | null;
+	hasInstance: boolean;
 	onTriggered: () => void;
 	loading: boolean;
 }) {
@@ -34,9 +36,9 @@ export default function CreateInstanceDialog({
 		<Dialog open={open} onOpenChange={v => !v && onClose()}>
 			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
-					<DialogTitle>一键部署</DialogTitle>
+					<DialogTitle>启动游戏</DialogTitle>
 				</DialogHeader>
-				{bestCandidate && (
+				{bestCandidate ? (
 					<div className="space-y-3">
 						<p className="font-mono text-base font-heading font-medium">
 							{bestCandidate.instanceType}
@@ -48,13 +50,17 @@ export default function CreateInstanceDialog({
 							<SpecItem label="价格" value={`¥${bestCandidate.tradePrice.toFixed(2)}/小时`} />
 						</div>
 					</div>
+				) : (
+					<p className="text-sm text-muted-foreground">
+						要立即启动游戏吗？
+					</p>
 				)}
 				<DialogFooter>
 					<Button variant="outline" onClick={onClose} disabled={loading}>
 						取消
 					</Button>
 					<Button onClick={onTriggered} disabled={loading}>
-						{loading ? '触发中...' : '开始部署'}
+						{loading ? '触发中...' : '启动游戏'}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

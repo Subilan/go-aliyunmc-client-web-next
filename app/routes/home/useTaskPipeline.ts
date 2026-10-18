@@ -19,7 +19,6 @@ export function useTaskPipeline(fetchAll: () => Promise<void>) {
 		archiveSSE,
 		fullDeployTaskId,
 		archiveTaskId,
-		setFullDeployTaskId,
 		setArchiveTaskId,
 		setTaskRunning,
 		setTasksRefreshKey,
@@ -33,14 +32,14 @@ export function useTaskPipeline(fetchAll: () => Promise<void>) {
 
 	function syncRunningTasks(tasks: Task[], srvOnline: boolean) {
 		const runningFullDeploy = tasks.find(
-			t => t.type === 'full_deploy' && t.status === 'running'
+			t => t.type === 'oneclick_start_game' && t.status === 'running'
 		);
 		if (runningFullDeploy) {
 			setFullDeployTaskId(runningFullDeploy.ID);
 		}
 
-		// 其他入口触发的部署链路任务同样要禁掉一键部署。
-		const chainTypes = ['full_deploy', 'deploy', 'create_instance', 'start_server'];
+		// 其他入口触发的部署链路任务同样要禁掉启动游戏。
+		const chainTypes = ['oneclick_start_game', 'deploy', 'create_instance', 'start_server'];
 		if (tasks.some(t => chainTypes.includes(t.type) && t.status === 'running')) {
 			setTaskRunning(true);
 		}
@@ -65,6 +64,9 @@ export function useTaskPipeline(fetchAll: () => Promise<void>) {
 		tasksRefreshKey,
 		setTasksRefreshKey,
 		latestOutput,
+		fullDeployOutputs: activeOutputs,
+		fullDeployDone: fullDeploySSE.done,
+		fullDeployError: fullDeploySSE.error,
 		archiving,
 		startServerTriggeredRef,
 		syncRunningTasks

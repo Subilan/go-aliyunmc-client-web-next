@@ -65,7 +65,7 @@ export const InstanceStatus = {
 						<EmptyState
 							icon={HardDriveIcon}
 							iconSize={40}
-							iconClassName="text-muted-foreground/30"
+							iconClassName="text-muted-foreground opacity-30"
 							description={<span className="text-muted-foreground">尚未创建实例</span>}
 							className="py-8"
 						/>

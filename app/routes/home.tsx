@@ -510,30 +510,26 @@ export default function Home() {
 				</Alert>
 			)}
 
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-				<div className="lg:col-span-2">
-					<ServerStatus.Card
-						notReady={instanceNotFound.current || !isDeployed}
-						starting={pipeline.serverStarting || (isFullDeploying && isDeployed)}
-						loading={serverLoading.current}
-						online={serverOnline.current}
-						instanceStatus={instanceStatus.current}
-						playerCount={playerCount.current}
-						instanceType={instance?.instanceType ?? '—'}
-						zoneId={instance?.zoneId ?? '—'}
-						ip={instance?.ip ?? '—'}
-						chartData={chartData.current}
-						onRefreshData={handleServerRefresh}
-					/>
-				</div>
-				<div className="lg:col-span-1 flex flex-col gap-4">
-					<RecentTasks.Card
-						tasks={tasks}
-						loading={tasksLoading.current && tasks.length === 0}
-						refreshKey={pipeline.tasksRefreshKey}
-						onRefreshData={handleTasksRefresh}
-					/>
-				</div>
+			<div className="grid grid-cols-1 gap-5">
+				<ServerStatus.Card
+					notReady={instanceNotFound.current || !isDeployed}
+					starting={pipeline.serverStarting || (isFullDeploying && isDeployed)}
+					loading={serverLoading.current}
+					online={serverOnline.current}
+					instanceStatus={instanceStatus.current}
+					playerCount={playerCount.current}
+					instanceType={instance?.instanceType ?? '—'}
+					zoneId={instance?.zoneId ?? '—'}
+					ip={instance?.ip ?? '—'}
+					chartData={chartData.current}
+					onRefreshData={handleServerRefresh}
+				/>
+				<RecentTasks.Card
+					tasks={tasks}
+					loading={tasksLoading.current && tasks.length === 0}
+					refreshKey={pipeline.tasksRefreshKey}
+					onRefreshData={handleTasksRefresh}
+				/>
 			</div>
 
 			<UpdateLog.Card loading={updateLogLoading} />

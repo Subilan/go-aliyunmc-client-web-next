@@ -1,15 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
-import { CheckIcon, ClockIcon, AlertTriangleIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { AlertTriangleIcon } from 'lucide-react';
 import type { EcsCandidate } from '~/types/EcsCandidate';
 import { getCandidates } from '~/utils/requests/instance';
 import PageHeader from '~/components/page-header';
 import { getBalance } from '~/utils/requests/home';
 import useStateNamed from '~/hooks/useStateNamed';
 import { PAGE_NAME_ECS_CANDIDATES } from '~/consts/page-names';
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow
+} from '~/components/ui/table';
 import { Badge } from '~/components/ui/badge';
 import { cn } from '~/lib/utils';
 import EmptyState from '~/components/empty-state';
+
+const COLUMN_COUNT = 6;
 
 function Info() {
 	return (
@@ -30,107 +39,28 @@ function Info() {
 	);
 }
 
-function CandidateCard({
-	candidate,
-	isOptimal,
-	className,
-	estimatedHours
-}: {
-	candidate: EcsCandidate;
-	isOptimal?: boolean;
-	className?: string;
-	estimatedHours?: string | null;
-}) {
+function SkeletonRow() {
 	return (
-		<Card
-			className={cn(
-				className,
-				isOptimal && 'ring-2 ring-emerald-500/50'
-			)}
-		>
-			<CardHeader className="pb-2">
-				<div className="flex items-center justify-between">
-					<CardTitle className="font-mono text-base">
-						{candidate.instanceType}
-					</CardTitle>
-					{isOptimal && (
-						<Badge className="gap-1 bg-emerald-500 hover:bg-emerald-500 text-white">
-							<CheckIcon className="size-3" />
-							最优规格
-						</Badge>
-					)}
-				</div>
-			</CardHeader>
-			<CardContent>
-				{isOptimal && estimatedHours !== undefined && (
-					<div className="flex items-center gap-1.5 mb-3 px-3 py-2 bg-muted/50 rounded-md text-sm">
-						<ClockIcon size={13} className="text-muted-foreground shrink-0" />
-						<span className="text-muted-foreground">预计支撑时间（偏高）</span>
-						<span className="font-semibold">{estimatedHours ?? '—'}</span>
-					</div>
-				)}
-				<div
-					className={cn(
-						'grid gap-x-4 gap-y-2 text-sm',
-						isOptimal ? 'grid-cols-4' : 'grid-cols-2'
-					)}
-				>
-					<SpecItem label="vCPU" value={candidate.cpuCoreCount} />
-					<SpecItem label="内存" value={`${candidate.memory} GiB`} />
-					<SpecItem label="可用区" value={candidate.zoneId} />
-					<SpecItem label="价格" value={`¥${candidate.tradePrice.toFixed(2)}/小时`} />
-				</div>
-			</CardContent>
-		</Card>
-	);
-}
-
-function SpecItem({ label, value }: { label: string; value: string | number }) {
-	return (
-		<div>
-			<span className="text-xs text-muted-foreground">{label}</span>
-			<p className="font-medium">{value}</p>
-		</div>
-	);
-}
-
-function SkeletonCard({ className, isOptimal }: { className?: string; isOptimal?: boolean }) {
-	return (
-		<Card
-			className={cn(
-				className,
-				isOptimal && 'ring-2 ring-emerald-500/50'
-			)}
-		>
-			<CardHeader className="pb-2">
-				<div className="flex items-center justify-between">
-					<div className="h-5 bg-muted rounded animate-pulse w-36" />
-					{isOptimal && (
-						<div className="h-5 bg-muted rounded-full animate-pulse w-20" />
-					)}
-				</div>
-			</CardHeader>
-			<CardContent>
-				{isOptimal && (
-					<div className="flex items-center gap-1.5 mb-3 px-3 py-2 bg-muted/50 rounded-md">
-						<div className="h-4 bg-muted rounded animate-pulse w-36" />
-					</div>
-				)}
-				<div
-					className={cn(
-						'grid gap-x-4 gap-y-2',
-						isOptimal ? 'grid-cols-4' : 'grid-cols-2'
-					)}
-				>
-					{Array.from({ length: 4 }).map((_, i) => (
-						<div key={i}>
-							<div className="h-3 bg-muted rounded animate-pulse w-10 mb-1.5" />
-							<div className="h-4 bg-muted rounded animate-pulse w-16" />
-						</div>
-					))}
-				</div>
-			</CardContent>
-		</Card>
+		<TableRow>
+			<TableCell>
+				<div className="h-4 w-32 bg-muted rounded animate-pulse" />
+			</TableCell>
+			<TableCell>
+				<div className="h-4 w-8 bg-muted rounded animate-pulse ml-auto" />
+			</TableCell>
+			<TableCell>
+				<div className="h-4 w-12 bg-muted rounded animate-pulse ml-auto" />
+			</TableCell>
+			<TableCell>
+				<div className="h-4 w-20 bg-muted rounded animate-pulse" />
+			</TableCell>
+			<TableCell>
+				<div className="h-4 w-20 bg-muted rounded animate-pulse ml-auto" />
+			</TableCell>
+			<TableCell className="hidden md:table-cell">
+				<div className="h-4 w-16 bg-muted rounded animate-pulse ml-auto" />
+			</TableCell>
+		</TableRow>
 	);
 }
 
@@ -150,42 +80,78 @@ export default function EcsCandidatesPage() {
 		]).finally(() => setLoading(false));
 	}, []);
 
-	const estimatedHours = useMemo(() => {
-		if (balance.current - 100 <= 0) return null;
-		if (candidates.current.length === 0) return null;
-		return ((balance.current - 100) / candidates.current[0].tradePrice).toFixed(1) + 'h';
-	}, [balance.current, candidates]);
+	const availableBalance = balance.current - 100;
+
+	function estimateHours(candidate: EcsCandidate) {
+		if (availableBalance <= 0) return null;
+		return (availableBalance / candidate.tradePrice).toFixed(1) + 'h';
+	}
 
 	return (
 		<>
 			<PageHeader info={Info()}>{PAGE_NAME_ECS_CANDIDATES}</PageHeader>
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-				{loading ? (
-					<>
-						<SkeletonCard key="skel-0" isOptimal className="md:col-span-2" />
-						<SkeletonCard key="skel-1" />
-						<SkeletonCard key="skel-2" />
-						<SkeletonCard key="skel-3" />
-					</>
-				) : candidates.current.length === 0 ? (
-					<div className="col-span-full">
-						<EmptyState
-							icon={AlertTriangleIcon}
-							iconClassName="text-amber-500"
-							description="暂无可用实例"
-						/>
-					</div>
-				) : (
-					candidates.current.map((c, i) => (
-						<CandidateCard
-							key={c.instanceType + '-' + c.zoneId}
-							candidate={c}
-							isOptimal={i === 0}
-							className={i === 0 ? 'md:col-span-2' : ''}
-							estimatedHours={i === 0 ? estimatedHours : undefined}
-						/>
-					))
-				)}
+			<div className="border rounded-lg bg-card">
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>实例规格</TableHead>
+							<TableHead className="text-right">vCPU</TableHead>
+							<TableHead className="text-right">内存</TableHead>
+							<TableHead>可用区</TableHead>
+							<TableHead className="text-right">价格</TableHead>
+							<TableHead className="hidden md:table-cell text-right">预计支撑时间</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{loading ? (
+							Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={`skel-${i}`} />)
+						) : candidates.current.length === 0 ? (
+							<TableRow>
+								<TableCell colSpan={COLUMN_COUNT}>
+									<EmptyState
+										icon={AlertTriangleIcon}
+										iconClassName="text-amber-500"
+										description="暂无可用实例"
+										className="py-10"
+									/>
+								</TableCell>
+							</TableRow>
+						) : (
+							candidates.current.map((c, i) => {
+								const isOptimal = i === 0;
+								return (
+									<TableRow
+										key={c.instanceType + '-' + c.zoneId}
+										className={cn(isOptimal && 'bg-emerald-500/5 hover:bg-emerald-500/10')}
+									>
+										<TableCell>
+											<div className="flex items-center gap-2">
+												<span className="font-mono font-medium">{c.instanceType}</span>
+												{isOptimal && (
+													<Badge className="bg-emerald-500 hover:bg-emerald-500 text-white">
+														当前
+													</Badge>
+												)}
+											</div>
+										</TableCell>
+										<TableCell className="text-right">{c.cpuCoreCount}</TableCell>
+										<TableCell className="text-right">{c.memory} GiB</TableCell>
+										<TableCell>{c.zoneId}</TableCell>
+										<TableCell className="text-right font-mono">
+											¥{c.tradePrice.toFixed(2)}
+											<span className="text-muted-foreground font-sans">/小时</span>
+										</TableCell>
+										<TableCell className="hidden md:table-cell text-right">
+											<span className={cn(isOptimal && 'font-semibold')}>
+												{estimateHours(c) ?? '—'}
+											</span>
+										</TableCell>
+									</TableRow>
+								);
+							})
+						)}
+					</TableBody>
+				</Table>
 			</div>
 		</>
 	);

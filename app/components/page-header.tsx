@@ -20,8 +20,8 @@ export default function PageHeader(props: {
 
 	return (
 		<>
-			<div className="flex items-center mb-4">
-				<h1 className="text-3xl mr-2">{props.children}</h1>
+			<div className="flex flex-wrap items-center gap-x-2 gap-y-3 mb-4">
+				<h1 className="text-3xl whitespace-nowrap">{props.children}</h1>
 				{props.info && (
 					<Button
 						variant="ghost"
@@ -31,8 +31,11 @@ export default function PageHeader(props: {
 						<InfoIcon data-icon="inline-start" />
 					</Button>
 				)}
-				<div className="flex-1" />
-				{props.actions}
+				{props.actions && (
+					<div className="ml-auto flex flex-auto min-w-0 items-center justify-end">
+						{props.actions}
+					</div>
+				)}
 			</div>
 
 			<Dialog open={infoOpen.current} onOpenChange={v => infoOpen.set(v)}>

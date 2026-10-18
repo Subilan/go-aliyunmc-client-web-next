@@ -67,7 +67,7 @@ export const UpdateLog = {
 						<EmptyState
 							icon={FileTextIcon}
 							iconSize={32}
-							iconClassName="text-muted-foreground/30"
+							iconClassName="text-muted-foreground opacity-30"
 							description={<span className="text-muted-foreground text-sm">暂无更新日志</span>}
 							className="py-6"
 						/>

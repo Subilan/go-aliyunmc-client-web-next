@@ -96,7 +96,7 @@ export const ServerStatus = {
 						<EmptyState
 							icon={ServerIcon}
 							iconSize={40}
-							iconClassName="text-muted-foreground/30"
+							iconClassName="text-muted-foreground opacity-30"
 							description={<span className="text-muted-foreground">暂无可用实例</span>}
 							className="py-12 flex-1"
 						/>

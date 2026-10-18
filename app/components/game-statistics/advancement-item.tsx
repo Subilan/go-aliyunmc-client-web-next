@@ -159,13 +159,14 @@ export function AdvancementItem({ a, completed }: { a: AdvancementEntry; complet
 				>
 					<DialogContent
 						showCloseButton={false}
-						className="bg-transparent shadow-none border-0 ring-0 rounded-none gap-0 p-0 sm:max-w-none max-w-none"
+						style={{ pointerEvents: 'none' }}
+						className="bg-transparent shadow-none border-0 ring-0 rounded-none gap-0 p-0 w-auto max-w-none"
 					>
 						<div className="flex flex-col items-center gap-10 p-4">
-							<div className="scale-[1.5]">
+							<div className="scale-[1.5] pointer-events-auto">
 								{iconElement}
 							</div>
-							{dialogContent}
+							<div className="pointer-events-auto">{dialogContent}</div>
 						</div>
 					</DialogContent>
 				</Dialog>

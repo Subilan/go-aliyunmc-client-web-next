@@ -2,8 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
-import { ClockIcon, RefreshCwIcon, ChevronRightIcon } from 'lucide-react';
-import { Link } from 'react-router';
+import { ClockIcon, RefreshCwIcon } from 'lucide-react';
 import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
 import { taskStatusIcon } from '~/routes/tasks';
 import { taskTypeLabel } from '~/routes/home/utils';
@@ -43,8 +42,8 @@ export const RecentTasks = {
 		}, [refreshKey, handleRefresh]);
 
 		return (
-			<Card className="h-full">
-				<CardHeader className="pb-2">
+			<Card className="h-full gap-3">
+				<CardHeader>
 					<CardTitle className="tracking-wider text-sm font-normal text-muted-foreground">最近活动</CardTitle>
 					<CardAction>
 						<Tooltip>
@@ -71,51 +70,38 @@ export const RecentTasks = {
 						<EmptyState
 							icon={ClockIcon}
 							iconSize={32}
-							iconClassName="text-muted-foreground/30"
+							iconClassName="text-muted-foreground opacity-30"
 							description={<span className="text-muted-foreground text-sm">暂无活动</span>}
 							className="py-6"
 						/>
 					) : (
-						<div className="flex flex-col flex-1">
-							<div className="flex flex-col gap-1">
-								{tasks.slice(0, 5).map(task => (
-									<div
-										key={task.ID}
-										className="flex items-center gap-2 py-1.5"
-									>
-										<span className="text-muted-foreground shrink-0">
-											{taskStatusIcon(task.status)}
-										</span>
-										<span className="text-sm flex-1 truncate">
-											{taskTypeLabel(task.type)}
-										</span>
-										<Tooltip>
-											<TooltipTrigger asChild>
-												<span className="text-xs text-muted-foreground shrink-0 tabular-nums">
-													{Times.formatFromNow(task.CreatedAt)}
-												</span>
-											</TooltipTrigger>
-											<TooltipContent>
-												{Times.formatDate(task.CreatedAt)}
-											</TooltipContent>
-										</Tooltip>
-									</div>
-								))}
-							</div>
-
-							<div className="mt-auto pt-2 border-t border-border">
-								<Button
-									size="sm"
-									variant="ghost"
-									className="w-full justify-between text-muted-foreground hover:text-foreground"
-									asChild
+						<div className="flex flex-col gap-1">
+							{tasks.slice(0, 5).map(task => (
+								<div
+									key={task.ID}
+									className="flex items-center gap-2 py-1.5"
 								>
-									<Link to="/info/tasks">
-										查看全部
-										<ChevronRightIcon />
-									</Link>
-								</Button>
-							</div>
+									<span className="text-muted-foreground shrink-0">
+										{taskStatusIcon(task.status)}
+									</span>
+									<span className="text-sm flex-1 truncate">
+										{taskTypeLabel(task.type)}
+									</span>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span className="text-xs text-muted-foreground shrink-0 tabular-nums">
+												{Times.formatFromNow(task.CreatedAt)}
+											</span>
+										</TooltipTrigger>
+										<TooltipContent>
+											{Times.formatDate(task.CreatedAt)}
+										</TooltipContent>
+									</Tooltip>
+									<span className="text-xs text-muted-foreground shrink-0 max-w-24 truncate">
+										{task.user?.username ?? (task.by ? String(task.by) : '系统')}
+									</span>
+								</div>
+							))}
 						</div>
 					)}
 				</CardContent>

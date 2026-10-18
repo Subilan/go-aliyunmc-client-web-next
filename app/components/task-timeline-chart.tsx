@@ -1,5 +1,7 @@
 import ReactECharts from 'echarts-for-react';
 import type { EChartsOption } from 'echarts';
+import { ActivityIcon } from 'lucide-react';
+import EmptyState from '~/components/empty-state';
 
 export interface TimelineTask {
 	id: number;
@@ -99,9 +101,11 @@ export default function TaskTimelineChart({
 
 	if (totalTasks === 0 && totalPlayers === 0) {
 		return (
-			<div className="text-neutral-400 text-sm text-center py-8 select-none" style={style}>
-				最近 {timeRangeHours} 小时暂无活动
-			</div>
+			<EmptyState
+				icon={ActivityIcon}
+				description={`最近 ${timeRangeHours} 小时暂无活动`}
+				className="h-full"
+			/>
 		);
 	}
 

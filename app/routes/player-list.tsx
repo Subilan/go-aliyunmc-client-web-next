@@ -53,6 +53,8 @@ function PlayerCard({ player }: { player: PlayerListEntry }) {
 						ref={imgRef}
 						src={`https://minotar.net/helm/${player.uuid}/128.png`}
 						alt={player.name}
+						loading="lazy"
+						decoding="async"
 						className="w-full h-full object-cover"
 						onLoad={() => setImageLoaded(true)}
 					/>
@@ -65,8 +67,8 @@ function PlayerCard({ player }: { player: PlayerListEntry }) {
 						</div>
 					)}
 				</div>
-				<div className="flex-1 flex items-center justify-center text-center p-2">
-					<div className="text-lg font-medium break-all leading-tight font-minecraft">{player.name}</div>
+				<div className="flex-1 flex items-center justify-center text-center px-2 py-2.5">
+					<div className="text-base sm:text-lg font-medium break-all leading-tight font-minecraft">{player.name}</div>
 				</div>
 			</div>
 		</Card>
@@ -134,7 +136,7 @@ export default function GameStatisticsPlayerList() {
 		<>
 			<PageHeader
 				actions={
-					<div className="flex items-center gap-3">
+					<div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<div className="flex items-center gap-1.5">
@@ -153,7 +155,7 @@ export default function GameStatisticsPlayerList() {
 							</TooltipContent>
 						</Tooltip>
 						<Select value={sort} onValueChange={v => handleSortChange(v as SortOrder)}>
-							<SelectTrigger size="sm" className="w-[130px]">
+							<SelectTrigger size="sm" className="w-[120px] shrink-0 sm:w-[130px]">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -168,8 +170,19 @@ export default function GameStatisticsPlayerList() {
 			>
 				{PAGE_NAME_PLAYER_LIST}
 			</PageHeader>
-			{loading ? null : filteredPlayers.length ? (
-				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-5">
+			{loading ? (
+				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-3 sm:gap-4 md:gap-5">
+					{Array.from({ length: 12 }).map((_, i) => (
+						<Card key={`skel-${i}`} className="pt-0 pb-0 gap-0">
+							<div className="aspect-square w-full rounded-t-xl bg-muted animate-pulse" />
+							<div className="flex items-center justify-center px-2 py-2.5">
+								<div className="h-4 w-2/3 rounded bg-muted animate-pulse" />
+							</div>
+						</Card>
+					))}
+				</div>
+			) : filteredPlayers.length ? (
+				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-3 sm:gap-4 md:gap-5">
 					{filteredPlayers.map(p => (
 						<PlayerCard key={p.uuid} player={p} />
 					))}

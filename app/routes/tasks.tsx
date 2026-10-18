@@ -75,12 +75,12 @@ function TimeCell({ ts }: { ts?: string }) {
 	);
 }
 
-function ClickableCell({ text, className }: { text: string; className?: string }) {
+function ClickableCell({ text }: { text: string }) {
 	const [open, setOpen] = useState(false);
 	return (
 		<>
 			<span
-				className={`text-xs max-w-20 inline-block truncate cursor-pointer text-center ${className ?? 'text-muted-foreground'}`}
+				className="text-xs max-w-20 inline-block truncate cursor-pointer text-center text-muted-foreground"
 				onClick={() => setOpen(true)}
 			>
 				{text}
@@ -96,6 +96,34 @@ function ClickableCell({ text, className }: { text: string; className?: string }
 				</DialogContent>
 			</Dialog>
 		</>
+	);
+}
+
+function StatCard({
+	label,
+	value,
+	tooltip
+}: {
+	label: string;
+	value: string | null;
+	tooltip?: string;
+}) {
+	return (
+		<Card size="sm" className="h-full justify-center">
+			<CardContent className="flex flex-col gap-0.5">
+				<span className="text-xs text-muted-foreground">{label}</span>
+				{tooltip ? (
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<span className="text-2xl font-bold cursor-default">{value ?? '—'}</span>
+						</TooltipTrigger>
+						<TooltipContent>{tooltip}</TooltipContent>
+					</Tooltip>
+				) : (
+					<span className="text-2xl font-bold">{value ?? '—'}</span>
+				)}
+			</CardContent>
+		</Card>
 	);
 }
 
@@ -187,11 +215,11 @@ const columns: Column<Task>[] = [
 	},
 	{
 		id: 'error',
-		label: '错误',
+		label: '错误信息',
 		align: 'center',
 		render: t =>
 			t.error ? (
-				<ClickableCell text={t.error} className="text-red-500" />
+				<ClickableCell text={t.error} />
 			) : (
 				<span className="text-muted-foreground">—</span>
 			)
@@ -276,15 +304,6 @@ export default function TasksPage() {
 		stats?.lastCreatedUser?.username ??
 		(stats?.lastCreatedBy ? String(stats.lastCreatedBy) : System);
 
-	function lastByType(key: string): string {
-		const ts = stats?.lastCompletedByType?.[key];
-		return ts ? Times.formatFromNow(ts) : '—';
-	}
-
-	function lastByTypeRaw(key: string): string | undefined {
-		return stats?.lastCompletedByType?.[key];
-	}
-
 	// 启动游戏成功后服务器即已启动，因此“最近启动”需要同时考虑两种任务类型。
 	function latestTimestamp(keys: string[]): string | undefined {
 		let latest: string | undefined;
@@ -303,16 +322,8 @@ export default function TasksPage() {
 
 	const lastStartedAt = latestTimestamp(['start_server', 'oneclick_start_game']);
 
-	const statItems: { label: string; value: string | null; tooltip?: string }[] = [
-		{ label: '任务总数', value: stats ? String(stats.total) : null },
-		{ label: '成功率', value: stats ? successRate : null },
-		{ label: '总运行时长', value: stats ? Times.formatRuntimeHours(stats.totalRuntimeSec) : null },
-		{ label: '最近完成', value: stats ? lastCompletedAgo : null, tooltip: stats?.lastCompletedAt ? Times.formatDate(stats.lastCompletedAt) : undefined },
-		{ label: '最近启动', value: stats ? (lastStartedAt ? Times.formatFromNow(lastStartedAt) : '—') : null, tooltip: lastStartedAt ? Times.formatDate(lastStartedAt) : undefined },
-		{ label: '最近备份', value: stats ? lastByType('backup') : null, tooltip: stats ? (lastByTypeRaw('backup') ? Times.formatDate(lastByTypeRaw('backup')!) : undefined) : undefined },
-		{ label: '最近归档', value: stats ? lastByType('archive') : null, tooltip: stats ? (lastByTypeRaw('archive') ? Times.formatDate(lastByTypeRaw('archive')!) : undefined) : undefined },
-		{ label: '最近创建者', value: stats ? lastCreator : null }
-	];
+	const lastStartedAgo = stats ? (lastStartedAt ? Times.formatFromNow(lastStartedAt) : '—') : null;
+	const lastStartedTooltip = lastStartedAt ? Times.formatDate(lastStartedAt) : undefined;
 
 	const timeRangeOptions = [
 		{ value: '1', label: '1 小时' },
@@ -327,64 +338,74 @@ export default function TasksPage() {
 		<>
 			<PageHeader>{PAGE_NAME_TASK_LIST}</PageHeader>
 			<div className="flex flex-col gap-5">
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-					<div className="grid grid-cols-2 gap-5 auto-rows-fr">
-						{statItems.map((s, i) => (
-							<Card key={i} size="sm" className="h-full justify-center">
-								<CardContent className="flex flex-col gap-0.5">
-									<span className="text-xs text-muted-foreground">{s.label}</span>
-									{s.tooltip ? (
-										<Tooltip>
-											<TooltipTrigger asChild>
-												<span className="text-2xl font-bold cursor-default">{s.value ?? '—'}</span>
-											</TooltipTrigger>
-											<TooltipContent>{s.tooltip}</TooltipContent>
-										</Tooltip>
-									) : (
-										<span className="text-2xl font-bold">{s.value ?? '—'}</span>
-									)}
-								</CardContent>
-							</Card>
-						))}
-					</div>
-					<Card className="h-full">
-						<CardHeader className="pb-2 flex flex-row items-center justify-between gap-2">
-							<CardTitle className="tracking-wider text-sm font-normal text-muted-foreground">
-								时间轴
-							</CardTitle>
-							<Select
-								value={String(timeRangeHours)}
-								onValueChange={v => setTimeRangeHours(Number(v))}
-							>
-								<SelectTrigger className="w-28 h-8 text-sm">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									{timeRangeOptions.map(opt => (
-										<SelectItem key={opt.value} value={opt.value}>
-											{opt.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</CardHeader>
-						<CardContent className="flex-1 min-h-0">
-							<TaskTimelineChart
-								tasks={recentTasks.map(t => ({
-									id: t.ID,
-									type: t.type,
-									startAt: t.startAt ?? '',
-									endAt: t.endAt,
-									status: t.status
-								}))}
-								playerRanges={onlineRanges}
-								loading={chartLoading}
-								timeRangeHours={timeRangeHours}
-								style={{ height: '100%' }}
-							/>
+				<div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+					<Card size="sm" className="col-span-2 h-full justify-center">
+						<CardContent className="flex flex-col gap-0.5">
+							<span className="text-xs text-muted-foreground">最近启动游戏</span>
+							<div className="flex items-baseline min-w-0">
+								{lastStartedTooltip ? (
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span className="text-2xl font-bold cursor-default">
+												{lastStartedAgo ?? '—'}
+											</span>
+										</TooltipTrigger>
+										<TooltipContent>{lastStartedTooltip}</TooltipContent>
+									</Tooltip>
+								) : (
+									<span className="text-2xl font-bold">{lastStartedAgo ?? '—'}</span>
+								)}
+								<span className="text-2xl font-bold">，</span>
+								<span className="text-2xl font-bold truncate min-w-0">
+									{stats ? lastCreator : '—'}
+								</span>
+							</div>
 						</CardContent>
 					</Card>
+					<StatCard label="成功率" value={stats ? successRate : null} />
+					<StatCard
+						label="最近完成"
+						value={stats ? lastCompletedAgo : null}
+						tooltip={stats?.lastCompletedAt ? Times.formatDate(stats.lastCompletedAt) : undefined}
+					/>
 				</div>
+				<Card>
+					<CardHeader className="pb-2 flex flex-row items-center justify-between gap-2">
+						<CardTitle className="tracking-wider text-sm font-normal text-muted-foreground">
+							时间轴
+						</CardTitle>
+						<Select
+							value={String(timeRangeHours)}
+							onValueChange={v => setTimeRangeHours(Number(v))}
+						>
+							<SelectTrigger className="w-28 h-8 text-sm">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								{timeRangeOptions.map(opt => (
+									<SelectItem key={opt.value} value={opt.value}>
+										{opt.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</CardHeader>
+					<CardContent className="h-[320px]">
+						<TaskTimelineChart
+							tasks={recentTasks.map(t => ({
+								id: t.ID,
+								type: t.type,
+								startAt: t.startAt ?? '',
+								endAt: t.endAt,
+								status: t.status
+							}))}
+							playerRanges={onlineRanges}
+							loading={chartLoading}
+							timeRangeHours={timeRangeHours}
+							style={{ height: '100%' }}
+						/>
+					</CardContent>
+				</Card>
 				<PaginatedTable
 					columns={columns}
 					rows={rows}

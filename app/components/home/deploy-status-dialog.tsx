@@ -6,6 +6,7 @@ import {
 	DialogTitle
 } from '~/components/ui/dialog';
 import { Button } from '~/components/ui/button';
+import { ScrollArea } from '~/components/ui/scroll-area';
 import { useAutoScroll } from '~/components/task-output';
 import { CheckCircle2Icon, Loader2Icon, XCircleIcon } from 'lucide-react';
 
@@ -72,27 +73,32 @@ function OutputPanel({ outputs }: { outputs: { output: string }[] }) {
 	const scrollRef = useAutoScroll(outputs.length);
 
 	return (
-		<div className="h-[50vh] max-h-[420px] overflow-y-auto bg-white px-4 py-3">
-			{outputs.length === 0 ? (
-				<span className="text-xs text-neutral-400">等待输出...</span>
-			) : (
-				<div className="whitespace-pre-wrap break-all font-mono text-xs leading-relaxed">
-					{outputs.map((o, i) => (
-						<div
-							key={i}
-							className={
-								isStepAnnouncement(o.output)
-									? 'mt-3 font-medium text-foreground first:mt-0'
-									: 'text-neutral-600'
-							}
-						>
-							{o.output}
-						</div>
-					))}
-				</div>
-			)}
-			<div ref={scrollRef} />
-		</div>
+		<ScrollArea
+			className="bg-white"
+			viewportClassName="h-[50vh] max-h-[420px]"
+		>
+			<div className="px-4 py-3">
+				{outputs.length === 0 ? (
+					<span className="text-xs text-neutral-400">等待输出...</span>
+				) : (
+					<div className="whitespace-pre-wrap break-all font-mono text-xs leading-relaxed">
+						{outputs.map((o, i) => (
+							<div
+								key={i}
+								className={
+									isStepAnnouncement(o.output)
+										? 'mt-3 font-medium text-foreground first:mt-0'
+										: 'text-neutral-600'
+								}
+							>
+								{o.output}
+							</div>
+						))}
+					</div>
+				)}
+				<div ref={scrollRef} />
+			</div>
+		</ScrollArea>
 	);
 }
 

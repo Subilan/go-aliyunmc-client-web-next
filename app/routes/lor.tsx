@@ -5,6 +5,7 @@ import {
 import { Button } from '~/components/ui/button';
 import { Checkbox } from '~/components/ui/checkbox';
 import { Spinner } from '~/components/ui/spinner';
+import { ScrollArea } from '~/components/ui/scroll-area';
 import {
 	Dialog,
 	DialogContent,
@@ -235,7 +236,8 @@ export default function Lor() {
 					<DialogHeader>
 						<DialogTitle>关于控制台账号</DialogTitle>
 					</DialogHeader>
-					<div className="prose max-w-none text-sm text-muted-foreground max-h-[60vh] overflow-y-auto">
+					<ScrollArea viewportClassName="max-h-[60vh]">
+						<div className="prose max-w-none text-sm text-muted-foreground pe-3">
 						<p>
 							在注册控制台账号之前，如果你有任何疑问，可以参考下面的内容。
 						</p>
@@ -289,7 +291,8 @@ export default function Lor() {
 							</li>
 							<li>密码：长度为 8~20 个字符，必须包含英文字母、数字。</li>
 						</ul>
-					</div>
+						</div>
+					</ScrollArea>
 					<DialogFooter>
 						<Button variant="outline" onClick={() => registerHelpModal.set(false)}>关闭</Button>
 					</DialogFooter>

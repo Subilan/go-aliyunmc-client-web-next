@@ -5,6 +5,7 @@ import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
 import { Spinner } from '~/components/ui/spinner';
 import { Input } from '~/components/ui/input';
+import { ScrollArea } from '~/components/ui/scroll-area';
 import { Textarea } from '~/components/ui/textarea';
 import { Label } from '~/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '~/components/ui/toggle-group';
@@ -361,9 +362,11 @@ export default function Updates() {
 								</Badge>
 							</div>
 						</DialogHeader>
-						<div className="prose text-base leading-relaxed text-muted-foreground max-h-[70vh] overflow-y-auto pe-1">
-							<Remark>{selected.body}</Remark>
-						</div>
+						<ScrollArea viewportClassName="max-h-[70vh]">
+							<div className="prose text-base leading-relaxed text-muted-foreground pe-3">
+								<Remark>{selected.body}</Remark>
+							</div>
+						</ScrollArea>
 						<DialogFooter>
 							<div className="flex items-center gap-0.5">
 								<Button

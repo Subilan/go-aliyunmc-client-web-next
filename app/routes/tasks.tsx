@@ -12,6 +12,7 @@ import {
 } from '~/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
+import { ScrollArea } from '~/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import TaskTimelineChart from '~/components/task-timeline-chart';
 import {
@@ -90,9 +91,11 @@ function ClickableCell({ text }: { text: string }) {
 					<DialogHeader>
 						<DialogTitle>详细信息</DialogTitle>
 					</DialogHeader>
-					<pre className="text-sm whitespace-pre-wrap break-all max-h-[60vh] overflow-y-auto">
-						{text}
-					</pre>
+					<ScrollArea viewportClassName="max-h-[60vh]">
+						<pre className="text-sm whitespace-pre-wrap break-all">
+							{text}
+						</pre>
+					</ScrollArea>
 				</DialogContent>
 			</Dialog>
 		</>
@@ -163,9 +166,11 @@ function ViewOutputBtn({ taskId }: { taskId: number }) {
 					) : fetchError ? (
 						<div className="text-red-500 text-sm py-4">{fetchError}</div>
 					) : output ? (
-						<pre className="text-sm whitespace-pre-wrap break-all max-h-[60vh] overflow-y-auto">
-							{output}
-						</pre>
+						<ScrollArea viewportClassName="max-h-[60vh]">
+							<pre className="text-sm whitespace-pre-wrap break-all">
+								{output}
+							</pre>
+						</ScrollArea>
 					) : (
 						<div className="text-muted-foreground text-sm py-4">暂无输出</div>
 					)}

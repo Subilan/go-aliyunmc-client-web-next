@@ -10,6 +10,7 @@ import {
 	DialogTitle
 } from '~/components/ui/dialog';
 import { Button } from '~/components/ui/button';
+import { ScrollArea } from '~/components/ui/scroll-area';
 
 export default function PageHeader(props: {
 	children: ReactNode;
@@ -43,7 +44,9 @@ export default function PageHeader(props: {
 					<DialogHeader>
 						<DialogTitle>{props.children}</DialogTitle>
 					</DialogHeader>
-					<div className="prose text-base leading-relaxed text-muted-foreground max-h-[70vh] overflow-y-auto pe-1">{props.info}</div>
+					<ScrollArea viewportClassName="max-h-[70vh]">
+						<div className="prose text-base leading-relaxed text-muted-foreground pe-3">{props.info}</div>
+					</ScrollArea>
 					<DialogFooter>
 						<Button variant="outline" onClick={() => infoOpen.set(false)}>
 							关闭

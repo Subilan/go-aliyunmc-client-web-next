@@ -281,3 +281,45 @@ hr {
 	transition-duration: 150ms;
 	transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
 }
+
+/* ---break---*/
+
+/*
+ * Scrollbars: slim, transparent track, rounded thumb. The transparent track
+ * keeps the visual weight off the content, so the bar reads as a floating
+ * handle instead of a gray gutter. WebKit/Blink is styled via the vendor
+ * pseudo-elements; Firefox gets the standard properties (kept in a separate
+ * @supports block so Chromium does not disable the custom scrollbar).
+ */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: color-mix(in oklch, var(--muted-foreground) 30%, transparent);
+	background-clip: padding-box;
+	border: 2px solid transparent;
+	border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background-color: color-mix(in oklch, var(--muted-foreground) 55%, transparent);
+}
+
+::-webkit-scrollbar-thumb:active {
+	background-color: color-mix(in oklch, var(--foreground) 55%, transparent);
+}
+
+@supports (-moz-appearance: none) {
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: color-mix(in oklch, var(--muted-foreground) 35%, transparent)
+			transparent;
+	}
+}

@@ -292,7 +292,7 @@ export default function BanPage() {
 						</SelectContent>
 					</Select>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setBanDialogOpen(false)} disabled={banning}>
+						<Button variant="ghost" onClick={() => setBanDialogOpen(false)} disabled={banning}>
 							取消
 						</Button>
 						<Button onClick={handleBanSubmit} disabled={banning || !selectedBanUserId}>
@@ -316,7 +316,7 @@ export default function BanPage() {
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={confirmLoading}>
+						<Button variant="ghost" onClick={() => setConfirmOpen(false)} disabled={confirmLoading}>
 							取消
 						</Button>
 						<Button

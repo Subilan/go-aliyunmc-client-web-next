@@ -118,12 +118,12 @@ function StatCard({
 				{tooltip ? (
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<span className="text-2xl font-bold cursor-default">{value ?? '—'}</span>
+							<span className="text-2xl font-medium cursor-default">{value ?? '—'}</span>
 						</TooltipTrigger>
 						<TooltipContent>{tooltip}</TooltipContent>
 					</Tooltip>
 				) : (
-					<span className="text-2xl font-bold">{value ?? '—'}</span>
+					<span className="text-2xl font-medium">{value ?? '—'}</span>
 				)}
 			</CardContent>
 		</Card>
@@ -351,17 +351,17 @@ export default function TasksPage() {
 								{lastStartedTooltip ? (
 									<Tooltip>
 										<TooltipTrigger asChild>
-											<span className="text-2xl font-bold cursor-default">
+											<span className="text-2xl font-medium cursor-default">
 												{lastStartedAgo ?? '—'}
 											</span>
 										</TooltipTrigger>
 										<TooltipContent>{lastStartedTooltip}</TooltipContent>
 									</Tooltip>
 								) : (
-									<span className="text-2xl font-bold">{lastStartedAgo ?? '—'}</span>
+									<span className="text-2xl font-medium">{lastStartedAgo ?? '—'}</span>
 								)}
-								<span className="text-2xl font-bold">，</span>
-								<span className="text-2xl font-bold truncate min-w-0">
+								<span className="text-2xl font-medium">，</span>
+								<span className="text-2xl font-medium truncate min-w-0">
 									{stats ? lastCreator : '—'}
 								</span>
 							</div>

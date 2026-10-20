@@ -85,7 +85,7 @@ export function AdvancementItem({ a, completed }: { a: AdvancementEntry; complet
 					backgroundColor: completed ? 'rgb(170, 126, 16)' : 'rgb(198,198,198)'
 				}}
 			>
-				<span className="font-bold whitespace-nowrap px-3 text-shadow-black text-shadow-2xs w-full text-center">
+				<span className="font-bold whitespace-nowrap px-3 text-shadow-black text-shadow-2xs w-full text-center text-white!">
 					{a.chineseName}
 				</span>
 			</div>

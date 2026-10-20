@@ -17,7 +17,7 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '~/components/ui/dialog';
-import { HeartIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
+import { FileTextIcon, HeartIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { Remark } from 'react-remark';
 import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
 import { useLocation } from 'react-router';
@@ -229,6 +229,9 @@ export default function Updates() {
 			) : grouped.size === 0 ? (
 				<EmptyState
 					className="py-20"
+					icon={FileTextIcon}
+					iconSize={32}
+					iconClassName="text-muted-foreground opacity-30"
 					description={<span className="text-sm">暂无更新日志</span>}
 				/>
 			) : (
@@ -384,7 +387,7 @@ export default function Updates() {
 									{selected.like_count}
 								</Button>
 							</div>
-							<Button variant="outline" onClick={() => setSelected(null)}>关闭</Button>
+							<Button variant="ghost" onClick={() => setSelected(null)}>关闭</Button>
 						</DialogFooter>
 					</DialogContent>
 				)}
@@ -452,7 +455,7 @@ export default function Updates() {
 							/>
 						</div>
 						<DialogFooter>
-							<Button variant="outline" onClick={() => setCreating(false)} disabled={submitting}>
+							<Button variant="ghost" onClick={() => setCreating(false)} disabled={submitting}>
 								取消
 							</Button>
 							<Button type="submit" disabled={submitting}>
@@ -526,7 +529,7 @@ export default function Updates() {
 							/>
 						</div>
 						<DialogFooter>
-							<Button variant="outline" onClick={() => setEditing(null)} disabled={submitting}>
+							<Button variant="ghost" onClick={() => setEditing(null)} disabled={submitting}>
 								取消
 							</Button>
 							<Button type="submit" disabled={submitting}>
@@ -548,7 +551,7 @@ export default function Updates() {
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setDeleting(null)}>取消</Button>
+						<Button variant="ghost" onClick={() => setDeleting(null)}>取消</Button>
 						<Button variant="destructive" onClick={handleDelete}>删除</Button>
 					</DialogFooter>
 				</DialogContent>

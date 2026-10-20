@@ -24,7 +24,7 @@ function Info() {
 	return (
 		<>
 			<p>
-				<strong>候选实例</strong>是指经过控制台选择的那些满足 Minecraft
+				<strong>实例</strong>是指经过控制台选择的那些满足 Minecraft
 				服务器运行要求的实例，我们对这些实例有 vCPU 数量以及内存上的要求。
 			</p>
 			<p>

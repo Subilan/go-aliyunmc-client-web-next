@@ -64,18 +64,18 @@ function PodiumCard({
 		>
 			<CardContent className="flex flex-row sm:flex-col items-center sm:items-center sm:justify-center sm:h-full gap-3 sm:gap-1.5 py-0">
 				<div className="flex flex-col min-w-0 overflow-hidden sm:items-center">
-					<div className={`text-lg font-bold tracking-wider ${colors.text}`}>
+					<div className={`text-lg font-medium tracking-wider ${colors.text}`}>
 						#{rank}
 					</div>
 					<div
-						className={`text-lg ${isFirst ? 'text-xl' : ''} font-medium truncate`}
+						className={`text-lg ${isFirst ? 'text-xl' : ''} font-normal truncate`}
 					>
 						{entry.player_name}
 					</div>
 				</div>
 				<div className="flex flex-col items-end sm:items-center shrink-0 ml-auto sm:ml-0">
 					<span
-						className={`text-xl ${isFirst ? 'sm:text-3xl' : 'sm:text-2xl'} font-bold leading-none`}
+						className={`text-xl ${isFirst ? 'sm:text-3xl' : 'sm:text-2xl'} font-medium leading-none`}
 					>
 						{formattedValue}
 					</span>
@@ -238,7 +238,7 @@ export default function Leaderboard() {
 													{entry.player_name}
 												</TableCell>
 												<TableCell align="right" className="text-base py-3">
-													<span className="font-bold">
+													<span className="font-medium">
 														{formatValue(entry.value)}
 													</span>
 													<span className="text-muted-foreground text-sm ml-1">

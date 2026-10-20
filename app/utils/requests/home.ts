@@ -63,9 +63,10 @@ export function getAccountBalanceHistory() {
 export interface AccountBalanceStats {
 	rate: number | null;
 	span_hours: number;
+	running_hours: number;
 	sample_count: number;
 	has_enough_samples: boolean;
-	min_span_hours: number;
+	min_running_hours: number;
 }
 
 export function getAccountBalanceStats() {

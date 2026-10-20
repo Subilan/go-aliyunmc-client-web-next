@@ -33,7 +33,7 @@ export default function ConfirmTriggerDialog({
 					<DialogDescription>{description}</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>
-					<Button variant="outline" onClick={onClose} disabled={loading}>
+					<Button variant="ghost" onClick={onClose} disabled={loading}>
 						取消
 					</Button>
 					<Button onClick={onConfirm} disabled={loading}>

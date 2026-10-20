@@ -95,7 +95,7 @@ export const EconomyCard = {
 					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
 						<div>
 							<div className="text-xs text-muted-foreground mb-1">当前余额</div>
-							<div className="text-2xl font-bold">
+							<div className="text-2xl font-medium">
 								{loading ? '—' : `¥${balance.toFixed(2)}`}
 							</div>
 						</div>
@@ -103,7 +103,7 @@ export const EconomyCard = {
 							<div className="text-xs text-muted-foreground mb-1">
 								平均降低
 							</div>
-							<div className="text-2xl font-bold">
+							<div className="text-2xl font-medium">
 								{loading ? (
 									'—'
 								) : deductionRate === null ? (
@@ -114,8 +114,8 @@ export const EconomyCard = {
 											</TooltipTrigger>
 											<TooltipContent>
 												{stats.has_enough_samples
-													? '观测窗口内没有余额下降'
-													: `样本不足：当前观测跨度 ${stats.span_hours.toFixed(1)} 小时，至少需要 ${stats.min_span_hours} 小时`}
+													? '实例运行期间没有余额下降'
+													: `运行样本不足：已累计 ${stats.running_hours.toFixed(1)} 小时，至少需要 ${stats.min_running_hours} 小时`}
 											</TooltipContent>
 										</Tooltip>
 									) : (
@@ -130,7 +130,7 @@ export const EconomyCard = {
 							<div className="text-xs text-muted-foreground mb-1">
 								预计支撑时间
 							</div>
-							<div className="text-2xl font-bold">
+							<div className="text-2xl font-medium">
 								{loading ? '—' : estimatedHours === null ? '—' : `${estimatedHours.toFixed(1)} h`}
 							</div>
 						</div>

@@ -72,7 +72,7 @@ function BentoCard({ def, value }: { def: BentoCardDef; value: number }) {
 	return (
 		<div className="hover:bg-neutral-50 transition-colors rounded-lg p-4 cursor-default">
 			<div className="text-sm text-muted-foreground">{def.label}</div>
-			<div className="text-2xl font-bold text-neutral-800 tabular-nums font-grotesk mt-1">
+			<div className="text-2xl font-medium text-neutral-800 tabular-nums mt-1">
 				{def.format === 'hearts' ? (
 					<span className="flex items-center gap-1">
 						{formatValue(def, value)}

@@ -109,7 +109,7 @@ export const ServerStatus = {
 						<div className="flex flex-col flex-1">
 							<div className="flex items-baseline gap-3 mb-2">
 								<div className={`w-3 h-3 rounded-full shrink-0 ${statusColor}`} />
-								<span className="text-xl font-bold tracking-tight">{statusText}</span>
+								<span className="text-xl font-medium tracking-tight">{statusText}</span>
 								{online && (
 									<span className="text-xl font-light text-muted-foreground">
 										{playerCount}/20

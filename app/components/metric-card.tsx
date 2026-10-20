@@ -43,7 +43,7 @@ export default function MetricCard({
 								{m.icon}
 								{m.label}
 							</div>
-							<div className="text-3xl font-bold">
+							<div className="text-3xl font-medium">
 								{m.loading ? <Spinner /> : (m.value ?? '—')}
 							</div>
 							{m.subtitle && (

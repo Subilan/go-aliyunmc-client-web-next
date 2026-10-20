@@ -246,7 +246,7 @@ export default function Lor() {
 							控制台是 Seatide
 							玩家在游戏外部访问与控制服务器的专属平台，所有获取了白名单并绑定游戏账号的玩家，都可以使用控制台的大部分功能。
 						</p>
-						<div className="grid grid-cols-3 gap-5 not-prose">
+						<div className="grid grid-cols-3 gap-5 ps-px not-prose">
 							<HelpDialogCard
 								icon={MessagesSquareIcon}
 								iconClass="text-amber-600"
@@ -294,7 +294,7 @@ export default function Lor() {
 						</div>
 					</ScrollArea>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => registerHelpModal.set(false)}>关闭</Button>
+						<Button variant="ghost" onClick={() => registerHelpModal.set(false)}>关闭</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
@@ -310,11 +310,11 @@ function HelpDialogCard(props: {
 }) {
 	const Icon = props.icon;
 	return (
-		<Card>
+		<Card className="py-4">
 			<CardContent>
 				<Icon size={24} className={props.iconClass} />
-				<h3 className="mt-3 mb-2">{props.title}</h3>
-				<p className="text-sm">{props.description}</p>
+				<h3 className="mt-3 mb-2 font-medium">{props.title}</h3>
+				<p className="text-sm mb-0!">{props.description}</p>
 			</CardContent>
 		</Card>
 	);

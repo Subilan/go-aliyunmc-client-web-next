@@ -327,7 +327,7 @@ export default function Profile() {
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => deleteOpen.set(false)} disabled={deleteLoading.current}>
+						<Button variant="ghost" onClick={() => deleteOpen.set(false)} disabled={deleteLoading.current}>
 							取消
 						</Button>
 						<Button
@@ -351,7 +351,7 @@ export default function Profile() {
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => unbindOpen.set(false)} disabled={unbindLoading.current}>
+						<Button variant="ghost" onClick={() => unbindOpen.set(false)} disabled={unbindLoading.current}>
 							取消
 						</Button>
 						<Button

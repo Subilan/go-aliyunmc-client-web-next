@@ -1,9 +1,9 @@
-export const PAGE_NAME_ECS_CANDIDATES = '候选实例';
-export const PAGE_NAME_TASK_LIST = '任务列表';
-export const PAGE_NAME_PLAYER_LIST = '玩家列表';
-export const PAGE_NAME_GAME_STATISTICS = '游戏统计';
+export const PAGE_NAME_ECS_CANDIDATES = '实例';
+export const PAGE_NAME_TASK_LIST = '任务';
+export const PAGE_NAME_PLAYER_LIST = '玩家';
+export const PAGE_NAME_GAME_STATISTICS = '统计';
 export const PAGE_NAME_LEADERBOARD = '排行榜';
-export const PAGE_NAME_WEB_CHAT = 'Web 聊天';
+export const PAGE_NAME_WEB_CHAT = '聊天';
 export const PAGE_NAME_UPDATES = '更新日志';
 export const PAGE_NAME_ABOUT = '关于';
 export const PAGE_NAME_BAN = '封禁管理';

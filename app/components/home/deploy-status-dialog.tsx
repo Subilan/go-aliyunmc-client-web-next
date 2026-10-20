@@ -123,7 +123,7 @@ export default function DeployStatusDialog({
 				</div>
 				{error && <div className="break-all text-sm text-red-600">{error}</div>}
 				<DialogFooter>
-					<Button variant="outline" onClick={() => onOpenChange(false)}>
+					<Button variant="ghost" onClick={() => onOpenChange(false)}>
 						关闭
 					</Button>
 				</DialogFooter>

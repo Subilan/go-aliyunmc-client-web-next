@@ -75,7 +75,7 @@ export const InstanceStatus = {
 								<div
 									className={`w-2.5 h-2.5 rounded-full ${statusColor}`}
 								/>
-								<span className="text-xl font-bold">
+								<span className="text-xl font-medium">
 									{statusText}
 								</span>
 							</div>

@@ -12,7 +12,7 @@ function MetricCard({ label, value, sub, style }: MetricCardProps & { style?: CS
 	return (
 		<div className="rounded-lg p-4 bg-white/10 hover:bg-white/15 transition-colors cursor-default" style={style}>
 			<div className="text-sm text-white/60">{label}</div>
-			<div className="text-2xl font-bold text-white tabular-nums font-grotesk mt-1">
+			<div className="text-2xl font-medium text-white tabular-nums mt-1">
 				{value}
 			</div>
 			{sub && <div className="text-sm text-white/50 mt-0.5 truncate">{sub}</div>}
@@ -45,10 +45,10 @@ function RestRow({ rows, style, skipAnimation }: { rows: TopRow[]; style?: CSSPr
 									}
 						}
 					>
-						<span className="text-white/30 w-4 text-xs tabular-nums font-grotesk">#{r.rank}</span>
+						<span className="text-white/30 w-4 text-xs tabular-nums font-medium">#{r.rank}</span>
 						<span className="text-white truncate flex-1">{r.name}</span>
-						<span className="text-white/70 tabular-nums text-sm font-grotesk">{r.count.toLocaleString()}</span>
-						<span className="text-white/40 tabular-nums text-xs font-grotesk w-11 text-right">{r.pct}%</span>
+						<span className="text-white/70 tabular-nums text-sm font-medium">{r.count.toLocaleString()}</span>
+						<span className="text-white/40 tabular-nums text-xs font-medium w-11 text-right">{r.pct}%</span>
 					</div>
 				))}
 			</div>

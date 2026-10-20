@@ -21,8 +21,8 @@ export default function PageHeader(props: {
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center gap-x-2 gap-y-3 mb-4">
-				<h1 className="text-3xl whitespace-nowrap">{props.children}</h1>
+			<div className="flex flex-wrap items-center gap-x-2 gap-y-3">
+				<h1 className="text-3xl font-semibold whitespace-nowrap">{props.children}</h1>
 				{props.info && (
 					<Button
 						variant="ghost"
@@ -40,7 +40,7 @@ export default function PageHeader(props: {
 			</div>
 
 			<Dialog open={infoOpen.current} onOpenChange={v => infoOpen.set(v)}>
-				<DialogContent className="sm:max-w-md">
+				<DialogContent className="sm:max-w-xl">
 					<DialogHeader>
 						<DialogTitle>{props.children}</DialogTitle>
 					</DialogHeader>
@@ -48,7 +48,7 @@ export default function PageHeader(props: {
 						<div className="prose text-base leading-relaxed text-muted-foreground pe-3">{props.info}</div>
 					</ScrollArea>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => infoOpen.set(false)}>
+						<Button variant="ghost" onClick={() => infoOpen.set(false)}>
 							关闭
 						</Button>
 					</DialogFooter>

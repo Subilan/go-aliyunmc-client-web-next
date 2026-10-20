@@ -546,7 +546,7 @@ export default function Home() {
 					</DialogHeader>
 					<DialogFooter>
 						<Button
-							variant="outline"
+							variant="ghost"
 							onClick={() => setDeleteOpen(false)}
 							disabled={deleting}
 						>
@@ -622,7 +622,7 @@ export default function Home() {
 						详细状态信息将在后续版本中提供。
 					</div>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setRunningStatusOpen(false)}>
+						<Button variant="ghost" onClick={() => setRunningStatusOpen(false)}>
 							关闭
 						</Button>
 					</DialogFooter>

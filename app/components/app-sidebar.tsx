@@ -42,14 +42,14 @@ import {
 
 const consoleItems = [
 	{ title: '首页', url: '/', icon: LayoutDashboardIcon },
-	{ title: '任务列表', url: '/info/tasks', icon: ListTodoIcon },
-	{ title: '候选实例', url: '/info/ecs-candidates', icon: CpuIcon }
+	{ title: '任务', url: '/info/tasks', icon: ListTodoIcon },
+	{ title: '实例', url: '/info/ecs-candidates', icon: CpuIcon }
 ];
 
 const gameItems = [
-	{ title: '玩家列表', url: '/game/player-list', icon: UsersIcon },
+	{ title: '玩家', url: '/game/player-list', icon: UsersIcon },
 	{ title: '排行榜', url: '/game/leaderboard', icon: AlignEndHorizontalIcon },
-	{ title: 'Web 聊天', url: '/game/web-chat', icon: MessagesSquareIcon }
+	{ title: '聊天', url: '/game/web-chat', icon: MessagesSquareIcon }
 ];
 
 const miscItems = [
@@ -142,14 +142,14 @@ export default function AppSidebar() {
 									<SidebarMenuButton
 										asChild
 										isActive={pathname.startsWith('/game/statistics/')}
-										tooltip="我的游戏统计"
+										tooltip="统计"
 									>
 										<Link
 											to={`/game/statistics/${user.whitelist_uuid}`}
 											onClick={handleNavClick}
 										>
 											<BarChart3Icon />
-											<span>我的游戏统计</span>
+											<span>统计</span>
 										</Link>
 									</SidebarMenuButton>
 								</SidebarMenuItem>
@@ -199,7 +199,11 @@ export default function AppSidebar() {
 				<SidebarFooter>
 					<SidebarMenu>
 						<SidebarMenuItem>
-							<SidebarMenuButton asChild tooltip="个人资料">
+							<SidebarMenuButton
+								asChild
+								isActive={pathname === '/profile'}
+								tooltip="个人资料"
+							>
 								<Link to="/profile" onClick={handleNavClick}>
 									<UserCircle2Icon />
 									<span>{user?.username ?? '用户'}</span>
@@ -226,7 +230,7 @@ export default function AppSidebar() {
 						<DialogDescription>确定要退出登录吗？</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setLogoutOpen(false)}>
+						<Button variant="ghost" onClick={() => setLogoutOpen(false)}>
 							取消
 						</Button>
 						<Button variant="destructive" onClick={handleLogout}>

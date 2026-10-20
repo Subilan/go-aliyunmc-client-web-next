@@ -10,10 +10,10 @@ export interface TaskStats {
 	total: number;
 	successCount: number;
 	lastCompletedAt?: string;
-	lastCreatedBy?: number;
-	lastCreatedUser?: { ID: number; username: string };
+	lastStartedAt?: string;
+	lastStartedBy?: number;
+	lastStartedUser?: { ID: number; username: string };
 	totalRuntimeSec: number;
-	lastCompletedByType: Record<string, string>;
 }
 
 export function getTaskStats() {

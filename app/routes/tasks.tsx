@@ -24,6 +24,7 @@ import {
 import PageHeader from '~/components/page-header';
 import { PAGE_NAME_TASK_LIST } from '~/consts/page-names';
 import { Times } from '~/utils/times';
+import { cn } from '~/lib/utils';
 
 const System = '系统';
 
@@ -105,14 +106,16 @@ function ClickableCell({ text }: { text: string }) {
 function StatCard({
 	label,
 	value,
-	tooltip
+	tooltip,
+	className
 }: {
 	label: string;
 	value: string | null;
 	tooltip?: string;
+	className?: string;
 }) {
 	return (
-		<Card size="sm" className="h-full justify-center">
+		<Card size="sm" className={cn('h-full justify-center', className)}>
 			<CardContent className="flex flex-col gap-0.5">
 				<span className="text-xs text-muted-foreground">{label}</span>
 				{tooltip ? (
@@ -305,30 +308,14 @@ export default function TasksPage() {
 		? Times.formatFromNow(stats.lastCompletedAt)
 		: '—';
 
-	const lastCreator =
-		stats?.lastCreatedUser?.username ??
-		(stats?.lastCreatedBy ? String(stats.lastCreatedBy) : System);
-
-	// 启动游戏成功后服务器即已启动，因此“最近启动”需要同时考虑两种任务类型。
-	function latestTimestamp(keys: string[]): string | undefined {
-		let latest: string | undefined;
-		let latestMs = -Infinity;
-		for (const key of keys) {
-			const ts = stats?.lastCompletedByType?.[key];
-			if (!ts) continue;
-			const ms = new Date(ts).getTime();
-			if (ms > latestMs) {
-				latestMs = ms;
-				latest = ts;
-			}
-		}
-		return latest;
-	}
-
-	const lastStartedAt = latestTimestamp(['start_server', 'oneclick_start_game']);
-
-	const lastStartedAgo = stats ? (lastStartedAt ? Times.formatFromNow(lastStartedAt) : '—') : null;
-	const lastStartedTooltip = lastStartedAt ? Times.formatDate(lastStartedAt) : undefined;
+	const lastStartedAgo = stats?.lastStartedAt ? Times.formatFromNow(stats.lastStartedAt) : null;
+	const lastStartedBy =
+		stats?.lastStartedUser?.username ??
+		(stats?.lastStartedBy ? String(stats.lastStartedBy) : System);
+	const lastStartedValue = lastStartedAgo ? `${lastStartedAgo}，${lastStartedBy}` : null;
+	const lastStartedTooltip = stats?.lastStartedAt
+		? Times.formatDate(stats.lastStartedAt)
+		: undefined;
 
 	const timeRangeOptions = [
 		{ value: '1', label: '1 小时' },
@@ -344,29 +331,12 @@ export default function TasksPage() {
 			<PageHeader>{PAGE_NAME_TASK_LIST}</PageHeader>
 			<div className="flex flex-col gap-5">
 				<div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-					<Card size="sm" className="col-span-2 h-full justify-center">
-						<CardContent className="flex flex-col gap-0.5">
-							<span className="text-xs text-muted-foreground">最近启动游戏</span>
-							<div className="flex items-baseline min-w-0">
-								{lastStartedTooltip ? (
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<span className="text-2xl font-medium cursor-default">
-												{lastStartedAgo ?? '—'}
-											</span>
-										</TooltipTrigger>
-										<TooltipContent>{lastStartedTooltip}</TooltipContent>
-									</Tooltip>
-								) : (
-									<span className="text-2xl font-medium">{lastStartedAgo ?? '—'}</span>
-								)}
-								<span className="text-2xl font-medium">，</span>
-								<span className="text-2xl font-medium truncate min-w-0">
-									{stats ? lastCreator : '—'}
-								</span>
-							</div>
-						</CardContent>
-					</Card>
+					<StatCard
+						label="最近启动游戏"
+						value={lastStartedValue}
+						tooltip={lastStartedTooltip}
+						className="col-span-2"
+					/>
 					<StatCard label="成功率" value={stats ? successRate : null} />
 					<StatCard
 						label="最近完成"

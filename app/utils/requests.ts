@@ -34,25 +34,30 @@ async function req<T = any>(url: string, options: RequestInit): Promise<Resp<T>>
 		navigate('/lor');
 	}
 
-	let json;
+	let json: any = null;
+	let text = '';
 	try {
-		json = await result.json();
+		text = await result.text();
+		if (text.trim()) {
+			json = JSON.parse(text);
+		}
 	} catch (e) {
-		console.error(`Request to ${url} failed to parse JSON response`);
-		return { data: null, error: '未知返回结构', status: result?.status ?? 0 };
+		console.error(`Request to ${url} returned an invalid JSON response`);
 	}
 
-	return result.status !== 200
-		? {
-				data: null,
-				error: json.details,
-				status: result.status
-			}
-		: {
-				data: json.data,
-				error: null,
-				status: 200
-			};
+	if (!result.ok) {
+		const details =
+			typeof json?.details === 'string' && json.details
+				? json.details
+				: text.trim() || result.statusText || `请求失败（HTTP ${result.status}）`;
+		return { data: null, error: details, status: result.status };
+	}
+
+	if (json === null) {
+		return { data: null, error: '未知返回结构', status: result.status };
+	}
+
+	return { data: json.data, error: null, status: result.status };
 }
 
 /**

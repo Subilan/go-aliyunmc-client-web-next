@@ -2,9 +2,12 @@ import { parseServerQuery, type ServerQueryRaw } from '~/types/ServerQuery';
 import { get } from '~/utils/requests';
 
 export async function queryServer() {
-	const { data, error } = await get<{ data: ServerQueryRaw; players: string[] }>('/server/query');
+	const response = await get<{ data: Partial<ServerQueryRaw>; players: string[] }>('/server/query');
 
-	if (error !== null) return { data, error };
+	if (response.error !== null) return { data: null, error: response.error };
+	if (!response.data?.data) {
+		return { data: null, error: '服务器查询响应缺少数据' };
+	}
 
-	return { data: parseServerQuery(data.data), error: null };
+	return { data: parseServerQuery(response.data.data), error: null };
 }

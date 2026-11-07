@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Toast } from '~/root';
+import { taskErrorToastText } from '~/utils/task-error';
 
 interface TaskSSEState {
 	done: boolean;
@@ -31,7 +32,7 @@ export function useTaskEffects({
 	useEffect(() => {
 		if (!fullDeploySSE.done || !fullDeployTaskId) return;
 		if (fullDeploySSE.error) {
-			Toast.error('启动游戏失败: ' + fullDeploySSE.error);
+			Toast.error('启动游戏失败: ' + taskErrorToastText(fullDeploySSE.error));
 		} else {
 			Toast.success('游戏已就绪');
 		}
@@ -43,7 +44,7 @@ export function useTaskEffects({
 	useEffect(() => {
 		if (!archiveSSE.done || !archiveTaskId) return;
 		if (archiveSSE.error) {
-			Toast.error('归档失败: ' + archiveSSE.error);
+			Toast.error('归档失败: ' + taskErrorToastText(archiveSSE.error));
 		} else {
 			Toast.success('归档成功');
 		}

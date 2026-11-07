@@ -121,7 +121,16 @@ export default function DeployStatusDialog({
 					</div>
 					<OutputPanel outputs={outputs} />
 				</div>
-				{error && <div className="break-all text-sm text-red-600">{error}</div>}
+				{error && (
+					<ScrollArea
+						className="rounded-md border border-red-200 bg-red-50"
+						viewportClassName="max-h-40"
+					>
+						<pre className="whitespace-pre-wrap break-all px-3 py-2 text-sm text-red-600">
+							{error}
+						</pre>
+					</ScrollArea>
+				)}
 				<DialogFooter>
 					<Button variant="ghost" onClick={() => onOpenChange(false)}>
 						关闭

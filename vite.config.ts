@@ -29,6 +29,12 @@ export default defineConfig({
         target: 'http://localhost:45678',
         changeOrigin: true,
         secure: false,
+        configure(proxy) {
+          // 后端按 Origin 执行 CORS；开发代理应与 changeOrigin 一致，去掉浏览器源。
+          proxy.on('proxyReq', proxyReq => {
+            proxyReq.removeHeader('origin');
+          });
+        },
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }

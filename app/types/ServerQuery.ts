@@ -25,16 +25,26 @@ export interface ServerQuery {
 	version: string;
 }
 
-export function parseServerQuery(raw: ServerQueryRaw): ServerQuery {
-	const pluginsSplit = raw.plugins.split(':');
-	const platform = pluginsSplit[0];
-	const plugins = pluginsSplit[1].split('; ').map(x => x.trim());
+export function parseServerQuery(raw: Partial<ServerQueryRaw>): ServerQuery {
+	const pluginInfo = raw.plugins ?? '';
+	const separator = pluginInfo.indexOf(':');
+	const platform = separator >= 0 ? pluginInfo.slice(0, separator) : pluginInfo;
+	const pluginList = separator >= 0 ? pluginInfo.slice(separator + 1) : '';
+	const plugins = pluginList
+		? pluginList.split(';').map(x => x.trim()).filter(Boolean)
+		: [];
 
 	return {
-		...raw,
-		maxplayers: +raw.maxplayers,
-		numplayers: +raw.numplayers,
+		game_id: raw.game_id ?? '',
+		gametype: raw.gametype ?? '',
+		hostip: raw.hostip ?? '',
+		hostname: raw.hostname ?? '',
+		hostport: raw.hostport ?? '',
+		map: raw.map ?? '',
+		maxplayers: Number(raw.maxplayers ?? 0),
+		numplayers: Number(raw.numplayers ?? 0),
 		platform,
-		plugins
+		plugins,
+		version: raw.version ?? ''
 	};
 }

@@ -1,8 +1,5 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
-@import '@fontsource-variable/ibm-plex-sans/index.css';
-@import '@fontsource-variable/ibm-plex-sans/wght-italic.css';
-@import './fonts/ibm-plex-sans-sc.css';
 
 @font-face {
 	font-family: 'Minecraft';
@@ -24,14 +21,15 @@
 
 @theme {
 	--font-sans:
-		'IBM Plex Sans Variable', 'IBM Plex Sans SC', ui-sans-serif, system-ui, 'PingFang SC', '微软雅黑', 'Microsoft Yahei', sans-serif,
-		'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+		system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+		'Microsoft YaHei', '微软雅黑', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+		'Segoe UI Symbol', 'Noto Color Emoji';
 	--font-mono:
 		ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
 .font-recursive-casual {
-	font-family: 'Recursive Variable', 'IBM Plex Sans Variable', 'IBM Plex Sans SC', ui-sans-serif, system-ui, sans-serif;
+	font-family: 'Recursive Variable', system-ui, sans-serif;
 	font-variation-settings: 'CASL' 1, 'wght' 700, 'slnt' -8, 'MONO' 0;
 }
 

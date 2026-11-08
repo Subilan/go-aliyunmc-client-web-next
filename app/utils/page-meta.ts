@@ -5,6 +5,7 @@ import {
 	PAGE_NAME_GAME_STATISTICS,
 	PAGE_NAME_LEADERBOARD,
 	PAGE_NAME_PLAYER_LIST,
+	PAGE_NAME_SERVER,
 	PAGE_NAME_TASK_LIST,
 	PAGE_NAME_UPDATES,
 	PAGE_NAME_WEB_CHAT
@@ -23,6 +24,7 @@ const pageMeta: Record<string, PageMetaEntry> = {
 	'/game/web-chat':        { group: PAGE_CATEGORY_GAME,        label: PAGE_NAME_WEB_CHAT },
 	'/updates':              { group: PAGE_CATEGORY_MISC,        label: PAGE_NAME_UPDATES },
 	'/admin/ban':            { group: PAGE_CATEGORY_ADMIN,       label: PAGE_NAME_BAN },
+	'/admin/server':         { group: PAGE_CATEGORY_ADMIN,       label: PAGE_NAME_SERVER },
 };
 
 pageMeta['/game/statistics/'] = { group: PAGE_CATEGORY_GAME, label: PAGE_NAME_GAME_STATISTICS };

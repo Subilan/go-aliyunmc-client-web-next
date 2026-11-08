@@ -11,12 +11,14 @@ import {
 	MessagesSquareIcon,
 	PanelLeftIcon,
 	ShieldBanIcon,
+	ServerIcon,
 	UsersIcon,
 	UserCircle2Icon,
 	InfoIcon
 } from 'lucide-react';
 import { useContext, useState } from 'react';
 import { UserContext } from '~/contexts/user';
+import { PermissionsContext } from '~/contexts/permissions';
 import { Auth } from '~/utils/auth';
 import { Button } from '~/components/ui/button';
 import {
@@ -61,8 +63,12 @@ export default function AppSidebar() {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
 	const user = useContext(UserContext);
+	const permissions = useContext(PermissionsContext);
 	const { state, isMobile, setOpenMobile, toggleSidebar } = useSidebar();
 	const [logoutOpen, setLogoutOpen] = useState(false);
+	const canManageUsers = user?.role === 'operator' || user?.role === 'superuser';
+	const canViewServerCountdown =
+		permissions?.can_view_auto_archive_idle ?? canManageUsers;
 
 	function handleNavClick() {
 		if (isMobile) setOpenMobile(false);
@@ -156,22 +162,38 @@ export default function AppSidebar() {
 							)}
 						</SidebarMenu>
 					</SidebarGroup>
-					{(user?.role === 'operator' || user?.role === 'superuser') && (
+					{(canManageUsers || canViewServerCountdown) && (
 						<SidebarGroup>
 							<SidebarGroupLabel>管理</SidebarGroupLabel>
 							<SidebarMenu>
-								<SidebarMenuItem>
-									<SidebarMenuButton
-										asChild
-										isActive={pathname === '/admin/ban'}
-										tooltip="封禁管理"
-									>
-										<Link to="/admin/ban" onClick={handleNavClick}>
-											<ShieldBanIcon />
-											<span>封禁管理</span>
-										</Link>
-									</SidebarMenuButton>
-								</SidebarMenuItem>
+								{canManageUsers && (
+									<SidebarMenuItem>
+										<SidebarMenuButton
+											asChild
+											isActive={pathname === '/admin/ban'}
+											tooltip="封禁管理"
+										>
+											<Link to="/admin/ban" onClick={handleNavClick}>
+												<ShieldBanIcon />
+												<span>封禁管理</span>
+											</Link>
+										</SidebarMenuButton>
+									</SidebarMenuItem>
+								)}
+								{canViewServerCountdown && (
+									<SidebarMenuItem>
+										<SidebarMenuButton
+											asChild
+											isActive={pathname === '/admin/server'}
+											tooltip="服务器"
+										>
+											<Link to="/admin/server" onClick={handleNavClick}>
+												<ServerIcon />
+												<span>服务器</span>
+											</Link>
+										</SidebarMenuButton>
+									</SidebarMenuItem>
+								)}
 							</SidebarMenu>
 						</SidebarGroup>
 					)}

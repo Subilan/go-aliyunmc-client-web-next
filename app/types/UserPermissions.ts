@@ -21,4 +21,5 @@ export interface UserPermissions {
 	can_view_player_history: boolean;
 	can_view_balance_history: boolean;
 	can_view_auto_archive_idle: boolean;
+	can_manage_server_countdown: boolean;
 }

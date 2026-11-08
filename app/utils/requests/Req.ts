@@ -16,6 +16,13 @@ import getChatToken from "~/utils/requests/chat-token";
 import { getChangelogs, createChangelog, updateChangelog, deleteChangelog, toggleLike } from "~/utils/requests/changelog";
 import { listUsers, banUser, unbanUser } from "~/utils/requests/ban";
 import { getSystemInfo } from "~/utils/requests/system-info";
+import {
+	getServerCountdown,
+	pauseServerCountdown,
+	resumeServerCountdown,
+	resetServerCountdown,
+	setServerCountdown
+} from "~/utils/requests/server-countdown";
 
 export const Req = {
     login,
@@ -55,5 +62,10 @@ export const Req = {
     listUsers,
     banUser,
     unbanUser,
-    getSystemInfo
+    getSystemInfo,
+    getServerCountdown,
+    pauseServerCountdown,
+    resumeServerCountdown,
+    resetServerCountdown,
+    setServerCountdown
 }

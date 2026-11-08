@@ -14,6 +14,7 @@ import TasksPage from '~/routes/tasks';
 import Updates from '~/routes/updates';
 import WebChat from '~/routes/web-chat';
 import About from '~/routes/about';
+import AdminServerPage from '~/routes/admin-server';
 
 export const router = createHashRouter([
 	{
@@ -67,6 +68,10 @@ export const router = createHashRouter([
 					{
 						path: 'admin/ban',
 						Component: BanPage
+					},
+					{
+						path: 'admin/server',
+						Component: AdminServerPage
 					},
 					{
 						path: 'updates',

@@ -9,14 +9,12 @@ import { Toast } from '~/root';
 import { instanceStatusColor, instanceStatusText } from '~/routes/home/utils';
 import { getServerStatus } from '~/utils/requests/state';
 import { getIdleRemainingSecs, getPlayerListHistory } from '~/utils/requests/home';
-import { queryServer } from '~/utils/requests/server';
 import type { NamedBooleanState } from '~/hooks/useStateNamed';
 
 export type ServerStatusFetchResult = readonly [
 	Awaited<ReturnType<typeof getServerStatus>>,
 	Awaited<ReturnType<typeof getPlayerListHistory>>,
-	Awaited<ReturnType<typeof getIdleRemainingSecs>>,
-	Awaited<ReturnType<typeof queryServer>>
+	Awaited<ReturnType<typeof getIdleRemainingSecs>>
 ];
 
 interface ServerStatusCardProps {
@@ -107,12 +105,15 @@ export const ServerStatus = {
 						/>
 					) : (
 						<div className="flex flex-col flex-1">
-							<div className="flex items-baseline gap-3 mb-2">
+							<div className="flex items-center gap-3 mb-2">
 								<div className={`w-3 h-3 rounded-full shrink-0 ${statusColor}`} />
 								<span className="text-xl font-medium tracking-tight">{statusText}</span>
 								{online && (
-									<span className="text-xl font-light text-muted-foreground">
-										{playerCount}/20
+									<span className="text-xl">
+										<span className="font-medium text-black tabular-nums">
+											{playerCount}
+										</span>
+										<span className="font-light text-muted-foreground">/20</span>
 									</span>
 								)}
 							</div>
@@ -160,8 +161,7 @@ export const ServerStatus = {
 		const res = await Promise.all([
 			getServerStatus(),
 			getPlayerListHistory(),
-			getIdleRemainingSecs(),
-			queryServer()
+			getIdleRemainingSecs()
 		]);
 		loading?.set(false);
 		return res;

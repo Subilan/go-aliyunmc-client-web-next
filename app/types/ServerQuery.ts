@@ -11,6 +11,14 @@ export interface ServerQueryRaw {
 	version: string;
 }
 
+export interface ServerQueryApiResponse {
+	data?: Partial<ServerQueryRaw> | null;
+	players?: string[] | null;
+	// 兼容旧版或代理层保留 Go 字段名时的响应。
+	Data?: Partial<ServerQueryRaw> | null;
+	Players?: string[] | null;
+}
+
 export interface ServerQuery {
 	game_id: string;
 	gametype: string;
@@ -22,10 +30,16 @@ export interface ServerQuery {
 	numplayers: number;
 	plugins: string[];
 	platform: string;
+	players: string[];
+	queried_at: string;
 	version: string;
 }
 
-export function parseServerQuery(raw: Partial<ServerQueryRaw>): ServerQuery {
+export function parseServerQuery(
+	raw: Partial<ServerQueryRaw>,
+	players: string[] = [],
+	queriedAt = new Date().toISOString()
+): ServerQuery {
 	const pluginInfo = raw.plugins ?? '';
 	const separator = pluginInfo.indexOf(':');
 	const platform = separator >= 0 ? pluginInfo.slice(0, separator) : pluginInfo;
@@ -45,6 +59,8 @@ export function parseServerQuery(raw: Partial<ServerQueryRaw>): ServerQuery {
 		numplayers: Number(raw.numplayers ?? 0),
 		platform,
 		plugins,
+		players: players.map(name => name.trim()).filter(Boolean),
+		queried_at: queriedAt,
 		version: raw.version ?? ''
 	};
 }

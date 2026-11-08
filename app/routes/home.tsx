@@ -54,12 +54,12 @@ import { triggerTask } from '~/utils/requests/task';
 import { get } from '~/utils/requests';
 import { useStateSSE } from '~/hooks/useStateSSE';
 import type { ServerStatus as ServerStatusType } from '~/types/ServerStatus';
-import type { ServerQuery } from '~/types/ServerQuery';
 import type { SpotInterruptionState } from '~/types/SpotInterruption';
 import { Times } from '~/utils/times';
 import { useSSESync } from '~/routes/home/useSSESync';
 import { useServerOnlineTransition } from '~/routes/home/useServerOnlineTransition';
 import { useTaskPipeline } from '~/routes/home/useTaskPipeline';
+import RunningStatusDialog from '~/components/home/running-status-dialog';
 
 export function meta({}: MetaArgs) {
 	return [{ title: '控制台 - Seatide' }, { name: 'description', content: 'Seatide 玩家控制台' }];
@@ -125,7 +125,6 @@ export default function Home() {
 		'spot_interruption_update'
 	);
 	const instanceDeletedRef = useRef(false);
-	const serverQuery = useRef<ServerQuery>(undefined);
 
 	const fetchAllRef = useRef<() => Promise<void>>(async () => {});
 	const pipeline = useTaskPipeline(() => fetchAllRef.current());
@@ -134,8 +133,8 @@ export default function Home() {
 		let srvOnline = false;
 		await Promise.all([
 			ServerStatus.fetchData(serverLoading).then(
-				([srvRes, chartRes, idleRes, querySrvRes]) => {
-					handleServerRefresh([srvRes, chartRes, idleRes, querySrvRes]);
+				([srvRes, chartRes, idleRes]) => {
+					handleServerRefresh([srvRes, chartRes, idleRes]);
 					if (srvRes.error === null) srvOnline = srvRes.data!.Value.online;
 				}
 			),
@@ -164,10 +163,8 @@ export default function Home() {
 	function handleServerRefresh([
 		srvRes,
 		chartRes,
-		idleRes,
-		querySrvRes
+		idleRes
 	]: ServerStatusFetchResult) {
-		if (querySrvRes.error === null) serverQuery.current = querySrvRes.data;
 		if (srvRes.error === null) {
 			serverOnline.set(srvRes.data!.Value.online);
 			playerCount.set(srvRes.data!.Value.playerCount);
@@ -218,7 +215,6 @@ export default function Home() {
 		srvValue: srvSSE.value,
 		startServerTriggeredRef: pipeline.startServerTriggeredRef,
 		setTasksRefreshKey: pipeline.setTasksRefreshKey,
-		serverQuery,
 		setServerStarting: pipeline.setServerStarting
 	});
 
@@ -612,22 +608,12 @@ export default function Home() {
 				error={pipeline.fullDeployError}
 			/>
 
-			<Dialog open={runningStatusOpen} onOpenChange={v => setRunningStatusOpen(v)}>
-				<DialogContent className="sm:max-w-lg">
-					<DialogHeader>
-						<DialogTitle>服务器运行状态</DialogTitle>
-						<DialogDescription>当前 Minecraft 服务器的实时运行信息。</DialogDescription>
-					</DialogHeader>
-					<div className="py-4 text-sm text-muted-foreground">
-						详细状态信息将在后续版本中提供。
-					</div>
-					<DialogFooter>
-						<Button variant="ghost" onClick={() => setRunningStatusOpen(false)}>
-							关闭
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			<RunningStatusDialog
+				open={runningStatusOpen}
+				onOpenChange={setRunningStatusOpen}
+				online={isOnline}
+				playerCount={playerCount.current}
+			/>
 		</>
 	);
 }

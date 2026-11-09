@@ -18,9 +18,3 @@ export function resumeServerCountdown() {
 export function resetServerCountdown() {
 	return post<ServerCountdownState>(`${BASE_PATH}/reset`, {});
 }
-
-export function setServerCountdown(remainingSeconds: number) {
-	return post<ServerCountdownState>(BASE_PATH, {
-		remaining_seconds: remainingSeconds
-	});
-}

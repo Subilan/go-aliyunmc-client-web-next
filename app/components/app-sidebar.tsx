@@ -10,8 +10,8 @@ import {
 	LogsIcon,
 	MessagesSquareIcon,
 	PanelLeftIcon,
-	ShieldBanIcon,
 	ServerIcon,
+	UserCogIcon,
 	UsersIcon,
 	UserCircle2Icon,
 	InfoIcon
@@ -170,12 +170,12 @@ export default function AppSidebar() {
 									<SidebarMenuItem>
 										<SidebarMenuButton
 											asChild
-											isActive={pathname === '/admin/ban'}
-											tooltip="封禁管理"
+											isActive={pathname === '/admin/users'}
+											tooltip="用户"
 										>
-											<Link to="/admin/ban" onClick={handleNavClick}>
-												<ShieldBanIcon />
-												<span>封禁管理</span>
+											<Link to="/admin/users" onClick={handleNavClick}>
+												<UserCogIcon />
+												<span>用户</span>
 											</Link>
 										</SidebarMenuButton>
 									</SidebarMenuItem>

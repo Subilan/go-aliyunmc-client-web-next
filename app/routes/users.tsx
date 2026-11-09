@@ -21,12 +21,12 @@ import {
 	DialogTitle,
 } from '~/components/ui/dialog';
 import PageHeader from '~/components/page-header';
-import { PAGE_NAME_BAN } from '~/consts/page-names';
+import { PAGE_NAME_USERS } from '~/consts/page-names';
 import { Toast } from '~/root';
 import { UserContext } from '~/contexts/user';
 import { BanIcon, UndoIcon } from 'lucide-react';
 
-export default function BanPage() {
+export default function UsersPage() {
 	const currentUser = useContext(UserContext);
 	const [rows, setRows] = useState<User[]>([]);
 	const [total, setTotal] = useState(0);
@@ -176,7 +176,7 @@ export default function BanPage() {
 
 	return (
 		<>
-			<PageHeader>{PAGE_NAME_BAN}</PageHeader>
+			<PageHeader>{PAGE_NAME_USERS}</PageHeader>
 			<div className="flex flex-col gap-4">
 				<div className="flex items-center gap-3 flex-wrap">
 					<Input

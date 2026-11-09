@@ -1,6 +1,6 @@
 import { PAGE_CATEGORY_ADMIN, PAGE_CATEGORY_GAME, PAGE_CATEGORY_INFORMATION, PAGE_CATEGORY_MISC } from '~/consts/page-categories';
 import {
-	PAGE_NAME_BAN,
+	PAGE_NAME_USERS,
 	PAGE_NAME_ECS_CANDIDATES,
 	PAGE_NAME_GAME_STATISTICS,
 	PAGE_NAME_LEADERBOARD,
@@ -23,7 +23,7 @@ const pageMeta: Record<string, PageMetaEntry> = {
 	'/game/leaderboard':     { group: PAGE_CATEGORY_GAME,        label: PAGE_NAME_LEADERBOARD },
 	'/game/web-chat':        { group: PAGE_CATEGORY_GAME,        label: PAGE_NAME_WEB_CHAT },
 	'/updates':              { group: PAGE_CATEGORY_MISC,        label: PAGE_NAME_UPDATES },
-	'/admin/ban':            { group: PAGE_CATEGORY_ADMIN,       label: PAGE_NAME_BAN },
+	'/admin/users':          { group: PAGE_CATEGORY_ADMIN,       label: PAGE_NAME_USERS },
 	'/admin/server':         { group: PAGE_CATEGORY_ADMIN,       label: PAGE_NAME_SERVER },
 };
 

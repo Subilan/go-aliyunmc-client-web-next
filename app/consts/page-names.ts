@@ -6,5 +6,5 @@ export const PAGE_NAME_LEADERBOARD = '排行榜';
 export const PAGE_NAME_WEB_CHAT = '聊天';
 export const PAGE_NAME_UPDATES = '更新日志';
 export const PAGE_NAME_ABOUT = '关于';
-export const PAGE_NAME_BAN = '封禁管理';
+export const PAGE_NAME_USERS = '用户';
 export const PAGE_NAME_SERVER = '服务器';

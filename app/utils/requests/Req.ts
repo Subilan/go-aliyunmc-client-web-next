@@ -20,8 +20,7 @@ import {
 	getServerCountdown,
 	pauseServerCountdown,
 	resumeServerCountdown,
-	resetServerCountdown,
-	setServerCountdown
+	resetServerCountdown
 } from "~/utils/requests/server-countdown";
 
 export const Req = {
@@ -66,6 +65,5 @@ export const Req = {
     getServerCountdown,
     pauseServerCountdown,
     resumeServerCountdown,
-    resetServerCountdown,
-    setServerCountdown
+    resetServerCountdown
 }

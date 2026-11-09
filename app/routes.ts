@@ -4,7 +4,7 @@ import RootLayout from '~/layout/root';
 import { ErrorBoundary } from '~/root';
 import EcsCandidatesPage from '~/routes/ecs-candidates';
 import GameStatistics, { gameStatisticsLoader } from '~/routes/game-statistics';
-import BanPage from '~/routes/ban';
+import UsersPage from '~/routes/users';
 import Home from '~/routes/home';
 import Leaderboard from '~/routes/leaderboard';
 import Lor, { lorLoader } from '~/routes/lor';
@@ -66,8 +66,8 @@ export const router = createHashRouter([
 						Component: WebChat
 					},
 					{
-						path: 'admin/ban',
-						Component: BanPage
+						path: 'admin/users',
+						Component: UsersPage
 					},
 					{
 						path: 'admin/server',

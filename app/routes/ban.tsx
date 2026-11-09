@@ -24,7 +24,7 @@ import PageHeader from '~/components/page-header';
 import { PAGE_NAME_BAN } from '~/consts/page-names';
 import { Toast } from '~/root';
 import { UserContext } from '~/contexts/user';
-import { BanIcon, CheckIcon, ShieldBanIcon } from 'lucide-react';
+import { BanIcon, UndoIcon } from 'lucide-react';
 
 export default function BanPage() {
 	const currentUser = useContext(UserContext);
@@ -38,11 +38,6 @@ export default function BanPage() {
 	const [bannedFilter, setBannedFilter] = useState('');
 	const [usernameSearch, setUsernameSearch] = useState('');
 	const [usernameFilter, setUsernameFilter] = useState('');
-	const [banDialogOpen, setBanDialogOpen] = useState(false);
-	const [selectedBanUserId, setSelectedBanUserId] = useState<string>('');
-	const [banCandidates, setBanCandidates] = useState<User[]>([]);
-	const [banCandidatesLoading, setBanCandidatesLoading] = useState(false);
-	const [banning, setBanning] = useState(false);
 
 	// Confirm dialog for unban/ban row actions
 	const [confirmOpen, setConfirmOpen] = useState(false);
@@ -72,20 +67,6 @@ export default function BanPage() {
 		fetch();
 	}, [fetch]);
 
-	// Load non-banned users for the ban dialog dropdown
-	useEffect(() => {
-		if (!banDialogOpen) return;
-		setBanCandidatesLoading(true);
-		setSelectedBanUserId('');
-		listUsers({ banned: 'false', limit: 100, offset: 0 }).then(res => {
-			if (res.error === null) {
-				// Exclude current user from candidates
-				setBanCandidates(res.data!.users.filter(u => u.ID !== currentUser?.ID));
-			}
-			setBanCandidatesLoading(false);
-		});
-	}, [banDialogOpen, currentUser?.ID]);
-
 	// Debounced username search: update input immediately, filter after delay
 	function handleUsernameChange(value: string) {
 		setUsernameSearch(value);
@@ -106,30 +87,6 @@ export default function BanPage() {
 		setOrder(newOrder);
 		setPage(0);
 	}, []);
-
-	async function handleBanSubmit() {
-		if (!selectedBanUserId) return;
-
-		setBanning(true);
-		const userId = Number(selectedBanUserId);
-		const res = await banUser({ user_ids: [userId] });
-		setBanning(false);
-
-		if (res.error) {
-			Toast.error(res.error);
-		} else {
-			const data = res.data! as BanResponse;
-			if (data.affected_count > 0) {
-				Toast.success('已封禁用户');
-			}
-			if (data.skipped_self) {
-				Toast.info('已跳过自己');
-			}
-			setBanDialogOpen(false);
-			setSelectedBanUserId('');
-			fetch();
-		}
-	}
 
 	function openConfirm(user: User, type: 'ban' | 'unban') {
 		setConfirmAction({ user, type });
@@ -168,24 +125,18 @@ export default function BanPage() {
 			id: 'role',
 			label: '角色',
 			align: 'center',
-			render: u => {
-				const label = u.role === 'superuser' ? '超级用户' : u.role === 'operator' ? '操作员' : '普通用户';
-				return (
-					<Badge variant={u.role === '' ? 'secondary' : 'default'}>
-						{label}
-					</Badge>
-				);
-			},
+			render: u =>
+				u.role === 'superuser' ? '超级用户' : u.role === 'operator' ? '操作员' : '普通用户',
 		},
 		{
 			id: 'banned',
-			label: '封禁状态',
+			label: '状态',
 			align: 'center',
 			render: u =>
 				u.banned ? (
-					<Badge variant="destructive">已封禁</Badge>
+					<Badge className="bg-destructive text-white">已封禁</Badge>
 				) : (
-					<Badge variant="outline" className="text-green-600 border-green-600">正常</Badge>
+					<Badge className="bg-green-600 text-white">正常</Badge>
 				),
 			sortable: false,
 		},
@@ -208,7 +159,7 @@ export default function BanPage() {
 				if (u.banned) {
 					return (
 						<Button size="sm" variant="outline" onClick={() => openConfirm(u, 'unban')}>
-							<CheckIcon className="size-3.5 mr-1" />
+							<UndoIcon className="size-3.5 mr-1" />
 							取消封禁
 						</Button>
 					);
@@ -244,11 +195,6 @@ export default function BanPage() {
 							<SelectItem value="false">未封禁</SelectItem>
 						</SelectContent>
 					</Select>
-					<div className="flex-1" />
-					<Button onClick={() => setBanDialogOpen(true)}>
-						<ShieldBanIcon className="size-4 mr-1.5" />
-						封禁用户
-					</Button>
 				</div>
 
 				<PaginatedTable
@@ -269,38 +215,6 @@ export default function BanPage() {
 					onSortChange={handleSortChange}
 				/>
 			</div>
-
-			{/* Ban dialog */}
-			<Dialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>封禁用户</DialogTitle>
-						<DialogDescription>
-							选择要封禁的用户
-						</DialogDescription>
-					</DialogHeader>
-					<Select value={selectedBanUserId} onValueChange={setSelectedBanUserId} disabled={banCandidatesLoading}>
-						<SelectTrigger>
-							<SelectValue placeholder={banCandidatesLoading ? '加载中...' : '选择用户'} />
-						</SelectTrigger>
-						<SelectContent>
-							{banCandidates.map(u => (
-								<SelectItem key={u.ID} value={String(u.ID)}>
-									{u.username}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-					<DialogFooter>
-						<Button variant="ghost" onClick={() => setBanDialogOpen(false)} disabled={banning}>
-							取消
-						</Button>
-						<Button onClick={handleBanSubmit} disabled={banning || !selectedBanUserId}>
-							{banning ? '封禁中...' : '确认封禁'}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
 
 			{/* Confirm dialog for row actions */}
 			<Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>

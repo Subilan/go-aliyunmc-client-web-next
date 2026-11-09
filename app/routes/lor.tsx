@@ -116,14 +116,14 @@ function RegisterForm({ setLogin }: { setLogin: () => void }) {
 
 	const onSubmit = async (data: RegisterPayload) => {
 		loading.set(true);
-		const ok = await Req.register(data.username, data.password);
+		const { error } = await Req.register(data.username, data.password);
 		loading.set(false);
 
-		if (ok) {
+		if (error === null) {
 			Toast.success('注册成功');
 			setLogin();
 		} else {
-			Toast.error('用户名或密码不合要求');
+			Toast.error(error);
 		}
 	};
 

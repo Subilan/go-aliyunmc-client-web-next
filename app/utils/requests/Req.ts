@@ -14,7 +14,7 @@ import updatePreferences from "~/utils/requests/update-preferences";
 import { getAdvancements, getGameStats, getLeaderboard } from "~/utils/requests/game";
 import getChatToken from "~/utils/requests/chat-token";
 import { getChangelogs, createChangelog, updateChangelog, deleteChangelog, toggleLike } from "~/utils/requests/changelog";
-import { listUsers, banUser, unbanUser } from "~/utils/requests/ban";
+import { listUsers, banUser, unbanUser, createUser, changeUserRole } from "~/utils/requests/ban";
 import { getSystemInfo } from "~/utils/requests/system-info";
 import {
 	getServerCountdown,
@@ -61,6 +61,8 @@ export const Req = {
     listUsers,
     banUser,
     unbanUser,
+    createUser,
+    changeUserRole,
     getSystemInfo,
     getServerCountdown,
     pauseServerCountdown,

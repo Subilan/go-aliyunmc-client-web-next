@@ -22,6 +22,14 @@ export interface BanResponse {
 	skipped_self?: boolean;
 }
 
+export function createUser(body: {
+	username: string;
+	password: string;
+	role: User['role'];
+}): Promise<Resp<User>> {
+	return post<User>('/user/create', body);
+}
+
 export function listUsers(params: ListUsersParams): Promise<Resp<ListUsersResponse>> {
 	const searchParams = new URLSearchParams();
 	if (params.banned) searchParams.set('banned', params.banned);
@@ -39,4 +47,8 @@ export function banUser(body: { user_ids?: number[]; usernames?: string[] }): Pr
 
 export function unbanUser(body: { user_ids?: number[]; usernames?: string[] }): Promise<Resp<BanResponse>> {
 	return post<BanResponse>('/user/unban', body);
+}
+
+export function changeUserRole(body: { user_id: number; role: User['role'] }): Promise<Resp<User>> {
+	return post<User>('/user/role', body);
 }

@@ -5,6 +5,8 @@ export interface UserPermissions {
 	can_unbind_whitelist: boolean;
 	can_get_preferences: boolean;
 	can_set_preferences: boolean;
+	can_create_user: boolean;
+	can_change_user_role: boolean;
 	can_query_server: boolean;
 	can_stop_server: boolean;
 	can_access_server_data: boolean;

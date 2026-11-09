@@ -1,10 +1,9 @@
 import { post } from '~/utils/requests';
+import type { User } from '~/types/User';
 
 export default async function register(username: string, password: string) {
-	const result = await post('/user/register', {
+	return post<User>('/user/register', {
 		username,
 		password
 	});
-
-	return result.error === null;
 }

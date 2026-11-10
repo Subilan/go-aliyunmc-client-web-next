@@ -13,7 +13,7 @@ npm run typecheck    # Run react-router typegen then tsc
 
 ## Architecture
 
-This is a React Router 7 SPA (SSR disabled via `react-router.config.ts`) — a front-end control panel for the Seatide Minecraft server management platform. The backend API is at `http://localhost:45678`.
+This is a React Router 7 SPA (SSR disabled via `react-router.config.ts`) — a front-end control panel for the Seatide Minecraft server management platform. The backend API is at `http://localhost:45678`, with all lab endpoints under `/lab-v1` (development requests go through the Vite `/api` proxy to `/api/lab-v1`).
 
 **Routing** (`app/routes.ts`): `layout/app.tsx` wraps the main routes (index → `home.tsx`, `/profile`, `/all`, and a nested `layout/inner-app.tsx` for `/info/*`, `/game/*`, and `/updates` with breadcrumb nav). `/lor` (`routes/lor.tsx`) is the standalone login/register page outside the app layout.
 

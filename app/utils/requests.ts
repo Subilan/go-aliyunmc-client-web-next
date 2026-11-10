@@ -1,8 +1,7 @@
 import { navigate } from "~/utils/navigate";
 import { Auth } from "~/utils/auth";
 
-// export const BASE_URL = 'http://localhost:45678'
-export const BASE_URL = import.meta.env.DEV ? '/api' : 'https://api.seatide.net';
+export const BASE_URL = import.meta.env.DEV ? '/api/lab-v1' : 'https://api.seatide.net/lab-v1';
 
 export type Resp<T = any> =
 	| { data: null; error: string; status: number }

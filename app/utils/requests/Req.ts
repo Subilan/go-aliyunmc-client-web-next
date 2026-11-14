@@ -4,7 +4,7 @@ import getProfile from "~/utils/requests/profile";
 import register from "~/utils/requests/register";
 import { getActiveInstance, getCandidates, deleteActiveInstance, startInstance, getSpotInterruption } from "~/utils/requests/instance";
 import { getServerStatus, getInstanceStatus } from "~/utils/requests/state";
-import { getTasks, getTaskStats, getBalance, getPlayerListHistory, getIdleRemainingSecs } from "~/utils/requests/home";
+import { getTasks, getTaskStats, getBalance, getPlayerListHistory } from "~/utils/requests/home";
 import { triggerTask, getTask, getTaskDefinition } from "~/utils/requests/task";
 import changePassword from "~/utils/requests/change-password";
 import deleteAccount from "~/utils/requests/delete-account";
@@ -45,7 +45,6 @@ export const Req = {
     getTaskStats,
     getBalance,
     getPlayerCountHistory: getPlayerListHistory,
-    getIdleRemainingSecs,
     triggerTask,
     getTask,
     getTaskDefinition,

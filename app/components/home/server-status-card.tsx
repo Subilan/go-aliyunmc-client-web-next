@@ -8,13 +8,12 @@ import EmptyState, { LoadingEmptyState } from '~/components/empty-state';
 import { Toast } from '~/root';
 import { instanceStatusColor, instanceStatusText } from '~/routes/home/utils';
 import { getServerStatus } from '~/utils/requests/state';
-import { getIdleRemainingSecs, getPlayerListHistory } from '~/utils/requests/home';
+import { getPlayerListHistory } from '~/utils/requests/home';
 import type { NamedBooleanState } from '~/hooks/useStateNamed';
 
 export type ServerStatusFetchResult = readonly [
 	Awaited<ReturnType<typeof getServerStatus>>,
-	Awaited<ReturnType<typeof getPlayerListHistory>>,
-	Awaited<ReturnType<typeof getIdleRemainingSecs>>
+	Awaited<ReturnType<typeof getPlayerListHistory>>
 ];
 
 interface ServerStatusCardProps {
@@ -160,8 +159,7 @@ export const ServerStatus = {
 		loading?.set(true);
 		const res = await Promise.all([
 			getServerStatus(),
-			getPlayerListHistory(),
-			getIdleRemainingSecs()
+			getPlayerListHistory()
 		]);
 		loading?.set(false);
 		return res;

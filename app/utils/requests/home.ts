@@ -52,10 +52,6 @@ export async function getPlayerListHistory(): Promise<
 	};
 }
 
-export function getIdleRemainingSecs() {
-	return get<number>('/monitor/auto-archive-idle/remaining-secs');
-}
-
 export function getAccountBalanceHistory() {
 	return get<BalanceChartPointRaw[]>('/samples/account-balance-history');
 }

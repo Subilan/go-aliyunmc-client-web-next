@@ -20,7 +20,7 @@ const SYNC_INTERVAL_MS = 30_000;
 const statusLabel: Partial<Record<ServerCountdownStatus, string>> = {
 	running: '正在倒计时',
 	paused: '已经暂停',
-	triggering: '正在关服'
+	finalizing: '正在关服'
 };
 
 function formatCountdown(totalSeconds: number) {
@@ -146,7 +146,7 @@ export default function AdminServerPage() {
 	const status = countdown?.status ?? 'inactive';
 	const canManage = permissions?.can_manage_server_countdown === true;
 	const canControl =
-		canManage && countdown !== null && countdown.enabled && countdown.has_active_instance && status !== 'triggering';
+		canManage && countdown !== null && countdown.enabled && countdown.has_active_instance && status !== 'finalizing';
 	const busy = action !== null;
 
 	const offline = countdown !== null && !countdown.has_active_instance;

@@ -9,7 +9,6 @@ import {
 	ExternalLinkIcon,
 	GitCommitIcon,
 	GlobeIcon,
-	MailIcon,
 	TagIcon,
 	type LucideIcon
 } from 'lucide-react';
@@ -171,11 +170,7 @@ export default function About() {
 								<CodeIcon className="size-4" />
 								go-aliyunmc 源码
 							</LinkRow>
-							<LinkRow href="mailto:support@seatide.net" external>
-								<MailIcon className="size-4" />
-								support@seatide.net
-							</LinkRow>
-							<LinkRow href="/updates">
+														<LinkRow href="/updates">
 								<GlobeIcon className="size-4" />
 								更新日志
 							</LinkRow>

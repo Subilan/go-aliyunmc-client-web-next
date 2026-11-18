@@ -6,7 +6,7 @@ import { Spinner } from '~/components/ui/spinner';
 import { PAGE_NAME_SERVER } from '~/consts/page-names';
 import { PermissionsContext } from '~/contexts/permissions';
 import { Toast } from '~/root';
-import type { ServerCountdownState, ServerCountdownStatus } from '~/types/ServerCountdown';
+import type { ServerCountdownState } from '~/types/ServerCountdown';
 import type { ServerStatus } from '~/types/ServerStatus';
 import { useStateSSE } from '~/hooks/useStateSSE';
 import {
@@ -17,12 +17,6 @@ import {
 } from '~/utils/requests/server-countdown';
 
 const SYNC_INTERVAL_MS = 30_000;
-
-const statusLabel: Partial<Record<ServerCountdownStatus, string>> = {
-	running: '正在倒计时',
-	paused: '已经暂停',
-	finalizing: '正在关服'
-};
 
 function formatCountdown(totalSeconds: number) {
 	const seconds = Math.max(0, Math.floor(totalSeconds));
@@ -188,10 +182,6 @@ export default function AdminServerPage() {
 			<PageHeader>{PAGE_NAME_SERVER}</PageHeader>
 
 			<section className="flex flex-col gap-3">
-				{countdown !== null && statusLabel[status] && (
-					<span className="text-sm text-neutral-600">{statusLabel[status]}</span>
-				)}
-
 				<Card>
 					<CardContent className="flex flex-col gap-4">
 						{loading ? (

@@ -1,4 +1,4 @@
-export type ServerCountdownStatus = 'inactive' | 'running' | 'paused' | 'triggering';
+export type ServerCountdownStatus = 'inactive' | 'running' | 'paused' | 'finalizing';
 
 export interface ServerCountdownState {
 	enabled: boolean;

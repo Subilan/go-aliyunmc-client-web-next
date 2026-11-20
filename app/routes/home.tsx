@@ -77,7 +77,6 @@ export default function Home() {
 	const instanceStatus = useStateNamed('...');
 	const serverOnline = useStateNamed(false);
 	const playerCount = useStateNamed(0);
-	const idleRemainingSecs = useStateNamed(-1);
 	const chartData = useStateNamed<PlayerListChartPoint[]>([]);
 
 	const [instanceLoading, serverLoading, ecsLoading, tasksLoading] = [
@@ -133,8 +132,8 @@ export default function Home() {
 		let srvOnline = false;
 		await Promise.all([
 			ServerStatus.fetchData(serverLoading).then(
-				([srvRes, chartRes, idleRes]) => {
-					handleServerRefresh([srvRes, chartRes, idleRes]);
+				([srvRes, chartRes]) => {
+					handleServerRefresh([srvRes, chartRes]);
 					if (srvRes.error === null) srvOnline = srvRes.data!.Value.online;
 				}
 			),
@@ -162,8 +161,7 @@ export default function Home() {
 
 	function handleServerRefresh([
 		srvRes,
-		chartRes,
-		idleRes
+		chartRes
 	]: ServerStatusFetchResult) {
 		if (srvRes.error === null) {
 			serverOnline.set(srvRes.data!.Value.online);
@@ -177,7 +175,6 @@ export default function Home() {
 				}))
 			);
 		}
-		if (idleRes.error === null) idleRemainingSecs.set(idleRes.data!);
 	}
 
 	function handleCandidatesRefresh(result: EcsCandidatesFetchResult) {

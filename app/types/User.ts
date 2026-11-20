@@ -5,6 +5,7 @@ export interface User extends Model {
 	role: '' | 'operator' | 'superuser';
 	banned: boolean;
 	whitelist_uuid?: string;
+	last_login_at: string | null;
 }
 
 export function isBasicUser(user: User) {

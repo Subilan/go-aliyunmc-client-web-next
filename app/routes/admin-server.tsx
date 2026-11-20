@@ -6,22 +6,17 @@ import { Spinner } from '~/components/ui/spinner';
 import { PAGE_NAME_SERVER } from '~/consts/page-names';
 import { PermissionsContext } from '~/contexts/permissions';
 import { Toast } from '~/root';
-import type { ServerCountdownState, ServerCountdownStatus } from '~/types/ServerCountdown';
+import type { ServerCountdownState } from '~/types/ServerCountdown';
+import type { ServerStatus } from '~/types/ServerStatus';
+import { useStateSSE } from '~/hooks/useStateSSE';
 import {
 	getServerCountdown,
 	pauseServerCountdown,
 	resetServerCountdown,
 	resumeServerCountdown
 } from '~/utils/requests/server-countdown';
-import { getServerStatus } from '~/utils/requests/state';
 
 const SYNC_INTERVAL_MS = 30_000;
-
-const statusLabel: Partial<Record<ServerCountdownStatus, string>> = {
-	running: '正在倒计时',
-	paused: '已经暂停',
-	triggering: '正在关服'
-};
 
 function formatCountdown(totalSeconds: number) {
 	const seconds = Math.max(0, Math.floor(totalSeconds));
@@ -37,13 +32,19 @@ export default function AdminServerPage() {
 	const permissions = useContext(PermissionsContext);
 	const [countdown, setCountdown] = useState<ServerCountdownState | null>(null);
 	const [displaySeconds, setDisplaySeconds] = useState(0);
-	const [playerCount, setPlayerCount] = useState(0);
+	const [playerCount, setPlayerCount] = useState<number | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 	const [action, setAction] = useState<string | null>(null);
 	const zeroRefreshRef = useRef(false);
 	const requestGenerationRef = useRef(0);
 	const actionInFlightRef = useRef(false);
+	const lastSSEPlayerCountRef = useRef<number | null>(null);
+	const serverStatusSSE = useStateSSE<ServerStatus>(
+		'/state/watch/server-status',
+		'server_status_snapshot',
+		'server_status_update'
+	);
 
 	const applyCountdown = useCallback((next: ServerCountdownState) => {
 		setCountdown(next);
@@ -56,18 +57,12 @@ export default function AdminServerPage() {
 			const generation = ++requestGenerationRef.current;
 			if (!silent) setRefreshing(true);
 			try {
-				const [countdownRes, statusRes] = await Promise.all([
-					getServerCountdown(),
-					getServerStatus()
-				]);
+				const countdownRes = await getServerCountdown();
 				if (generation !== requestGenerationRef.current) return;
 				if (countdownRes.error === null) {
 					applyCountdown(countdownRes.data!);
 				} else if (!silent) {
 					Toast.error(countdownRes.error);
-				}
-				if (statusRes.error === null) {
-					setPlayerCount(statusRes.data!.Value.playerCount);
 				}
 			} catch {
 				if (generation !== requestGenerationRef.current) return;
@@ -85,6 +80,24 @@ export default function AdminServerPage() {
 	useEffect(() => {
 		fetchState();
 	}, [fetchState]);
+
+	// 玩家数通过 SSE 实时更新。玩家数变化意味着后端可能刚刚取消/保留了倒计时，
+	// 此时立即重新获取倒计时状态，避免继续展示过期状态。
+	useEffect(() => {
+		const snapshot = serverStatusSSE.value;
+		if (!snapshot) return;
+
+		const nextPlayerCount = snapshot.Error ? 0 : snapshot.Value.playerCount;
+		setPlayerCount(nextPlayerCount);
+
+		if (lastSSEPlayerCountRef.current === null) {
+			lastSSEPlayerCountRef.current = nextPlayerCount;
+			return;
+		}
+		if (lastSSEPlayerCountRef.current === nextPlayerCount) return;
+		lastSSEPlayerCountRef.current = nextPlayerCount;
+		fetchState(true);
+	}, [serverStatusSSE.value, fetchState]);
 
 	useEffect(() => {
 		const sync = () => {
@@ -146,14 +159,19 @@ export default function AdminServerPage() {
 	const status = countdown?.status ?? 'inactive';
 	const canManage = permissions?.can_manage_server_countdown === true;
 	const canControl =
-		canManage && countdown !== null && countdown.enabled && countdown.has_active_instance && status !== 'triggering';
+		canManage &&
+		countdown !== null &&
+		countdown.enabled &&
+		countdown.has_active_instance &&
+		playerCount === 0 &&
+		status !== 'finalizing';
 	const busy = action !== null;
 
 	const offline = countdown !== null && !countdown.has_active_instance;
 	const showTimer = countdown !== null && !offline && (status === 'running' || status === 'paused');
 	const badge = offline
 		? '不在线'
-		: playerCount > 0
+		: playerCount !== null && playerCount > 0
 			? '有人在线'
 			: status === 'paused'
 				? '已暂停'
@@ -164,10 +182,6 @@ export default function AdminServerPage() {
 			<PageHeader>{PAGE_NAME_SERVER}</PageHeader>
 
 			<section className="flex flex-col gap-3">
-				{countdown !== null && statusLabel[status] && (
-					<span className="text-sm text-neutral-600">{statusLabel[status]}</span>
-				)}
-
 				<Card>
 					<CardContent className="flex flex-col gap-4">
 						{loading ? (

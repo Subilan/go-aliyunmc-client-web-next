@@ -292,6 +292,15 @@ export default function UsersPage() {
 			cellClassName: 'hidden md:table-cell',
 		},
 		{
+			id: 'last_login_at',
+			label: '最近登录',
+			align: 'center',
+			render: u =>
+				u.last_login_at ? new Date(u.last_login_at).toLocaleString('zh-CN') : '—',
+			sortable: true,
+			cellClassName: 'hidden md:table-cell',
+		},
+		{
 			id: 'actions',
 			label: '操作',
 			align: 'center',

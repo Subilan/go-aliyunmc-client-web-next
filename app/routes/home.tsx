@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import type { MetaArgs } from 'react-router';
 import PageHeader from '~/components/page-header';
 import { UserContext } from '~/contexts/user';
@@ -68,6 +68,8 @@ export function meta({}: MetaArgs) {
 export default function Home() {
 	const user = useContext(UserContext);
 	const permissions = useContext(PermissionsContext);
+	const location = useLocation();
+	const navigate = useNavigate();
 
 	const [instance, setInstance] = useState<Instance | null>(null);
 	const [candidates, setCandidates] = useState<EcsCandidate[]>([]);
@@ -124,6 +126,8 @@ export default function Home() {
 		'spot_interruption_update'
 	);
 	const instanceDeletedRef = useRef(false);
+	const [initialLoaded, setInitialLoaded] = useState(false);
+	const startShortcutHandledRef = useRef(false);
 
 	const fetchAllRef = useRef<() => Promise<void>>(async () => {});
 	const pipeline = useTaskPipeline(() => fetchAllRef.current());
@@ -156,6 +160,7 @@ export default function Home() {
 				}
 			})
 		]);
+		setInitialLoaded(true);
 	}
 	fetchAllRef.current = fetchAll;
 
@@ -347,6 +352,41 @@ export default function Home() {
 		primaryAction = () => setRunningStatusOpen(true);
 		primaryDisabled = false;
 	}
+
+	// ---- 快捷入口：/start ----
+
+	const isStartShortcut = location.pathname === '/start';
+
+	/** 快捷入口无法直接启动游戏时，向玩家说明原因 */
+	function startBlockedReason() {
+		if (pipeline.serverStarting) return '游戏正在启动中，请稍候';
+		if (pipeline.taskRunning) return '当前有任务正在执行，请稍后再试';
+		if (pipeline.archiving) return '当前实例正在归档中，暂时无法启动游戏';
+		if (!user?.whitelist_uuid) return '你还没有绑定白名单，暂时无法启动游戏';
+		if (permissions !== null && !permissions.can_trigger_task) return '你没有启动游戏的权限';
+		return '当前无法启动游戏';
+	}
+
+	useEffect(() => {
+		if (!isStartShortcut) {
+			// 离开快捷入口后允许下次访问时再次触发
+			startShortcutHandledRef.current = false;
+			return;
+		}
+		// 首次数据加载完成后，快捷入口只处理一次
+		if (!initialLoaded || startShortcutHandledRef.current) return;
+		startShortcutHandledRef.current = true;
+
+		if (primaryDisabled) {
+			Toast.info(startBlockedReason());
+		} else {
+			// 与点击首页主按钮行为一致：打开启动游戏对话框（或启动进度/运行状态）
+			primaryAction();
+		}
+
+		// 将地址规整回首页，刷新时不会重复触发
+		navigate('/', { replace: true });
+	}, [isStartShortcut, initialLoaded]);
 
 	interface DropdownEntry {
 		type: 'item' | 'separator';

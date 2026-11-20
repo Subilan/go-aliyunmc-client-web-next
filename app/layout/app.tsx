@@ -11,11 +11,12 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '~/components/ui/s
 import AppSidebar from '~/components/app-sidebar';
 import type { UserPermissions } from '~/types/UserPermissions';
 import type { McTranslation } from '~/types/McTranslations';
+import { buildLoginPath } from '~/utils/login-redirect';
 
-export const appLoader = createLoader(async () => {
+export const appLoader = createLoader(async ({ request }) => {
 	const user = await Auth.getUser();
 	if (!user) {
-		throw redirect('/lor');
+		throw redirect(buildLoginPath(request.url));
 	}
 	return { user };
 });

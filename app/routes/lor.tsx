@@ -23,12 +23,13 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { redirect } from 'react-router';
+import { redirect, useSearchParams } from 'react-router';
 import { Form } from '~/components/form/Form';
 import useStateNamed from '~/hooks/useStateNamed';
 import { Toast } from '~/root';
 import { Auth } from '~/utils/auth';
 import { createLoader } from '~/utils/createLoader';
+import { sanitizeRedirectTarget } from '~/utils/login-redirect';
 import { navigate } from '~/utils/navigate';
 import { resetLoginRedirect, setLoginRedirecting } from '~/utils/requests';
 import { Req } from '~/utils/requests/Req';
@@ -47,6 +48,8 @@ export interface RegisterPayload {
 
 function LoginForm({ setRegister }: { setRegister: () => void }) {
 	const { control, handleSubmit } = useForm<LoginPayload>();
+	const [searchParams] = useSearchParams();
+	const redirectTarget = sanitizeRedirectTarget(searchParams.get('redirect'));
 
 	const loading = useStateNamed(false);
 
@@ -58,7 +61,7 @@ function LoginForm({ setRegister }: { setRegister: () => void }) {
 			resetLoginRedirect();
 			Auth.clearCache();
 			Toast.success('登录成功');
-			navigate('/');
+			navigate(redirectTarget);
 		} else {
 			Toast.error(error);
 		}
@@ -179,12 +182,15 @@ function RegisterForm({ setLogin }: { setLogin: () => void }) {
 	);
 }
 
-export const lorLoader = createLoader(async args => {
+export const lorLoader = createLoader(async ({ request }) => {
 	setLoginRedirecting();
+	const redirectTarget = sanitizeRedirectTarget(
+		new URL(request.url).searchParams.get('redirect')
+	);
 	if (await Auth.isLoggedIn()) {
 		resetLoginRedirect();
 		Toast.info('你已经登录');
-		throw redirect('/');
+		throw redirect(redirectTarget);
 	}
 	resetLoginRedirect();
 });

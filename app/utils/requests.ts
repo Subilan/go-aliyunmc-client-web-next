@@ -1,5 +1,6 @@
-import { navigate } from "~/utils/navigate";
+import { currentLocationPath, navigate } from "~/utils/navigate";
 import { Auth } from "~/utils/auth";
+import { buildLoginPath, isLoginPath } from '~/utils/login-redirect';
 
 export const BASE_URL = import.meta.env.DEV ? '/api/lab-v1' : 'https://api.seatide.net/lab-v1';
 
@@ -28,9 +29,13 @@ async function req<T = any>(url: string, options: RequestInit): Promise<Resp<T>>
 	}
 
 	if (result.status && result.status === 401 && !redirectingToLogin) {
-		redirectingToLogin = true;
-		Auth.clearCache();
-		navigate('/lor');
+		const currentPath = currentLocationPath();
+		// 登录页自身的 401（如密码错误）交给表单提示，不触发跳转
+		if (!isLoginPath(currentPath)) {
+			redirectingToLogin = true;
+			Auth.clearCache();
+			navigate(buildLoginPath(currentPath), { replace: true });
+		}
 	}
 
 	let json: any = null;

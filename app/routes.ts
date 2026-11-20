@@ -37,6 +37,11 @@ export const router = createHashRouter([
 						index: true
 					},
 					{
+						// 快捷入口：访问 /start 直接打开首页的「启动游戏」对话框
+						path: 'start',
+						Component: Home
+					},
+					{
 						path: 'profile',
 						Component: Profile
 					},
